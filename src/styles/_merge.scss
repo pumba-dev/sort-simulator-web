@@ -1,0 +1,85 @@
+// Merge Sort - Divisões e Merges
+
+// Elementos sendo merged (convergindo)
+.sort-bars-wrapper--merging {
+  .sort-bars__item {
+    background: linear-gradient(180deg, #6eb3ff 0%, #0066dd 100%);
+    animation: merge-convergence 0.4s ease-out;
+    box-shadow: 0 2px 8px rgba(0, 102, 221, 0.35);
+  }
+}
+
+.sort-bars__item--active {
+  background: linear-gradient(180deg, #6eb3ff 0%, #0066dd 100%);
+}
+
+// Animação de convergência (elementos movem-se para o centro durante merge)
+@keyframes merge-convergence {
+  0% {
+    transform: scaleY(0.9);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scaleY(1.05);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+// Gradiente de profundidade (divisões mais profundas = cores mais claras)
+.sort-bars-wrapper--merging {
+  position: relative;
+
+  // Profundidade 0 (próximo ao merge final) - mais escuro
+  &.merge-depth-0 .sort-bars__item {
+    background: linear-gradient(180deg, #0066dd 0%, #0044aa 100%);
+  }
+
+  // Profundidade 1
+  &.merge-depth-1 .sort-bars__item {
+    background: linear-gradient(180deg, #3399ff 0%, #0066dd 100%);
+  }
+
+  // Profundidade 2 - mais claro
+  &.merge-depth-2 .sort-bars__item {
+    background: linear-gradient(180deg, #6eb3ff 0%, #3399ff 100%);
+  }
+
+  // Profundidade 3+ - ainda mais claro
+  &.merge-depth-3 .sort-bars__item,
+  &.merge-depth-4 .sort-bars__item,
+  &.merge-depth-5 .sort-bars__item {
+    background: linear-gradient(180deg, #99ccff 0%, #6eb3ff 100%);
+  }
+}
+
+// Borda para separar subarrays visualmente durante divisão
+.sort-bars-wrapper--merging {
+  border-right: 2px solid rgba(0, 102, 221, 0.3);
+}
+
+// Último elemento de um subarray
+.sort-bars-wrapper--merging:last-child {
+  border-right: 3px solid rgba(0, 102, 221, 0.6);
+}
+
+// Pulso suave para indicar que está sendo feito merge
+@keyframes merge-pulse {
+  0%,
+  100% {
+    box-shadow: 0 2px 8px rgba(0, 102, 221, 0.35);
+  }
+  50% {
+    box-shadow: 0 4px 12px rgba(0, 102, 221, 0.6);
+  }
+}
+
+.sort-bars-wrapper--merging .sort-bars__item {
+  animation:
+    merge-convergence 0.4s ease-out,
+    merge-pulse 0.6s ease-in-out infinite;
+  animation-delay: 0s, 0.2s;
+}

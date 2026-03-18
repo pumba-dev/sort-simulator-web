@@ -1,0 +1,116 @@
+// Quick Sort - Pivot e Partições
+
+// Pivot (elemento de particionamento)
+.sort-bars-wrapper--quick-partition {
+  .sort-bars__item {
+    background: linear-gradient(180deg, #ff6b6b 0%, #c92a2a 100%);
+    animation: quick-pivot-spin 0.5s ease;
+    box-shadow: 0 3px 10px rgba(201, 42, 42, 0.5);
+  }
+}
+
+.sort-bars__item--partition {
+  background: linear-gradient(180deg, #ff6b6b 0%, #c92a2a 100%);
+  box-shadow: 0 3px 10px rgba(201, 42, 42, 0.5);
+}
+
+// Elemento ativo (sendo comparado com pivot)
+.sort-bars__item--active {
+  background: linear-gradient(180deg, #ffd43b 0%, #f59f00 100%);
+  animation: quick-comparison 0.3s ease-in-out;
+  box-shadow: 0 2px 8px rgba(245, 159, 0, 0.4);
+}
+
+// Animação de rotação para o pivot (destaque especial)
+@keyframes quick-pivot-spin {
+  0% {
+    transform: scaleY(1) rotate(0deg);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scaleY(1.1) rotate(5deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleY(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+// Animação de comparação (elemento comparado ao pivot)
+@keyframes quick-comparison {
+  0% {
+    transform: scaleX(1);
+  }
+  50% {
+    transform: scaleX(1.1);
+  }
+  100% {
+    transform: scaleX(1);
+  }
+}
+
+// Partição esquerda (menores que pivot) - verde claro
+.sort-bars-wrapper {
+  &.quick-left-partition .sort-bars__item {
+    background: linear-gradient(180deg, #51cf66 0%, #2f9e44 100%);
+    opacity: 0.85;
+  }
+}
+
+// Partição direita (maiores que pivot) - azul claro
+.sort-bars-wrapper {
+  &.quick-right-partition .sort-bars__item {
+    background: linear-gradient(180deg, #74c0fc 0%, #1971c2 100%);
+    opacity: 0.85;
+  }
+}
+
+// Pulso do pivot para indicar foco
+@keyframes quick-pivot-pulse {
+  0%,
+  100% {
+    box-shadow: 0 3px 10px rgba(201, 42, 42, 0.5);
+  }
+  50% {
+    box-shadow: 0 6px 16px rgba(201, 42, 42, 0.8);
+  }
+}
+
+.sort-bars-wrapper--quick-partition .sort-bars__item {
+  animation:
+    quick-pivot-spin 0.5s ease,
+    quick-pivot-pulse 0.8s ease-in-out infinite;
+  animation-delay: 0s, 0.3s;
+}
+
+// Separador visual entre partições
+.sort-bars-wrapper--quick-partition::after {
+  content: "⟨ PIVOT ⟩";
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.6rem;
+  font-weight: bold;
+  color: #c92a2a;
+  white-space: nowrap;
+  opacity: 0.7;
+}
+
+// Efeito de "atração" - elementos que vão para uma partição
+@keyframes quick-attractor {
+  0% {
+    opacity: 0.6;
+    filter: brightness(1);
+  }
+  100% {
+    opacity: 1;
+    filter: brightness(1.1);
+  }
+}
+
+// Aplicar atrator quando está sendo comparado
+.sort-bars__item--active {
+  animation: quick-comparison 0.3s ease-in-out;
+}

@@ -1,0 +1,36 @@
+:root {
+  --sl-bg-main: #f4f6fb;
+  --sl-bg-panel: #ffffff;
+  --sl-bg-soft: #eef3ff;
+  --sl-bg-hero: radial-gradient(
+    circle at 15% 20%,
+    #ffffff 0%,
+    #e8eeff 45%,
+    #d8e1ff 100%
+  );
+
+  --sl-text-main: #172135;
+  --sl-text-muted: #4b5a79;
+  --sl-text-soft: #6a7897;
+
+  --sl-border: #d8e0f3;
+  --sl-border-strong: #b7c6eb;
+
+  --sl-accent: #164fd6;
+  --sl-accent-strong: #0f3da8;
+  --sl-accent-soft: #dce7ff;
+
+  --sl-success: #217a4f;
+  --sl-warning: #9b5700;
+  --sl-danger: #b73737;
+
+  --sl-shadow-sm: 0 8px 20px rgba(20, 52, 121, 0.08);
+  --sl-shadow-lg: 0 18px 36px rgba(17, 44, 105, 0.12);
+
+  --sl-radius-sm: 10px;
+  --sl-radius-md: 14px;
+  --sl-radius-lg: 18px;
+
+  --sl-font-sans: "Segoe UI", "Source Sans 3", Tahoma, sans-serif;
+  --sl-font-display: "Trebuchet MS", "Segoe UI", sans-serif;
+}

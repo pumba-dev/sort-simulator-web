@@ -1,0 +1,101 @@
+// Heap Sort - Heapify Region
+
+// Região sendo heapificada
+.sort-bars-wrapper--heapifying {
+  .sort-bars__item {
+    background: linear-gradient(180deg, #f0ad4e 0%, #d58512 100%);
+    animation: heapify-glow 0.5s ease-in-out;
+    box-shadow: 0 2px 8px rgba(213, 133, 18, 0.4);
+  }
+}
+
+.sort-bars__item--active {
+  background: linear-gradient(180deg, #f0ad4e 0%, #d58512 100%);
+}
+
+// Animação de "aquecimento" (glowing) durante heapify
+@keyframes heapify-glow {
+  0% {
+    transform: scaleY(0.95);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scaleY(1.08);
+    opacity: 1;
+    box-shadow: 0 4px 12px rgba(213, 133, 18, 0.6);
+  }
+  100% {
+    transform: scaleY(1);
+    opacity: 1;
+    box-shadow: 0 2px 8px rgba(213, 133, 18, 0.4);
+  }
+}
+
+// Elemento já heapificado (fora da região em processo)
+.sort-bars-wrapper:not(.sort-bars-wrapper--heapifying) {
+  .sort-bars__item {
+    background: linear-gradient(180deg, #7aa8ff 0%, #2f63d8 100%);
+    opacity: 0.6;
+  }
+}
+
+// Leaf nodes (sem filhos para comparar)
+.sort-bars-wrapper--heapifying {
+  position: relative;
+
+  // Indicador visual de que é uma folha
+  &.heap-leaf {
+    .sort-bars__item {
+      border-bottom: 2px solid rgba(213, 133, 18, 0.5);
+    }
+  }
+}
+
+// Pai e filhos destacados em comparação
+.sort-bars-wrapper--heapifying {
+  .sort-bars__item--active {
+    animation: heapify-parent-child 0.4s ease-in-out;
+  }
+}
+
+@keyframes heapify-parent-child {
+  0% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(1.15);
+  }
+  100% {
+    transform: scaleY(1);
+  }
+}
+
+// Linha imaginária conectando pai ao filho (visual)
+.sort-bars-wrapper--heapifying::before {
+  content: "";
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  width: 1px;
+  height: 4px;
+  background: rgba(213, 133, 18, 0.3);
+  transform: translateX(-50%);
+}
+
+// Pulso leve para indicar heapify em progresso
+@keyframes heapify-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+.sort-bars-wrapper--heapifying .sort-bars__item {
+  animation:
+    heapify-glow 0.5s ease-in-out,
+    heapify-pulse 0.8s ease-in-out infinite;
+  animation-delay: 0s, 0.3s;
+}
