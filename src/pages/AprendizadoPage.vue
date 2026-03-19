@@ -178,9 +178,14 @@ const createArrayByScenario = (
     return Array.from({ length: size }, (_, index) => size - index);
   }
 
-  return Array.from({ length: size }, () => {
-    return 1 + Math.floor(Math.random() * Math.max(2, size));
-  });
+  // Aleatorio: create array with unique numbers from 1 to size, then shuffle
+  const arr = Array.from({ length: size }, (_, index) => index + 1);
+  // Fisher-Yates shuffle algorithm
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
 };
 
 const parseManualValues = (): number[] => {
@@ -361,12 +366,15 @@ prepareSimulation();
           <a-form layout="vertical">
             <a-form-item>
               <template #label>
-                <a-tooltip title="Escolha o algoritmo de ordenação a visualizar. Cada um tem comportamento e performance diferentes.">
+                <a-tooltip
+                  title="Escolha o algoritmo de ordenação a visualizar. Cada um tem comportamento e performance diferentes."
+                >
                   <span>Algoritmo</span>
                 </a-tooltip>
               </template>
               <a-select
                 v-model:value="selectedAlgorithm"
+                :disabled="isPlaying"
                 :options="
                   learningAlgorithms.map((item) => ({
                     value: item.key,
@@ -378,11 +386,13 @@ prepareSimulation();
 
             <a-form-item>
               <template #label>
-                <a-tooltip title="Escolha se quer um vetor gerado automaticamente ou inserir seus próprios valores.">
+                <a-tooltip
+                  title="Escolha se quer um vetor gerado automaticamente ou inserir seus próprios valores."
+                >
                   <span>Tipo de entrada</span>
                 </a-tooltip>
               </template>
-              <a-radio-group v-model:value="inputMode">
+              <a-radio-group v-model:value="inputMode" :disabled="isPlaying">
                 <a-radio-button value="gerado">Gerado</a-radio-button>
                 <a-radio-button value="manual">Manual</a-radio-button>
               </a-radio-group>
@@ -391,12 +401,15 @@ prepareSimulation();
             <template v-if="inputMode === 'gerado'">
               <a-form-item>
                 <template #label>
-                  <a-tooltip title="Crescente: vetor já ordenado. Decrescente: vetor invertido. Aleatório: ordem aleatória.">
+                  <a-tooltip
+                    title="Crescente: vetor já ordenado. Decrescente: vetor invertido. Aleatório: ordem aleatória."
+                  >
                     <span>Cenario</span>
                   </a-tooltip>
                 </template>
                 <a-segmented
                   v-model:value="generatedScenario"
+                  :disabled="isPlaying"
                   :options="[
                     { value: 'crescente', label: scenarioLabelByKey.crescente },
                     {
@@ -410,12 +423,15 @@ prepareSimulation();
 
               <a-form-item>
                 <template #label>
-                  <a-tooltip title="Quantidade de elementos no vetor (máximo 80 para visualização clara).">
+                  <a-tooltip
+                    title="Quantidade de elementos no vetor (máximo 80 para visualização clara)."
+                  >
                     <span>Tamanho para visualizacao (maximo 80)</span>
                   </a-tooltip>
                 </template>
                 <a-slider
                   v-model:value="generatedSize"
+                  :disabled="isPlaying"
                   :min="8"
                   :max="80"
                   :step="1"
@@ -423,19 +439,26 @@ prepareSimulation();
               </a-form-item>
             </template>
 
-            <a-form-item
-              v-else
-            >
+            <a-form-item v-else>
               <template #label>
-                <a-tooltip title="Insira números separados por vírgula, espaço ou ponto e vírgula. Máximo 80 valores.">
+                <a-tooltip
+                  title="Insira números separados por vírgula, espaço ou ponto e vírgula. Máximo 80 valores."
+                >
                   <span>Vetor manual (numeros separados por virgula)</span>
                 </a-tooltip>
               </template>
-              <a-textarea v-model:value="manualVectorText" :rows="4" />
+              <a-textarea
+                v-model:value="manualVectorText"
+                :disabled="isPlaying"
+                :rows="4"
+              />
             </a-form-item>
 
             <a-space>
-              <a-button type="default" @click="regenerateVector"
+              <a-button
+                type="default"
+                :disabled="isPlaying"
+                @click="regenerateVector"
                 >Preparar</a-button
               >
             </a-space>
@@ -443,7 +466,13 @@ prepareSimulation();
         </article>
 
         <article class="page-card">
-          <h3 class="page-card__title">Descricao e Complexidade</h3>
+          <h3 class="page-card__title">
+            <a-tooltip
+              title="Informações sobre o algoritmo selecionado: conceito, estratégia de funcionamento e complexidade em diferentes cenários."
+            >
+              <span>Descricao e Complexidade</span>
+            </a-tooltip>
+          </h3>
           <a-space direction="vertical" style="width: 100%" :size="10">
             <p>{{ selectedMetadata.concept }}</p>
             <p>{{ selectedMetadata.strategy }}</p>
@@ -466,7 +495,9 @@ prepareSimulation();
           <a-form layout="vertical">
             <a-form-item>
               <template #label>
-                <a-tooltip title="Ajuste a velocidade de reprodução da animação. Valores maiores = mais rápido.">
+                <a-tooltip
+                  title="Ajuste a velocidade de reprodução da animação. Valores maiores = mais rápido."
+                >
                   <span>Velocidade</span>
                 </a-tooltip>
               </template>
@@ -523,7 +554,13 @@ prepareSimulation();
 
       <div class="aprendizado-grid__right">
         <article class="page-card">
-          <h3 class="page-card__title">Visualizacao do Vetor</h3>
+          <h3 class="page-card__title">
+            <a-tooltip
+              title="Gráfico visual do vetor. As cores mudam conforme o algoritmo executa: barra ativa (amarelo), já ordenada (verde), pivot (vermelho), etc."
+            >
+              <span>Visualizacao do Vetor</span>
+            </a-tooltip>
+          </h3>
           <div
             class="sort-bars"
             role="img"
@@ -536,6 +573,10 @@ prepareSimulation();
               :class="{
                 'sort-bars-wrapper--gap':
                   selectedAlgorithm === 'insertion' && gapIndex === index,
+                'sort-bars-wrapper--comparing':
+                  selectedAlgorithm === 'insertion' &&
+                  (index === currentStep?.variables.i ||
+                    index === currentStep?.variables.j),
                 'sort-bars-wrapper--sorted':
                   selectedAlgorithm === 'bubble' &&
                   sortedPartition &&
@@ -551,6 +592,11 @@ prepareSimulation();
                   merging &&
                   index >= merging.start &&
                   index < merging.end,
+                'sort-bars-wrapper--merge-comparing':
+                  selectedAlgorithm === 'merge' &&
+                  (index === currentStep?.variables.left ||
+                    index === currentStep?.variables.mid ||
+                    index === currentStep?.variables.right),
                 'sort-bars-wrapper--quick-partition':
                   selectedAlgorithm === 'quick' && partitionIndex === index,
               }"
@@ -591,7 +637,9 @@ prepareSimulation();
 
         <article class="page-card">
           <h3 class="page-card__title">
-            <a-tooltip title="Monitore as variáveis internas do algoritmo em tempo real conforme ele executa. Cada algoritmo expõe suas próprias variáveis de controle.">
+            <a-tooltip
+              title="Monitore as variáveis internas do algoritmo em tempo real conforme ele executa. Cada algoritmo expõe suas próprias variáveis de controle."
+            >
               <span>Estado das Variaveis</span>
             </a-tooltip>
           </h3>
@@ -599,181 +647,251 @@ prepareSimulation();
             <div v-if="currentStep" class="variables-display__grid">
               <!-- Bubble Sort variables -->
               <template v-if="selectedAlgorithm === 'bubble'">
-                <div class="variable-item">
-                  <span class="variable-item__label">i (passagem):</span>
-                  <span class="variable-item__value">{{
-                    currentStep.variables.i !== null
-                      ? currentStep.variables.i
-                      : "—"
-                  }}</span>
-                </div>
-                <div class="variable-item">
-                  <span class="variable-item__label">j (comparacao):</span>
-                  <span class="variable-item__value">{{
-                    currentStep.variables.j !== null
-                      ? currentStep.variables.j
-                      : "—"
-                  }}</span>
-                </div>
-                <div v-if="sortedPartition" class="variable-item">
-                  <span class="variable-item__label">Ordenado desde:</span>
-                  <span class="variable-item__value">{{
-                    sortedPartition.start
-                  }}</span>
-                </div>
+                <a-tooltip
+                  title="Índice da passagem externa (quantas vezes a bolha passou)"
+                >
+                  <div class="variable-item">
+                    <span class="variable-item__label">i (passagem):</span>
+                    <span class="variable-item__value">{{
+                      currentStep.variables.i !== null
+                        ? currentStep.variables.i
+                        : "—"
+                    }}</span>
+                  </div>
+                </a-tooltip>
+                <a-tooltip
+                  title="Índice de comparação na passagem atual (comparando com o anterior)"
+                >
+                  <div class="variable-item">
+                    <span class="variable-item__label">j (comparacao):</span>
+                    <span class="variable-item__value">{{
+                      currentStep.variables.j !== null
+                        ? currentStep.variables.j
+                        : "—"
+                    }}</span>
+                  </div>
+                </a-tooltip>
+                <a-tooltip
+                  title="A partir deste índice, os elementos já estão na posição final"
+                >
+                  <div v-if="sortedPartition" class="variable-item">
+                    <span class="variable-item__label">Ordenado desde:</span>
+                    <span class="variable-item__value">{{
+                      sortedPartition.start
+                    }}</span>
+                  </div>
+                </a-tooltip>
               </template>
 
               <!-- Insertion Sort variables -->
               <template v-else-if="selectedAlgorithm === 'insertion'">
-                <div class="variable-item">
-                  <span class="variable-item__label">j (elemento):</span>
-                  <span class="variable-item__value">{{
-                    currentStep.variables.j !== null
-                      ? currentStep.variables.j
-                      : "—"
-                  }}</span>
-                </div>
-                <div class="variable-item">
-                  <span class="variable-item__label">i (comparacao):</span>
-                  <span class="variable-item__value">{{
-                    currentStep.variables.i !== null
-                      ? currentStep.variables.i
-                      : "—"
-                  }}</span>
-                </div>
-                <div class="variable-item">
-                  <span class="variable-item__label">key:</span>
-                  <span class="variable-item__value">{{
-                    currentStep.variables.key !== null
-                      ? currentStep.variables.key
-                      : "—"
-                  }}</span>
-                </div>
-                <div v-if="gapIndex !== null" class="variable-item">
-                  <span class="variable-item__label">Lacuna em:</span>
-                  <span class="variable-item__value">{{ gapIndex }}</span>
-                </div>
+                <a-tooltip
+                  title="Índice do elemento sendo inserido na sequência ordenada"
+                >
+                  <div class="variable-item">
+                    <span class="variable-item__label">j (elemento):</span>
+                    <span class="variable-item__value">{{
+                      currentStep.variables.j !== null
+                        ? currentStep.variables.j
+                        : "—"
+                    }}</span>
+                  </div>
+                </a-tooltip>
+                <a-tooltip
+                  title="Índice da comparação durante a busca da posição correta"
+                >
+                  <div class="variable-item">
+                    <span class="variable-item__label">i (comparacao):</span>
+                    <span class="variable-item__value">{{
+                      currentStep.variables.i !== null
+                        ? currentStep.variables.i
+                        : "—"
+                    }}</span>
+                  </div>
+                </a-tooltip>
+                <a-tooltip title="Valor do elemento que está sendo inserido">
+                  <div class="variable-item">
+                    <span class="variable-item__label">key:</span>
+                    <span class="variable-item__value">{{
+                      currentStep.variables.key !== null
+                        ? currentStep.variables.key
+                        : "—"
+                    }}</span>
+                  </div>
+                </a-tooltip>
+                <a-tooltip
+                  title="Posição da lacuna aberta onde o elemento será inserido"
+                >
+                  <div v-if="gapIndex !== null" class="variable-item">
+                    <span class="variable-item__label">Lacuna em:</span>
+                    <span class="variable-item__value">{{ gapIndex }}</span>
+                  </div>
+                </a-tooltip>
               </template>
 
               <!-- Merge Sort variables -->
               <template v-else-if="selectedAlgorithm === 'merge'">
-                <div class="variable-item">
-                  <span class="variable-item__label">Esquerda:</span>
-                  <span class="variable-item__value">{{
-                    currentStep.variables.left !== null
-                      ? currentStep.variables.left
-                      : "—"
-                  }}</span>
-                </div>
-                <div class="variable-item">
-                  <span class="variable-item__label">Meio:</span>
-                  <span class="variable-item__value">{{
-                    currentStep.variables.mid !== null
-                      ? currentStep.variables.mid
-                      : "—"
-                  }}</span>
-                </div>
-                <div class="variable-item">
-                  <span class="variable-item__label">Direita:</span>
-                  <span class="variable-item__value">{{
-                    currentStep.variables.right !== null
-                      ? currentStep.variables.right
-                      : "—"
-                  }}</span>
-                </div>
-                <div
-                  v-if="currentStep.divisionDepth !== undefined"
-                  class="variable-item"
+                <a-tooltip title="Índice do início da partição esquerda">
+                  <div class="variable-item">
+                    <span class="variable-item__label">Esquerda:</span>
+                    <span class="variable-item__value">{{
+                      currentStep.variables.left !== null
+                        ? currentStep.variables.left
+                        : "—"
+                    }}</span>
+                  </div>
+                </a-tooltip>
+                <a-tooltip
+                  title="Índice do ponto meio (divisão entre esquerda e direita)"
                 >
-                  <span class="variable-item__label">Profundidade:</span>
-                  <span class="variable-item__value">{{
-                    currentStep.divisionDepth
-                  }}</span>
-                </div>
+                  <div class="variable-item">
+                    <span class="variable-item__label">Meio:</span>
+                    <span class="variable-item__value">{{
+                      currentStep.variables.mid !== null
+                        ? currentStep.variables.mid
+                        : "—"
+                    }}</span>
+                  </div>
+                </a-tooltip>
+                <a-tooltip title="Índice do final da partição direita">
+                  <div class="variable-item">
+                    <span class="variable-item__label">Direita:</span>
+                    <span class="variable-item__value">{{
+                      currentStep.variables.right !== null
+                        ? currentStep.variables.right
+                        : "—"
+                    }}</span>
+                  </div>
+                </a-tooltip>
+                <a-tooltip
+                  title="Nível de profundidade na recursão (0 = merge final, maiores = recursão mais profunda)"
+                >
+                  <div
+                    v-if="currentStep.divisionDepth !== undefined"
+                    class="variable-item"
+                  >
+                    <span class="variable-item__label">Profundidade:</span>
+                    <span class="variable-item__value">{{
+                      currentStep.divisionDepth
+                    }}</span>
+                  </div>
+                </a-tooltip>
               </template>
 
               <!-- Heap Sort variables -->
               <template v-else-if="selectedAlgorithm === 'heap'">
-                <div class="variable-item">
-                  <span class="variable-item__label">i (indice):</span>
-                  <span class="variable-item__value">{{
-                    currentStep.variables.i !== null
-                      ? currentStep.variables.i
-                      : "—"
-                  }}</span>
-                </div>
-                <div class="variable-item">
-                  <span class="variable-item__label">Maior:</span>
-                  <span class="variable-item__value">{{
-                    currentStep.variables.largest !== null
-                      ? currentStep.variables.largest
-                      : "—"
-                  }}</span>
-                </div>
-                <div class="variable-item">
-                  <span class="variable-item__label">Heap Size:</span>
-                  <span class="variable-item__value">{{
-                    currentStep.variables.heapSize !== null
-                      ? currentStep.variables.heapSize
-                      : "—"
-                  }}</span>
-                </div>
+                <a-tooltip
+                  title="Índice do nó sendo heapificado (comparado com seus filhos)"
+                >
+                  <div class="variable-item">
+                    <span class="variable-item__label">i (indice):</span>
+                    <span class="variable-item__value">{{
+                      currentStep.variables.i !== null
+                        ? currentStep.variables.i
+                        : "—"
+                    }}</span>
+                  </div>
+                </a-tooltip>
+                <a-tooltip
+                  title="Índice do maior elemento entre o nó e seus filhos"
+                >
+                  <div class="variable-item">
+                    <span class="variable-item__label">Maior:</span>
+                    <span class="variable-item__value">{{
+                      currentStep.variables.largest !== null
+                        ? currentStep.variables.largest
+                        : "—"
+                    }}</span>
+                  </div>
+                </a-tooltip>
+                <a-tooltip
+                  title="Tamanho atual do heap (diminui a cada extração do máximo)"
+                >
+                  <div class="variable-item">
+                    <span class="variable-item__label">Heap Size:</span>
+                    <span class="variable-item__value">{{
+                      currentStep.variables.heapSize !== null
+                        ? currentStep.variables.heapSize
+                        : "—"
+                    }}</span>
+                  </div>
+                </a-tooltip>
               </template>
 
               <!-- Quick Sort variables -->
               <template v-else-if="selectedAlgorithm === 'quick'">
-                <div class="variable-item">
-                  <span class="variable-item__label">Esquerda (p):</span>
-                  <span class="variable-item__value">{{
-                    currentStep.variables.p !== null
-                      ? currentStep.variables.p
-                      : "—"
-                  }}</span>
-                </div>
-                <div class="variable-item">
-                  <span class="variable-item__label">Direita (r):</span>
-                  <span class="variable-item__value">{{
-                    currentStep.variables.r !== null
-                      ? currentStep.variables.r
-                      : "—"
-                  }}</span>
-                </div>
-                <div class="variable-item">
-                  <span class="variable-item__label">Comparando (j):</span>
-                  <span class="variable-item__value">{{
-                    currentStep.variables.j !== null
-                      ? currentStep.variables.j
-                      : "—"
-                  }}</span>
-                </div>
-                <div class="variable-item">
-                  <span class="variable-item__label">Pivot:</span>
-                  <span class="variable-item__value">{{
-                    currentStep.variables.pivot !== null
-                      ? currentStep.variables.pivot
-                      : "—"
-                  }}</span>
-                </div>
+                <a-tooltip
+                  title="Índice esquerdo (p) da partição sendo processada"
+                >
+                  <div class="variable-item">
+                    <span class="variable-item__label">Esquerda (p):</span>
+                    <span class="variable-item__value">{{
+                      currentStep.variables.p !== null
+                        ? currentStep.variables.p
+                        : "—"
+                    }}</span>
+                  </div>
+                </a-tooltip>
+                <a-tooltip
+                  title="Índice direito (r) da partição sendo processada (pivot)"
+                >
+                  <div class="variable-item">
+                    <span class="variable-item__label">Direita (r):</span>
+                    <span class="variable-item__value">{{
+                      currentStep.variables.r !== null
+                        ? currentStep.variables.r
+                        : "—"
+                    }}</span>
+                  </div>
+                </a-tooltip>
+                <a-tooltip
+                  title="Índice sendo comparado com o pivot durante particionamento"
+                >
+                  <div class="variable-item">
+                    <span class="variable-item__label">Comparando (j):</span>
+                    <span class="variable-item__value">{{
+                      currentStep.variables.j !== null
+                        ? currentStep.variables.j
+                        : "—"
+                    }}</span>
+                  </div>
+                </a-tooltip>
+                <a-tooltip
+                  title="Valor do pivot (elemento usado como referência para partição)"
+                >
+                  <div class="variable-item">
+                    <span class="variable-item__label">Pivot:</span>
+                    <span class="variable-item__value">{{
+                      currentStep.variables.pivot !== null
+                        ? currentStep.variables.pivot
+                        : "—"
+                    }}</span>
+                  </div>
+                </a-tooltip>
               </template>
 
               <!-- Fallback for other cases -->
               <template v-else>
-                <div class="variable-item">
-                  <span class="variable-item__label">i:</span>
-                  <span class="variable-item__value">{{
-                    currentStep.variables.i !== null
-                      ? currentStep.variables.i
-                      : "—"
-                  }}</span>
-                </div>
-                <div class="variable-item">
-                  <span class="variable-item__label">j:</span>
-                  <span class="variable-item__value">{{
-                    currentStep.variables.j !== null
-                      ? currentStep.variables.j
-                      : "—"
-                  }}</span>
-                </div>
+                <a-tooltip title="Índice de iteração do loop externo">
+                  <div class="variable-item">
+                    <span class="variable-item__label">i:</span>
+                    <span class="variable-item__value">{{
+                      currentStep.variables.i !== null
+                        ? currentStep.variables.i
+                        : "—"
+                    }}</span>
+                  </div>
+                </a-tooltip>
+                <a-tooltip title="Índice de iteração do loop interno">
+                  <div class="variable-item">
+                    <span class="variable-item__label">j:</span>
+                    <span class="variable-item__value">{{
+                      currentStep.variables.j !== null
+                        ? currentStep.variables.j
+                        : "—"
+                    }}</span>
+                  </div>
+                </a-tooltip>
               </template>
             </div>
             <div v-else class="variables-display__empty">
@@ -784,30 +902,40 @@ prepareSimulation();
 
         <article class="page-card">
           <h3 class="page-card__title">
-            <a-tooltip title="Resumo das estatísticas da execução: tempo decorrido, total de comparações, total de trocas/deslocamentos e memória estimada.">
+            <a-tooltip
+              title="Resumo das estatísticas da execução: tempo decorrido, total de comparações, total de trocas/deslocamentos e memória estimada."
+            >
               <span>Metricas Basicas</span>
             </a-tooltip>
           </h3>
           <div class="page-kpis">
-            <a-tooltip title="Tempo total decorrido desde o início da animação, em milissegundos.">
+            <a-tooltip
+              title="Tempo total decorrido desde o início da animação, em milissegundos."
+            >
               <div class="kpi-tile">
                 <div class="kpi-tile__label">Tempo (ms)</div>
                 <div class="kpi-tile__value">{{ elapsedMs }}</div>
               </div>
             </a-tooltip>
-            <a-tooltip title="Número total de comparações entre elementos até o momento.">
+            <a-tooltip
+              title="Número total de comparações entre elementos até o momento."
+            >
               <div class="kpi-tile">
                 <div class="kpi-tile__label">Comparacoes</div>
                 <div class="kpi-tile__value">{{ comparisons }}</div>
               </div>
             </a-tooltip>
-            <a-tooltip title="Número total de trocas ou deslocamentos de elementos realizados.">
+            <a-tooltip
+              title="Número total de trocas ou deslocamentos de elementos realizados."
+            >
               <div class="kpi-tile">
                 <div class="kpi-tile__label">Trocas</div>
                 <div class="kpi-tile__value">{{ swaps }}</div>
               </div>
             </a-tooltip>
-            <a-tooltip title="Estimativa de memória usada pelo vetor (cada número = 8 bytes).">
+            <a-tooltip
+              title="Estimativa de memória usada pelo vetor (cada número = 8 bytes)."
+            >
               <div class="kpi-tile">
                 <div class="kpi-tile__label">Memoria estimada</div>
                 <div class="kpi-tile__value">

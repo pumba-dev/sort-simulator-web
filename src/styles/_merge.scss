@@ -1,5 +1,24 @@
 // Merge Sort - Divisões e Merges
 
+// Índices sendo comparados/divididos
+.sort-bars-wrapper--merge-comparing {
+  .sort-bars__item {
+    background: linear-gradient(180deg, #b37feb 0%, #722ed1 100%);
+    animation: merge-comparing 0.4s ease-in-out infinite;
+    box-shadow: 0 3px 12px rgba(114, 46, 209, 0.35);
+  }
+}
+
+@keyframes merge-comparing {
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.15);
+  }
+}
+
 // Elementos sendo merged (convergindo)
 .sort-bars-wrapper--merging {
   .sort-bars__item {
