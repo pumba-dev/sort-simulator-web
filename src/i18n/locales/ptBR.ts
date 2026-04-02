@@ -8,6 +8,8 @@ const ptBR = {
     learning: "Aprendizado",
     comparator: "Comparador",
     history: "Historico",
+    navigation: "Navegacao",
+    openNavigation: "Abrir menu de navegacao",
   },
   language: {
     change: "Alterar idioma",
@@ -194,8 +196,7 @@ const ptBR = {
       manualEmpty:
         "Informe numeros separados por virgula, espaco ou ponto e virgula.",
       manualInvalid: "Formato invalido. Exemplo: 8, 4, 6, 1 ou 8 4 6 1.",
-      manualMinValues:
-        "Informe pelo menos 2 numeros para iniciar a simulacao.",
+      manualMinValues: "Informe pelo menos 2 numeros para iniciar a simulacao.",
     },
     status: {
       readyPrepare: "Pronto para preparar simulacao",
@@ -226,7 +227,7 @@ const ptBR = {
       j: "j:",
       x: "X:",
       nMinusI: "n - i:",
-      gapAt: "Lacuna em:",
+      gapAt: "Lacuna:",
       p: "p:",
       q: "q:",
       r: "r:",
@@ -271,7 +272,8 @@ const ptBR = {
       description:
         "Informacoes sobre o algoritmo selecionado: conceito, estrategia de funcionamento e complexidade em diferentes cenarios.",
       variablesByAlgorithm: {
-        bubbleI: "Variavel i do pseudo-codigo (passagem externa do bubble sort).",
+        bubbleI:
+          "Variavel i do pseudo-codigo (passagem externa do bubble sort).",
         bubbleJ: "Variavel j do pseudo-codigo (loop interno de comparacao).",
         bubbleNMinusI:
           "Faixa ja ordenada associada ao limite n - i do pseudo-codigo.",
@@ -281,8 +283,7 @@ const ptBR = {
           "Variavel j do pseudo-codigo (posicao analisada na parte ordenada).",
         insertionX:
           "Variavel X do pseudo-codigo (valor temporario sendo inserido).",
-        insertionGap:
-          "Posicao da lacuna aberta onde o elemento sera inserido.",
+        insertionGap: "Posicao da lacuna aberta onde o elemento sera inserido.",
         mergeP: "Variavel p do pseudo-codigo (inicio da particao).",
         mergeQ: "Variavel q do pseudo-codigo (ponto medio).",
         mergeR: "Variavel r do pseudo-codigo (fim da particao).",
@@ -293,8 +294,7 @@ const ptBR = {
         heapSize: "Variavel heapSize do pseudo-codigo.",
         quickP: "Variavel p do pseudo-codigo (inicio da particao).",
         quickR: "Variavel r do pseudo-codigo (fim da particao).",
-        quickI:
-          "Variavel i do pseudo-codigo (fronteira dos valores <= pivot).",
+        quickI: "Variavel i do pseudo-codigo (fronteira dos valores <= pivot).",
         quickJ: "Variavel j do pseudo-codigo (indice atualmente comparado).",
         quickPivot: "Variavel pivot do pseudo-codigo.",
         quickQ:

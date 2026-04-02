@@ -749,17 +749,15 @@ prepareSimulation();
                   <span>{{ t("learning.form.speed") }}</span>
                 </a-tooltip>
               </template>
-              <div style="display: flex; align-items: center; gap: 12px">
+              <div class="learning-speed-control">
                 <a-slider
                   v-model:value="speed"
                   :min="1"
                   :max="10"
                   :step="1"
-                  style="flex: 1"
+                  class="learning-speed-control__slider"
                 />
-                <span style="font-weight: bold; min-width: 40px"
-                  >{{ speed }}x</span
-                >
+                <span class="learning-speed-control__value">{{ speed }}x</span>
               </div>
             </a-form-item>
           </a-form>
@@ -830,8 +828,8 @@ prepareSimulation();
               }}</a-button>
             </a-tooltip>
           </a-space>
-          <a-divider style="margin: 14px 0" />
-          <p style="margin: 0">
+          <a-divider class="learning-status-divider" />
+          <p class="learning-status-text">
             {{ t("learning.form.statusPrefix") }}
             <strong>{{ statusText }}</strong>
           </p>
@@ -894,8 +892,7 @@ prepareSimulation();
               </div>
               <div
                 v-if="selectedAlgorithm === 'insertion' && gapIndex === index"
-                class="sort-bars__item sort-bars__item--gap"
-                style="opacity: 0.3"
+                class="sort-bars__item sort-bars__item--gap sort-bars__item--ghost"
               />
               <div
                 v-else
@@ -1024,7 +1021,7 @@ prepareSimulation();
                     t('learning.tooltips.variablesByAlgorithm.insertionGap')
                   "
                 >
-                  <div v-if="gapIndex !== null" class="variable-item">
+                  <div class="variable-item">
                     <span class="variable-item__label">{{
                       t("learning.variableLabels.gapAt")
                     }}</span>
@@ -1326,10 +1323,14 @@ prepareSimulation();
               <span>{{ t("learning.sections.description") }}</span>
             </a-tooltip>
           </h3>
-          <a-space direction="vertical" style="width: 100%" :size="10">
+          <a-space
+            direction="vertical"
+            class="learning-description-stack"
+            :size="10"
+          >
             <p>{{ t(selectedMetadata.conceptKey) }}</p>
             <p>{{ t(selectedMetadata.strategyKey) }}</p>
-            <a-space wrap>
+            <a-space wrap :style="{ margin: 0 }">
               <a-tag color="green"
                 >{{ t("learning.complexity.best") }}:
                 {{ selectedMetadata.bestCase }}</a-tag

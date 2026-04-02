@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import {
@@ -7,12 +7,11 @@ import {
   BookOutlined,
   CodeOutlined,
   HistoryOutlined,
+  MenuOutlined,
 } from "@ant-design/icons-vue";
 import LanguageFab from "./components/LanguageFab.vue";
 import { setAppLocale } from "./i18n";
 import { LOCALE_STORAGE_KEY, isAppLocale } from "./i18n/types";
-import MobileValidationPage from "./pages/MobileValidationPage.vue";
-import { isMobileDevice } from "./utils/device-detector";
 
 type MenuSelection = {
   key: string;
@@ -21,7 +20,13 @@ type MenuSelection = {
 const route = useRoute();
 const router = useRouter();
 const { t } = useI18n();
-const shouldBlockMobile = ref(isMobileDevice());
+const showSecondaryPages = !import.meta.env.PROD;
+const MOBILE_HEADER_BREAKPOINT = 900;
+const isMobileHeader = ref(
+  typeof window !== "undefined" &&
+    window.innerWidth <= MOBILE_HEADER_BREAKPOINT,
+);
+const isMobileMenuOpen = ref(false);
 
 const selectedKey = computed(() => {
   if (route.path.startsWith("/comparador")) {
@@ -34,7 +39,27 @@ const selectedKey = computed(() => {
 });
 
 const navigateTo = ({ key }: MenuSelection): void => {
+  isMobileMenuOpen.value = false;
   void router.push(key);
+};
+
+const updateMobileHeaderState = (): void => {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  isMobileHeader.value = window.innerWidth <= MOBILE_HEADER_BREAKPOINT;
+  if (!isMobileHeader.value) {
+    isMobileMenuOpen.value = false;
+  }
+};
+
+const openMobileMenu = (): void => {
+  isMobileMenuOpen.value = true;
+};
+
+const closeMobileMenu = (): void => {
+  isMobileMenuOpen.value = false;
 };
 
 const handleStorageChange = (event: StorageEvent): void => {
@@ -48,24 +73,34 @@ const handleStorageChange = (event: StorageEvent): void => {
 };
 
 onMounted(() => {
+  updateMobileHeaderState();
+  window.addEventListener("resize", updateMobileHeaderState);
   window.addEventListener("storage", handleStorageChange);
 });
 
 onBeforeUnmount(() => {
+  window.removeEventListener("resize", updateMobileHeaderState);
   window.removeEventListener("storage", handleStorageChange);
 });
+
+watch(
+  () => route.path,
+  () => {
+    isMobileMenuOpen.value = false;
+  },
+);
 </script>
 
 <template>
-  <MobileValidationPage v-if="shouldBlockMobile" />
-
-  <a-layout v-else class="app-shell">
+  <a-layout class="app-shell">
     <a-layout-header class="app-header">
       <div
         class="brand"
         role="button"
         tabindex="0"
         @click="navigateTo({ key: '/aprendizado' })"
+        @keydown.enter.prevent="navigateTo({ key: '/aprendizado' })"
+        @keydown.space.prevent="navigateTo({ key: '/aprendizado' })"
       >
         <span class="brand__icon" aria-hidden="true">
           <CodeOutlined />
@@ -77,25 +112,67 @@ onBeforeUnmount(() => {
       </div>
 
       <a-menu
+        v-if="!isMobileHeader"
         mode="horizontal"
         :selected-keys="[selectedKey]"
-        class="main-menu"
+        class="main-menu main-menu--desktop"
         @click="navigateTo"
       >
         <a-menu-item key="/aprendizado">
           <BookOutlined />
           {{ t("menu.learning") }}
         </a-menu-item>
-        <a-menu-item key="/comparador">
+        <a-menu-item v-if="showSecondaryPages" key="/comparador">
           <BarChartOutlined />
           {{ t("menu.comparator") }}
         </a-menu-item>
-        <a-menu-item key="/historico">
+        <a-menu-item v-if="showSecondaryPages" key="/historico">
           <HistoryOutlined />
           {{ t("menu.history") }}
         </a-menu-item>
       </a-menu>
+
+      <button
+        v-else
+        type="button"
+        class="main-menu-toggle"
+        :aria-label="t('menu.openNavigation')"
+        :aria-expanded="isMobileMenuOpen"
+        aria-haspopup="dialog"
+        @click="openMobileMenu"
+      >
+        <MenuOutlined />
+      </button>
     </a-layout-header>
+
+    <a-drawer
+      v-if="isMobileHeader"
+      class="mobile-menu-drawer"
+      placement="right"
+      :title="t('menu.navigation')"
+      :open="isMobileMenuOpen"
+      @close="closeMobileMenu"
+    >
+      <a-menu
+        mode="inline"
+        :selected-keys="[selectedKey]"
+        class="main-menu-mobile"
+        @click="navigateTo"
+      >
+        <a-menu-item key="/aprendizado">
+          <BookOutlined />
+          {{ t("menu.learning") }}
+        </a-menu-item>
+        <a-menu-item v-if="showSecondaryPages" key="/comparador">
+          <BarChartOutlined />
+          {{ t("menu.comparator") }}
+        </a-menu-item>
+        <a-menu-item v-if="showSecondaryPages" key="/historico">
+          <HistoryOutlined />
+          {{ t("menu.history") }}
+        </a-menu-item>
+      </a-menu>
+    </a-drawer>
 
     <a-layout-content class="app-content">
       <router-view />

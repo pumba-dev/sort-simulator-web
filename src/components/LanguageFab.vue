@@ -209,8 +209,65 @@ const selectLocale = (locale: AppLocale): void => {
 
 @media (max-width: 900px) {
   .language-fab {
-    right: 16px;
-    bottom: 16px;
+    right: 14px;
+    bottom: 14px;
+  }
+}
+
+@media (max-width: 600px) {
+  .language-fab {
+    right: 12px;
+    bottom: 12px;
+  }
+
+  .language-fab__trigger {
+    width: 52px;
+    height: 52px;
+  }
+
+  .language-fab__trigger-icon {
+    width: 18px;
+    height: 18px;
+    font-size: 10px;
+  }
+
+  .language-fab__menu {
+    min-width: 206px;
+  }
+}
+
+@media (max-width: 480px) {
+  .language-fab {
+    right: 10px;
+    bottom: 10px;
+  }
+
+  .language-fab__trigger {
+    width: 46px;
+    height: 46px;
+  }
+
+  .language-fab__trigger-icon {
+    width: 16px;
+    height: 16px;
+    font-size: 9px;
+  }
+
+  .language-fab__menu {
+    min-width: 178px;
+    gap: 5px;
+  }
+
+  .language-fab__item {
+    grid-template-columns: 22px 1fr auto;
+    gap: 8px;
+    font-size: 0.84rem;
+    padding: 6px 8px;
+  }
+
+  .language-fab__item-flag {
+    width: 22px;
+    height: 15px;
   }
 }
 </style>

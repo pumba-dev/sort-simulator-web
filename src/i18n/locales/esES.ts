@@ -8,6 +8,8 @@ const esES = {
     learning: "Aprendizaje",
     comparator: "Comparador",
     history: "Historial",
+    navigation: "Navegacion",
+    openNavigation: "Abrir menu de navegacion",
   },
   language: {
     change: "Cambiar idioma",
@@ -225,7 +227,7 @@ const esES = {
       j: "j:",
       x: "X:",
       nMinusI: "n - i:",
-      gapAt: "Hueco en:",
+      gapAt: "Hueco:",
       p: "p:",
       q: "q:",
       r: "r:",
@@ -270,7 +272,8 @@ const esES = {
       description:
         "Informacion del algoritmo seleccionado: concepto, estrategia y complejidad en diferentes escenarios.",
       variablesByAlgorithm: {
-        bubbleI: "Variable i del pseudo-codigo (pasada externa de bubble sort).",
+        bubbleI:
+          "Variable i del pseudo-codigo (pasada externa de bubble sort).",
         bubbleJ: "Variable j del pseudo-codigo (bucle interno de comparacion).",
         bubbleNMinusI:
           "Rango ya ordenado asociado al limite n - i del pseudo-codigo.",
@@ -280,7 +283,8 @@ const esES = {
           "Variable j del pseudo-codigo (posicion analizada en la parte ordenada).",
         insertionX:
           "Variable X del pseudo-codigo (valor temporal que se inserta).",
-        insertionGap: "Posicion del hueco abierto donde se insertara el elemento.",
+        insertionGap:
+          "Posicion del hueco abierto donde se insertara el elemento.",
         mergeP: "Variable p del pseudo-codigo (inicio de la particion).",
         mergeQ: "Variable q del pseudo-codigo (punto medio).",
         mergeR: "Variable r del pseudo-codigo (fin de la particion).",
@@ -314,8 +318,7 @@ const esES = {
       merge: {
         concept:
           "Divide el problema en mitades, ordena de forma recursiva e intercala.",
-        strategy:
-          "Usa un enfoque de divide y venceras con mezcla ordenada.",
+        strategy: "Usa un enfoque de divide y venceras con mezcla ordenada.",
       },
       heap: {
         concept:

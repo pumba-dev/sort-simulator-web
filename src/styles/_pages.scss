@@ -1,7 +1,10 @@
 .aprendizado-grid {
   display: grid;
   gap: 16px;
-  grid-template-columns: 360px minmax(0, 1fr) 340px;
+  grid-template-columns: minmax(240px, 300px) minmax(0, 1fr) minmax(
+      320px,
+      420px
+    );
 }
 
 .aprendizado-grid__left,
@@ -17,9 +20,10 @@
   border: 1px solid var(--sl-border);
   border-radius: var(--sl-radius-sm);
   font-family: "Courier New", Courier, monospace;
-  font-size: 0.82rem;
+  font-size: 0.84rem;
   line-height: 1.45;
-  overflow-y: auto;
+  max-height: 420px;
+  overflow: auto;
 }
 
 .pseudo-code__line {
@@ -47,6 +51,7 @@
 
 .pseudo-code__text {
   display: block;
+  min-width: 0;
   color: var(--sl-text-default);
   white-space: pre;
 }
@@ -109,6 +114,10 @@
 
 .sort-bars__item--pivot {
   background: linear-gradient(180deg, #97e7b8 0%, #2e9859 100%);
+}
+
+.sort-bars__item--ghost {
+  opacity: 0.32;
 }
 
 .sort-bars-wrapper {
@@ -185,6 +194,34 @@
   color: var(--sl-accent-strong);
 }
 
+.learning-speed-control {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.learning-speed-control__slider {
+  flex: 1;
+}
+
+.learning-speed-control__value {
+  font-weight: 700;
+  min-width: 40px;
+  text-align: right;
+}
+
+.learning-status-divider {
+  margin: 14px 0 !important;
+}
+
+.learning-status-text {
+  margin: 0;
+}
+
+.learning-description-stack {
+  width: 100%;
+}
+
 .comparador-grid {
   display: grid;
   gap: 16px;
@@ -239,8 +276,183 @@
 }
 
 @media (max-width: 1050px) {
+  .aprendizado-grid {
+    grid-template-columns: minmax(250px, 310px) minmax(0, 1fr);
+  }
+
+  .aprendizado-grid__right {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 900px) {
   .aprendizado-grid,
   .historico-grid {
     grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .aprendizado-grid__left,
+  .aprendizado-grid__middle,
+  .aprendizado-grid__right {
+    gap: 12px;
+  }
+
+  .aprendizado-grid__right {
+    grid-column: auto;
+  }
+
+  .sort-bars {
+    height: 230px;
+    padding: 10px;
+  }
+
+  .pseudo-code {
+    max-height: 360px;
+  }
+}
+
+@media (max-width: 768px) {
+  .sort-bars {
+    height: 200px;
+    gap: 2px;
+    padding: 8px;
+  }
+
+  .sort-bars__index {
+    font-size: 0.64rem;
+  }
+
+  .sort-bars__value {
+    font-size: 0.7rem;
+  }
+
+  .variables-display {
+    padding: 10px;
+  }
+
+  .variables-display__grid {
+    gap: 10px;
+    grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+  }
+
+  .variable-item__value {
+    font-size: 1.18rem;
+  }
+
+  .learning-speed-control {
+    gap: 10px;
+  }
+
+  .pseudo-code {
+    max-height: 320px;
+    font-size: 0.82rem;
+  }
+
+  .pseudo-code__text {
+    white-space: break-spaces;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .pseudo-code__token {
+    white-space: inherit;
+  }
+
+  .pseudo-code__line {
+    grid-template-columns: 1.9rem 1fr;
+    gap: 6px;
+  }
+
+  .history-list {
+    max-height: 420px;
+  }
+}
+
+@media (max-width: 600px) {
+  .aprendizado-grid,
+  .aprendizado-grid__left,
+  .aprendizado-grid__middle,
+  .aprendizado-grid__right {
+    gap: 10px;
+  }
+
+  .sort-bars {
+    height: 170px;
+    padding: 6px;
+  }
+
+  .sort-bars-wrapper {
+    min-width: 4px;
+    gap: 3px;
+  }
+
+  .sort-bars__index {
+    font-size: 0.6rem;
+  }
+
+  .sort-bars__value {
+    font-size: 0.66rem;
+  }
+
+  .pseudo-code {
+    padding: 10px;
+    max-height: 280px;
+    font-size: 0.8rem;
+  }
+
+  .learning-speed-control__value {
+    min-width: 34px;
+  }
+
+  .history-list {
+    max-height: 340px;
+  }
+}
+
+@media (max-width: 480px) {
+  .sort-bars {
+    height: 150px;
+    padding: 6px 4px;
+  }
+
+  .pseudo-code {
+    font-size: 0.76rem;
+    line-height: 1.35;
+  }
+
+  .pseudo-code__line {
+    grid-template-columns: 1.6rem 1fr;
+    gap: 5px;
+  }
+
+  .variables-display__grid {
+    gap: 8px;
+    grid-template-columns: repeat(auto-fit, minmax(64px, 1fr));
+  }
+
+  .variable-item {
+    padding: 6px;
+  }
+
+  .variable-item__label {
+    font-size: 0.72rem;
+  }
+
+  .variable-item__value {
+    font-size: 1rem;
+  }
+
+  .learning-speed-control {
+    gap: 8px;
+  }
+
+  .learning-speed-control__value {
+    min-width: 30px;
+    font-size: 0.9rem;
+  }
+
+  .learning-status-divider {
+    margin: 10px 0 !important;
   }
 }

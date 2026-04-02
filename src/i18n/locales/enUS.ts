@@ -8,6 +8,8 @@ const enUS = {
     learning: "Learning",
     comparator: "Comparator",
     history: "History",
+    navigation: "Navigation",
+    openNavigation: "Open navigation menu",
   },
   language: {
     change: "Change language",
@@ -191,8 +193,7 @@ const enUS = {
         "Accepted format: numbers separated by comma, space, or semicolon.",
     },
     validation: {
-      manualEmpty:
-        "Enter numbers separated by comma, space, or semicolon.",
+      manualEmpty: "Enter numbers separated by comma, space, or semicolon.",
       manualInvalid: "Invalid format. Example: 8, 4, 6, 1 or 8 4 6 1.",
       manualMinValues: "Enter at least 2 numbers to start the simulation.",
     },
@@ -259,10 +260,8 @@ const enUS = {
         "Monitor the algorithm internal variables in real time during execution.",
       basicMetrics:
         "Execution statistics summary: elapsed time, total comparisons, and total swaps/shifts.",
-      kpiTime:
-        "Total elapsed time since animation start, in milliseconds.",
-      kpiComparisons:
-        "Total number of element comparisons so far.",
+      kpiTime: "Total elapsed time since animation start, in milliseconds.",
+      kpiComparisons: "Total number of element comparisons so far.",
       kpiSwaps: "Total number of swaps or element shifts performed.",
       pseudo:
         "Didactic pseudo-code of the selected algorithm, using arrays indexed from 1.",
@@ -271,15 +270,14 @@ const enUS = {
       variablesByAlgorithm: {
         bubbleI: "Pseudo-code variable i (bubble sort outer pass).",
         bubbleJ: "Pseudo-code variable j (inner comparison loop).",
-        bubbleNMinusI:
-          "Sorted range associated with pseudo-code limit n - i.",
+        bubbleNMinusI: "Sorted range associated with pseudo-code limit n - i.",
         insertionI:
           "Pseudo-code variable i (index of the element being inserted).",
         insertionJ:
           "Pseudo-code variable j (position analyzed in the sorted portion).",
-        insertionX:
-          "Pseudo-code variable X (temporary value being inserted).",
-        insertionGap: "Position of the open gap where the element will be inserted.",
+        insertionX: "Pseudo-code variable X (temporary value being inserted).",
+        insertionGap:
+          "Position of the open gap where the element will be inserted.",
         mergeP: "Pseudo-code variable p (partition start).",
         mergeQ: "Pseudo-code variable q (middle point).",
         mergeR: "Pseudo-code variable r (partition end).",
@@ -292,7 +290,8 @@ const enUS = {
         quickI: "Pseudo-code variable i (boundary of values <= pivot).",
         quickJ: "Pseudo-code variable j (currently compared index).",
         quickPivot: "Pseudo-code variable pivot.",
-        quickQ: "Pseudo-code variable q (pivot final position after PARTITION).",
+        quickQ:
+          "Pseudo-code variable q (pivot final position after PARTITION).",
         fallbackI: "Outer loop iteration index.",
         fallbackJ: "Inner loop iteration index.",
       },
@@ -305,7 +304,8 @@ const enUS = {
           "Traverses left to right and shifts larger elements to make room.",
       },
       bubble: {
-        concept: "Compares adjacent pairs and swaps when they are out of order.",
+        concept:
+          "Compares adjacent pairs and swaps when they are out of order.",
         strategy: "Repeats passes until no swaps are needed.",
       },
       merge: {
@@ -319,8 +319,7 @@ const enUS = {
         strategy: "Maintains heap property during extractions.",
       },
       quick: {
-        concept:
-          "Partitions around a pivot and recursively sorts sub-vectors.",
+        concept: "Partitions around a pivot and recursively sorts sub-vectors.",
         strategy: "Pivot selection strongly affects performance.",
       },
     },
