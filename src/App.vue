@@ -1,12 +1,18 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
 import {
   BarChartOutlined,
   BookOutlined,
   CodeOutlined,
   HistoryOutlined,
 } from "@ant-design/icons-vue";
+import LanguageFab from "./components/LanguageFab.vue";
+import { setAppLocale } from "./i18n";
+import { LOCALE_STORAGE_KEY, isAppLocale } from "./i18n/types";
+import MobileValidationPage from "./pages/MobileValidationPage.vue";
+import { isMobileDevice } from "./utils/device-detector";
 
 type MenuSelection = {
   key: string;
@@ -14,6 +20,8 @@ type MenuSelection = {
 
 const route = useRoute();
 const router = useRouter();
+const { t } = useI18n();
+const shouldBlockMobile = ref(isMobileDevice());
 
 const selectedKey = computed(() => {
   if (route.path.startsWith("/comparador")) {
@@ -28,10 +36,30 @@ const selectedKey = computed(() => {
 const navigateTo = ({ key }: MenuSelection): void => {
   void router.push(key);
 };
+
+const handleStorageChange = (event: StorageEvent): void => {
+  if (event.key !== LOCALE_STORAGE_KEY || !event.newValue) {
+    return;
+  }
+
+  if (isAppLocale(event.newValue)) {
+    setAppLocale(event.newValue);
+  }
+};
+
+onMounted(() => {
+  window.addEventListener("storage", handleStorageChange);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener("storage", handleStorageChange);
+});
 </script>
 
 <template>
-  <a-layout class="app-shell">
+  <MobileValidationPage v-if="shouldBlockMobile" />
+
+  <a-layout v-else class="app-shell">
     <a-layout-header class="app-header">
       <div
         class="brand"
@@ -43,8 +71,8 @@ const navigateTo = ({ key }: MenuSelection): void => {
           <CodeOutlined />
         </span>
         <span class="brand__text">
-          <span class="brand__title">Sorting Lab</span>
-          <span class="brand__subtitle">Simulador Iterativo</span>
+          <span class="brand__title">{{ t("app.brandTitle") }}</span>
+          <span class="brand__subtitle">{{ t("app.brandSubtitle") }}</span>
         </span>
       </div>
 
@@ -56,15 +84,15 @@ const navigateTo = ({ key }: MenuSelection): void => {
       >
         <a-menu-item key="/aprendizado">
           <BookOutlined />
-          Aprendizado
+          {{ t("menu.learning") }}
         </a-menu-item>
         <a-menu-item key="/comparador">
           <BarChartOutlined />
-          Comparador
+          {{ t("menu.comparator") }}
         </a-menu-item>
         <a-menu-item key="/historico">
           <HistoryOutlined />
-          Historico
+          {{ t("menu.history") }}
         </a-menu-item>
       </a-menu>
     </a-layout-header>
@@ -81,9 +109,11 @@ const navigateTo = ({ key }: MenuSelection): void => {
           target="_blank"
           rel="noopener noreferrer"
         >
-          Sorting Algorithms Simulator · Pumba Developer © 2026
+          {{ t("app.footerText") }}
         </a>
       </div>
     </a-layout-footer>
   </a-layout>
+
+  <LanguageFab />
 </template>

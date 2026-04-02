@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import {
   learningAlgorithms,
   learningByKey,
-} from "../constants/learning-algorithms";
+} from "../constants/learningAlgorithms";
 import type { AlgorithmKey, ScenarioType } from "../types/comparator";
 // @ts-ignore
 import bubbleSort from "../../algorithms/bubbleSort";
@@ -132,97 +133,15 @@ const tokenizePseudoLine = (line: string): PseudoToken[] => {
   });
 };
 
-const pseudoLineTooltips: Record<AlgorithmKey, string[]> = {
-  insertion: [
-    "Define a funcao principal do Insertion Sort para um vetor indexado de 1 ate n.",
-    "Percorre o vetor da segunda posicao ate o fim, inserindo um elemento por iteracao.",
-    "Copia o valor atual para a variavel temporaria X antes dos deslocamentos.",
-    "Inicializa j na posicao imediatamente anterior a i para comparar com os elementos ja ordenados.",
-    "Continua deslocando enquanto houver elementos maiores que a chave na parte ordenada.",
-    "Desloca o elemento de A[j] uma posicao para a direita para abrir espaco.",
-    "Move j para a esquerda para seguir procurando a posicao correta de insercao.",
-    "Insere a chave na posicao final encontrada apos os deslocamentos.",
-  ],
-  bubble: [
-    "Define a funcao principal do Bubble Sort para o vetor inteiro.",
-    "Controla as passagens externas; a cada passagem, o maior elemento restante vai para o fim.",
-    "Reinicia a flag de troca para detectar se ainda ha desordem nesta passagem.",
-    "Percorre pares adjacentes da parte ainda nao consolidada do vetor.",
-    "Compara o par atual e verifica se esta fora de ordem.",
-    "Troca os dois elementos para corrigir a ordem local.",
-    "Marca que houve troca nesta passagem.",
-    "Se nenhuma troca ocorreu, o vetor ja esta ordenado.",
-    "Encerra antecipadamente para evitar iteracoes desnecessarias.",
-  ],
-  merge: [
-    "Define a funcao recursiva principal do Merge Sort para o intervalo [p, r].",
-    "Verifica o caso recursivo: so divide se houver pelo menos dois elementos.",
-    "Calcula o ponto medio q para separar o intervalo em duas metades.",
-    "Ordena recursivamente a metade esquerda [p, q].",
-    "Ordena recursivamente a metade direita [q + 1, r].",
-    "Intercala as duas metades ja ordenadas no intervalo original.",
-    "Separador visual entre a funcao principal e a funcao auxiliar de merge.",
-    "Define a funcao auxiliar que intercala duas particoes ordenadas.",
-    "Calcula o tamanho da particao esquerda.",
-    "Calcula o tamanho da particao direita.",
-    "Percorre os elementos da particao esquerda temporaria.",
-    "Copia cada elemento da metade esquerda para o vetor auxiliar L.",
-    "Percorre os elementos da particao direita temporaria.",
-    "Copia cada elemento da metade direita para o vetor auxiliar R.",
-    "Adiciona sentinela no fim de L para simplificar comparacoes de limite.",
-    "Adiciona sentinela no fim de R para simplificar comparacoes de limite.",
-    "Inicializa o ponteiro i para o inicio de L.",
-    "Inicializa o ponteiro j para o inicio de R.",
-    "Percorre todas as posicoes do intervalo original [p, r].",
-    "Compara os elementos atuais de L e R para decidir qual entra no vetor final.",
-    "Grava em A[k] o menor elemento entre as cabecas de L e R.",
-    "Avanca o ponteiro i apos consumir um elemento de L.",
-    "Caminho alternativo quando o elemento de R e menor.",
-    "Grava em A[k] o elemento atual de R.",
-    "Avanca o ponteiro j apos consumir um elemento de R.",
-  ],
-  heap: [
-    "Define a funcao principal do Heap Sort para um vetor indexado de 1 ate n.",
-    "Constroi inicialmente um max-heap com todos os elementos do vetor.",
-    "Percorre o fim do vetor para extrair o maior elemento da heap em cada iteracao.",
-    "Move o maior elemento (raiz) para sua posicao final no fim do vetor.",
-    "Reduz o tamanho util da heap apos fixar um elemento no final.",
-    "Restaura a propriedade de max-heap a partir da raiz.",
-    "Separador visual entre a funcao principal e as funcoes auxiliares.",
-    "Define a funcao auxiliar para construir o max-heap inicial.",
-    "Inicializa o tamanho da heap com o tamanho total do vetor.",
-    "Percorre os nos internos de baixo para cima para heapificar tudo.",
-    "Aplica heapify em cada no interno para garantir a propriedade de max-heap.",
-    "Separador visual antes da rotina de ajuste local da heap.",
-    "Define a funcao que corrige a heap no no i considerando um heapSize atual.",
-    "Calcula o indice do filho esquerdo do no i.",
-    "Calcula o indice do filho direito do no i.",
-    "Assume inicialmente que o maior elemento esta na raiz local i.",
-    "Compara o filho esquerdo com o maior atual, respeitando o limite heapSize.",
-    "Atualiza o indice do maior quando o filho esquerdo vence a comparacao.",
-    "Compara o filho direito com o maior atual, respeitando o limite heapSize.",
-    "Atualiza o indice do maior quando o filho direito vence a comparacao.",
-    "Verifica se o maior elemento nao esta na raiz local e precisa de ajuste.",
-    "Troca a raiz local com o maior filho para restaurar a ordem da heap.",
-    "Continua recursivamente o ajuste na subarvore afetada pela troca.",
-  ],
-  quick: [
-    "Define a funcao recursiva principal do Quick Sort para o intervalo [p, r].",
-    "Executa o particionamento apenas quando o intervalo possui mais de um elemento.",
-    "Particiona o intervalo e obtem a posicao final q do pivo.",
-    "Ordena recursivamente a particao esquerda do pivo.",
-    "Ordena recursivamente a particao direita do pivo.",
-    "Separador visual entre Quick Sort e sua rotina de particionamento.",
-    "Define a funcao de particionamento usada pelo Quick Sort.",
-    "Seleciona o ultimo elemento como pivo da particao atual.",
-    "Inicializa i para delimitar a fronteira dos elementos menores ou iguais ao pivo.",
-    "Percorre o intervalo de comparacao de p ate r - 1.",
-    "Testa se o elemento atual deve ir para o lado esquerdo do pivo.",
-    "Avanca a fronteira de elementos menores ou iguais ao pivo.",
-    "Troca para manter os elementos <= pivo agrupados a esquerda.",
-    "Coloca o pivo entre os dois grupos apos o fim do loop.",
-    "Retorna o indice final do pivo para dividir as chamadas recursivas.",
-  ],
+const { t, tm } = useI18n();
+
+const getPseudoTips = (algorithm: AlgorithmKey): string[] => {
+  const localizedTips = tm(learningByKey[algorithm].pseudoTipsKey);
+  if (!Array.isArray(localizedTips)) {
+    return [];
+  }
+
+  return localizedTips.map((item) => String(item));
 };
 
 const describePseudoLine = (
@@ -230,22 +149,28 @@ const describePseudoLine = (
   line: string,
   lineIndex: number,
 ): string => {
-  const tips = pseudoLineTooltips[algorithm];
+  const tips = getPseudoTips(algorithm);
   if (tips && tips[lineIndex]) {
     return tips[lineIndex];
   }
 
   if (!line.trim()) {
-    return "Separador visual entre blocos do pseudo-codigo.";
+    return t("learning.pseudoTips.separator");
   }
 
-  const algorithmTitle = learningByKey[algorithm]?.title ?? "algoritmo";
-  return `Executa o passo ${lineIndex + 1} do ${algorithmTitle}.`;
+  const algorithmTitle = t(
+    learningByKey[algorithm]?.titleKey ?? "common.algorithms.insertion",
+  );
+  return t("learning.pseudoTips.fallbackStep", {
+    step: lineIndex + 1,
+    algorithm: algorithmTitle,
+  });
 };
 
 const selectedAlgorithm = ref<AlgorithmKey>("insertion");
 const inputMode = ref<InputMode>("gerado");
 const generatedScenario = ref<ScenarioType>("aleatorio");
+const MAX_VISUALIZATION_SIZE = 30;
 const generatedSize = ref<number>(24);
 const manualVectorText = ref<string>("8, 4, 6, 1, 3, 9, 2, 7");
 const speed = ref<number>(3);
@@ -263,14 +188,25 @@ const playbackStartedAt = ref<number | null>(null);
 
 let timerId: number | null = null;
 
-const scenarioLabelByKey: Record<ScenarioType, string> = {
-  crescente: "Crescente",
-  decrescente: "Decrescente",
-  aleatorio: "Aleatorio",
-};
+const scenarioLabelByKey = computed<Record<ScenarioType, string>>(() => {
+  return {
+    crescente: t("common.scenarios.crescente"),
+    decrescente: t("common.scenarios.decrescente"),
+    aleatorio: t("common.scenarios.aleatorio"),
+  };
+});
 
 const selectedMetadata = computed(() => {
   return learningByKey[selectedAlgorithm.value];
+});
+
+const selectedPseudocodeLines = computed<string[]>(() => {
+  const localizedLines = tm(selectedMetadata.value.pseudocodeKey);
+  if (!Array.isArray(localizedLines)) {
+    return [];
+  }
+
+  return localizedLines.map((item) => String(item));
 });
 
 const bars = computed(() => {
@@ -357,16 +293,16 @@ const manualVectorValidationMessage = computed(() => {
 
   const trimmedInput = manualVectorText.value.trim();
   if (trimmedInput.length === 0) {
-    return "Informe números separados por vírgula, espaço ou ponto e vírgula.";
+    return t("learning.validation.manualEmpty");
   }
 
   if (!manualVectorFormatRegex.test(trimmedInput)) {
-    return "Formato inválido. Exemplo: 8, 4, 6, 1 ou 8 4 6 1.";
+    return t("learning.validation.manualInvalid");
   }
 
   const valuesCount = trimmedInput.split(/[\s,;]+/).filter(Boolean).length;
   if (valuesCount < 2) {
-    return "Informe pelo menos 2 números para iniciar a simulação.";
+    return t("learning.validation.manualMinValues");
   }
 
   return "";
@@ -429,18 +365,18 @@ const canReset = computed(() => {
 
 const statusText = computed(() => {
   if (steps.value.length === 0) {
-    return "Pronto para preparar simulacao";
+    return t("learning.status.readyPrepare");
   }
   if (!hasPlaybackStarted.value) {
-    return "Pronto para iniciar";
+    return t("learning.status.readyStart");
   }
   if (isPlaying.value) {
-    return "Executando";
+    return t("learning.status.running");
   }
   if (currentStepIndex.value >= steps.value.length - 1) {
-    return "Concluido";
+    return t("learning.status.completed");
   }
-  return "Pausado";
+  return t("learning.status.paused");
 });
 
 const delayMs = computed(() => {
@@ -493,7 +429,7 @@ const parseManualValues = (): number[] => {
     .map((item) => Number(item.trim()))
     .filter((item) => Number.isFinite(item));
 
-  return parsed.slice(0, 80);
+  return parsed.slice(0, MAX_VISUALIZATION_SIZE);
 };
 
 const handleManualVectorInput = (value: string): void => {
@@ -560,7 +496,7 @@ const prepareSimulation = (): void => {
     inputMode.value === "manual"
       ? parseManualValues()
       : createArrayByScenario(
-          Math.min(generatedSize.value, 80),
+          Math.min(generatedSize.value, MAX_VISUALIZATION_SIZE),
           generatedScenario.value,
         );
 
@@ -681,24 +617,23 @@ prepareSimulation();
 <template>
   <div class="page-wrap">
     <section class="page-card page-card--hero">
-      <h2 class="page-card__title">Aprendizado e Teste</h2>
+      <h2 class="page-card__title">{{ t("learning.hero.title") }}</h2>
       <p class="page-card__description">
-        Estude como cada algoritmo evolui no vetor com visualizacao iterativa e
-        controles de execucao.
+        {{ t("learning.hero.description") }}
       </p>
     </section>
 
     <section class="aprendizado-grid">
       <div class="aprendizado-grid__left">
         <article class="page-card">
-          <h3 class="page-card__title">Configuracao do Algoritmo</h3>
+          <h3 class="page-card__title">
+            {{ t("learning.sections.configuration") }}
+          </h3>
           <a-form layout="vertical">
             <a-form-item>
               <template #label>
-                <a-tooltip
-                  title="Escolha o algoritmo de ordenação a visualizar. Cada um tem comportamento e performance diferentes."
-                >
-                  <span>Algoritmo</span>
+                <a-tooltip :title="t('learning.tooltips.configAlgorithm')">
+                  <span>{{ t("learning.form.algorithm") }}</span>
                 </a-tooltip>
               </template>
               <a-select
@@ -707,7 +642,7 @@ prepareSimulation();
                 :options="
                   learningAlgorithms.map((item) => ({
                     value: item.key,
-                    label: item.title,
+                    label: t(item.titleKey),
                   }))
                 "
               />
@@ -715,25 +650,25 @@ prepareSimulation();
 
             <a-form-item>
               <template #label>
-                <a-tooltip
-                  title="Escolha se quer um vetor gerado automaticamente ou inserir seus próprios valores."
-                >
-                  <span>Tipo de entrada</span>
+                <a-tooltip :title="t('learning.tooltips.configInputType')">
+                  <span>{{ t("learning.form.inputType") }}</span>
                 </a-tooltip>
               </template>
               <a-radio-group v-model:value="inputMode" :disabled="isPlaying">
-                <a-radio-button value="gerado">Gerado</a-radio-button>
-                <a-radio-button value="manual">Manual</a-radio-button>
+                <a-radio-button value="gerado">{{
+                  t("learning.form.generated")
+                }}</a-radio-button>
+                <a-radio-button value="manual">{{
+                  t("learning.form.manual")
+                }}</a-radio-button>
               </a-radio-group>
             </a-form-item>
 
             <template v-if="inputMode === 'gerado'">
               <a-form-item>
                 <template #label>
-                  <a-tooltip
-                    title="Crescente: vetor já ordenado. Decrescente: vetor invertido. Aleatório: ordem aleatória."
-                  >
-                    <span>Cenario</span>
+                  <a-tooltip :title="t('learning.tooltips.configScenario')">
+                    <span>{{ t("learning.form.scenario") }}</span>
                   </a-tooltip>
                 </template>
                 <a-segmented
@@ -752,17 +687,19 @@ prepareSimulation();
 
               <a-form-item>
                 <template #label>
-                  <a-tooltip
-                    title="Quantidade de elementos no vetor (máximo 80 para visualização clara)."
-                  >
-                    <span>Tamanho para visualizacao (maximo 80)</span>
+                  <a-tooltip :title="t('learning.tooltips.configSize')">
+                    <span>{{
+                      t("learning.form.sizeVisualization", {
+                        max: MAX_VISUALIZATION_SIZE,
+                      })
+                    }}</span>
                   </a-tooltip>
                 </template>
                 <a-slider
                   v-model:value="generatedSize"
                   :disabled="isPlaying"
                   :min="8"
-                  :max="80"
+                  :max="30"
                   :step="1"
                 />
               </a-form-item>
@@ -774,15 +711,12 @@ prepareSimulation();
                 manualVectorValidationMessage ? 'error' : undefined
               "
               :help="
-                manualVectorValidationMessage ||
-                'Formato aceito: números separados por vírgula, espaço ou ponto e vírgula.'
+                manualVectorValidationMessage || t('learning.form.manualHelp')
               "
             >
               <template #label>
-                <a-tooltip
-                  title="Insira números separados por vírgula, espaço ou ponto e vírgula. Máximo 80 valores."
-                >
-                  <span>Vetor manual (numeros separados por virgula)</span>
+                <a-tooltip :title="t('learning.tooltips.configManualVector')">
+                  <span>{{ t("learning.form.manualVector") }}</span>
                 </a-tooltip>
               </template>
               <a-textarea
@@ -798,21 +732,21 @@ prepareSimulation();
                 type="default"
                 :disabled="!canPrepare"
                 @click="regenerateVector"
-                >Preparar</a-button
+                >{{ t("learning.form.prepare") }}</a-button
               >
             </a-space>
           </a-form>
         </article>
 
         <article class="page-card">
-          <h3 class="page-card__title">Controles da Animacao</h3>
+          <h3 class="page-card__title">
+            {{ t("learning.sections.controls") }}
+          </h3>
           <a-form layout="vertical">
             <a-form-item>
               <template #label>
-                <a-tooltip
-                  title="Ajuste a velocidade de reprodução da animação. Valores maiores = mais rápido."
-                >
-                  <span>Velocidade</span>
+                <a-tooltip :title="t('learning.tooltips.controlsSpeed')">
+                  <span>{{ t("learning.form.speed") }}</span>
                 </a-tooltip>
               </template>
               <div style="display: flex; align-items: center; gap: 12px">
@@ -831,72 +765,75 @@ prepareSimulation();
           </a-form>
 
           <a-space v-if="!hasPlaybackStarted" wrap>
-            <a-tooltip title="Inicia a execução automatizada do algoritmo">
+            <a-tooltip :title="t('learning.tooltips.controlsStart')">
               <a-button
                 type="primary"
                 :disabled="!canStart"
                 @click="startSimulation"
-                >Iniciar</a-button
+                >{{ t("learning.form.start") }}</a-button
               >
             </a-tooltip>
           </a-space>
 
           <a-space v-else-if="canPause" wrap>
-            <a-tooltip title="Pausa a animação no passo atual">
-              <a-button @click="pauseSimulation">Pausar</a-button>
+            <a-tooltip :title="t('learning.tooltips.controlsPause')">
+              <a-button @click="pauseSimulation">{{
+                t("learning.form.pause")
+              }}</a-button>
             </a-tooltip>
-            <a-tooltip title="Volta ao primeiro passo da animação">
-              <a-button :disabled="!canReset" @click="resetSimulation"
-                >Reiniciar</a-button
-              >
+            <a-tooltip :title="t('learning.tooltips.controlsReset')">
+              <a-button :disabled="!canReset" @click="resetSimulation">{{
+                t("learning.form.reset")
+              }}</a-button>
             </a-tooltip>
           </a-space>
 
           <a-space v-else-if="canContinue" direction="vertical" :size="16">
             <a-space wrap>
-              <a-tooltip title="Continua a animação do ponto onde foi pausada">
+              <a-tooltip :title="t('learning.tooltips.controlsContinue')">
                 <a-button
                   type="primary"
                   :disabled="!canContinue"
                   @click="continueSimulation"
-                  >Continuar</a-button
+                  >{{ t("learning.form.continue") }}</a-button
                 >
               </a-tooltip>
-              <a-tooltip title="Volta ao primeiro passo da animação">
-                <a-button :disabled="!canReset" @click="resetSimulation"
-                  >Reiniciar</a-button
-                >
+              <a-tooltip :title="t('learning.tooltips.controlsReset')">
+                <a-button :disabled="!canReset" @click="resetSimulation">{{
+                  t("learning.form.reset")
+                }}</a-button>
               </a-tooltip>
             </a-space>
 
             <a-space wrap>
-              <a-tooltip title="Volta para o estado anterior da animação">
+              <a-tooltip :title="t('learning.tooltips.controlsStepBackward')">
                 <a-button
                   :disabled="!canStepBackward"
                   @click="stepBackwardSimulation"
-                  >Passo Anterior</a-button
+                  >{{ t("learning.form.stepPrevious") }}</a-button
                 >
               </a-tooltip>
-              <a-tooltip title="Avança para o próximo passo da animação">
+              <a-tooltip :title="t('learning.tooltips.controlsStepForward')">
                 <a-button
                   :disabled="!canStepForward"
                   @click="stepForwardSimulation"
-                  >Próximo Passo</a-button
+                  >{{ t("learning.form.stepNext") }}</a-button
                 >
               </a-tooltip>
             </a-space>
           </a-space>
 
           <a-space v-else wrap>
-            <a-tooltip title="Volta ao primeiro passo da animação">
-              <a-button :disabled="!canReset" @click="resetSimulation"
-                >Reiniciar</a-button
-              >
+            <a-tooltip :title="t('learning.tooltips.controlsReset')">
+              <a-button :disabled="!canReset" @click="resetSimulation">{{
+                t("learning.form.reset")
+              }}</a-button>
             </a-tooltip>
           </a-space>
           <a-divider style="margin: 14px 0" />
           <p style="margin: 0">
-            Status: <strong>{{ statusText }}</strong>
+            {{ t("learning.form.statusPrefix") }}
+            <strong>{{ statusText }}</strong>
           </p>
           <a-progress
             :percent="progressPercent"
@@ -908,16 +845,14 @@ prepareSimulation();
       <div class="aprendizado-grid__middle">
         <article class="page-card">
           <h3 class="page-card__title">
-            <a-tooltip
-              title="Gráfico visual do vetor. As cores mudam conforme o algoritmo executa: barra ativa (amarelo), já ordenada (verde), pivot (vermelho), etc."
-            >
-              <span>Visualizacao do Vetor</span>
+            <a-tooltip :title="t('learning.tooltips.visualization')">
+              <span>{{ t("learning.sections.visualization") }}</span>
             </a-tooltip>
           </h3>
           <div
             class="sort-bars"
             role="img"
-            aria-label="Animacao do vetor sendo ordenado"
+            :aria-label="t('learning.aria.vectorAnimation')"
           >
             <div
               v-for="(value, index) in bars"
@@ -990,10 +925,8 @@ prepareSimulation();
 
         <article class="page-card">
           <h3 class="page-card__title">
-            <a-tooltip
-              title="Monitore as variáveis internas do algoritmo em tempo real conforme ele executa. Cada algoritmo expõe suas próprias variáveis de controle."
-            >
-              <span>Estado das Variaveis</span>
+            <a-tooltip :title="t('learning.tooltips.variables')">
+              <span>{{ t("learning.sections.variables") }}</span>
             </a-tooltip>
           </h3>
           <div class="variables-display">
@@ -1001,30 +934,38 @@ prepareSimulation();
               <!-- Bubble Sort variables -->
               <template v-if="selectedAlgorithm === 'bubble'">
                 <a-tooltip
-                  title="Variável i do pseudo-código (passagem externa do bubble sort)"
+                  :title="t('learning.tooltips.variablesByAlgorithm.bubbleI')"
                 >
                   <div class="variable-item">
-                    <span class="variable-item__label">i:</span>
+                    <span class="variable-item__label">{{
+                      t("learning.variableLabels.i")
+                    }}</span>
                     <span class="variable-item__value">{{
                       displayIndex(currentStep.variables.i)
                     }}</span>
                   </div>
                 </a-tooltip>
                 <a-tooltip
-                  title="Variável j do pseudo-código (loop interno de comparação)"
+                  :title="t('learning.tooltips.variablesByAlgorithm.bubbleJ')"
                 >
                   <div class="variable-item">
-                    <span class="variable-item__label">j:</span>
+                    <span class="variable-item__label">{{
+                      t("learning.variableLabels.j")
+                    }}</span>
                     <span class="variable-item__value">{{
                       displayIndex(currentStep.variables.j)
                     }}</span>
                   </div>
                 </a-tooltip>
                 <a-tooltip
-                  title="Faixa já ordenada associada ao limite n - i do pseudo-código"
+                  :title="
+                    t('learning.tooltips.variablesByAlgorithm.bubbleNMinusI')
+                  "
                 >
                   <div v-if="sortedPartition" class="variable-item">
-                    <span class="variable-item__label">n - i:</span>
+                    <span class="variable-item__label">{{
+                      t("learning.variableLabels.nMinusI")
+                    }}</span>
                     <span class="variable-item__value">{{
                       displayBubbleNMinusI(currentStep.variables.i)
                     }}</span>
@@ -1035,30 +976,42 @@ prepareSimulation();
               <!-- Insertion Sort variables -->
               <template v-else-if="selectedAlgorithm === 'insertion'">
                 <a-tooltip
-                  title="Variável i do pseudo-código (índice do elemento sendo inserido)"
+                  :title="
+                    t('learning.tooltips.variablesByAlgorithm.insertionI')
+                  "
                 >
                   <div class="variable-item">
-                    <span class="variable-item__label">i:</span>
+                    <span class="variable-item__label">{{
+                      t("learning.variableLabels.i")
+                    }}</span>
                     <span class="variable-item__value">{{
                       displayIndex(currentStep.variables.j)
                     }}</span>
                   </div>
                 </a-tooltip>
                 <a-tooltip
-                  title="Variável j do pseudo-código (posição analisada na parte ordenada)"
+                  :title="
+                    t('learning.tooltips.variablesByAlgorithm.insertionJ')
+                  "
                 >
                   <div class="variable-item">
-                    <span class="variable-item__label">j:</span>
+                    <span class="variable-item__label">{{
+                      t("learning.variableLabels.j")
+                    }}</span>
                     <span class="variable-item__value">{{
                       displayIndex(currentStep.variables.i)
                     }}</span>
                   </div>
                 </a-tooltip>
                 <a-tooltip
-                  title="Variável X do pseudo-código (valor temporário sendo inserido)"
+                  :title="
+                    t('learning.tooltips.variablesByAlgorithm.insertionX')
+                  "
                 >
                   <div class="variable-item">
-                    <span class="variable-item__label">X:</span>
+                    <span class="variable-item__label">{{
+                      t("learning.variableLabels.x")
+                    }}</span>
                     <span class="variable-item__value">{{
                       currentStep.variables.key !== null
                         ? currentStep.variables.key
@@ -1067,10 +1020,14 @@ prepareSimulation();
                   </div>
                 </a-tooltip>
                 <a-tooltip
-                  title="Posição da lacuna aberta onde o elemento será inserido"
+                  :title="
+                    t('learning.tooltips.variablesByAlgorithm.insertionGap')
+                  "
                 >
                   <div v-if="gapIndex !== null" class="variable-item">
-                    <span class="variable-item__label">Lacuna em:</span>
+                    <span class="variable-item__label">{{
+                      t("learning.variableLabels.gapAt")
+                    }}</span>
                     <span class="variable-item__value">{{
                       displayIndex(gapIndex)
                     }}</span>
@@ -1081,41 +1038,53 @@ prepareSimulation();
               <!-- Merge Sort variables -->
               <template v-else-if="selectedAlgorithm === 'merge'">
                 <a-tooltip
-                  title="Variável p do pseudo-código (início da partição)"
+                  :title="t('learning.tooltips.variablesByAlgorithm.mergeP')"
                 >
                   <div class="variable-item">
-                    <span class="variable-item__label">p:</span>
+                    <span class="variable-item__label">{{
+                      t("learning.variableLabels.p")
+                    }}</span>
                     <span class="variable-item__value">{{
                       displayIndex(currentStep.variables.left)
                     }}</span>
                   </div>
                 </a-tooltip>
-                <a-tooltip title="Variável q do pseudo-código (ponto médio)">
+                <a-tooltip
+                  :title="t('learning.tooltips.variablesByAlgorithm.mergeQ')"
+                >
                   <div class="variable-item">
-                    <span class="variable-item__label">q:</span>
+                    <span class="variable-item__label">{{
+                      t("learning.variableLabels.q")
+                    }}</span>
                     <span class="variable-item__value">{{
                       displayIndex(currentStep.variables.mid)
                     }}</span>
                   </div>
                 </a-tooltip>
                 <a-tooltip
-                  title="Variável r do pseudo-código (fim da partição)"
+                  :title="t('learning.tooltips.variablesByAlgorithm.mergeR')"
                 >
                   <div class="variable-item">
-                    <span class="variable-item__label">r:</span>
+                    <span class="variable-item__label">{{
+                      t("learning.variableLabels.r")
+                    }}</span>
                     <span class="variable-item__value">{{
                       displayIndex(currentStep.variables.right)
                     }}</span>
                   </div>
                 </a-tooltip>
                 <a-tooltip
-                  title="Nível de profundidade na recursão (0 = merge final, maiores = recursão mais profunda)"
+                  :title="
+                    t('learning.tooltips.variablesByAlgorithm.mergeDepth')
+                  "
                 >
                   <div
                     v-if="currentStep.divisionDepth !== undefined"
                     class="variable-item"
                   >
-                    <span class="variable-item__label">Profundidade:</span>
+                    <span class="variable-item__label">{{
+                      t("learning.variableLabels.depth")
+                    }}</span>
                     <span class="variable-item__value">{{
                       currentStep.divisionDepth
                     }}</span>
@@ -1126,26 +1095,38 @@ prepareSimulation();
               <!-- Heap Sort variables -->
               <template v-else-if="selectedAlgorithm === 'heap'">
                 <a-tooltip
-                  title="Variável i do pseudo-código (nó sendo heapificado)"
+                  :title="t('learning.tooltips.variablesByAlgorithm.heapI')"
                 >
                   <div class="variable-item">
-                    <span class="variable-item__label">i:</span>
+                    <span class="variable-item__label">{{
+                      t("learning.variableLabels.i")
+                    }}</span>
                     <span class="variable-item__value">{{
                       displayIndex(currentStep.variables.i)
                     }}</span>
                   </div>
                 </a-tooltip>
-                <a-tooltip title="Variável largest do pseudo-código">
+                <a-tooltip
+                  :title="
+                    t('learning.tooltips.variablesByAlgorithm.heapLargest')
+                  "
+                >
                   <div class="variable-item">
-                    <span class="variable-item__label">largest:</span>
+                    <span class="variable-item__label">{{
+                      t("learning.variableLabels.largest")
+                    }}</span>
                     <span class="variable-item__value">{{
                       displayIndex(currentStep.variables.largest)
                     }}</span>
                   </div>
                 </a-tooltip>
-                <a-tooltip title="Variável heapSize do pseudo-código">
+                <a-tooltip
+                  :title="t('learning.tooltips.variablesByAlgorithm.heapSize')"
+                >
                   <div class="variable-item">
-                    <span class="variable-item__label">heapSize:</span>
+                    <span class="variable-item__label">{{
+                      t("learning.variableLabels.heapSize")
+                    }}</span>
                     <span class="variable-item__value">{{
                       currentStep.variables.heapSize !== null
                         ? currentStep.variables.heapSize
@@ -1158,48 +1139,62 @@ prepareSimulation();
               <!-- Quick Sort variables -->
               <template v-else-if="selectedAlgorithm === 'quick'">
                 <a-tooltip
-                  title="Variável p do pseudo-código (início da partição)"
+                  :title="t('learning.tooltips.variablesByAlgorithm.quickP')"
                 >
                   <div class="variable-item">
-                    <span class="variable-item__label">p:</span>
+                    <span class="variable-item__label">{{
+                      t("learning.variableLabels.p")
+                    }}</span>
                     <span class="variable-item__value">{{
                       displayIndex(currentStep.variables.p)
                     }}</span>
                   </div>
                 </a-tooltip>
                 <a-tooltip
-                  title="Variável r do pseudo-código (fim da partição)"
+                  :title="t('learning.tooltips.variablesByAlgorithm.quickR')"
                 >
                   <div class="variable-item">
-                    <span class="variable-item__label">r:</span>
+                    <span class="variable-item__label">{{
+                      t("learning.variableLabels.r")
+                    }}</span>
                     <span class="variable-item__value">{{
                       displayIndex(currentStep.variables.r)
                     }}</span>
                   </div>
                 </a-tooltip>
                 <a-tooltip
-                  title="Variável i do pseudo-código (fronteira dos valores <= pivot)"
+                  :title="t('learning.tooltips.variablesByAlgorithm.quickI')"
                 >
                   <div class="variable-item">
-                    <span class="variable-item__label">i:</span>
+                    <span class="variable-item__label">{{
+                      t("learning.variableLabels.i")
+                    }}</span>
                     <span class="variable-item__value">{{
                       displayIndex(currentStep.variables.i)
                     }}</span>
                   </div>
                 </a-tooltip>
                 <a-tooltip
-                  title="Variável j do pseudo-código (índice atualmente comparado)"
+                  :title="t('learning.tooltips.variablesByAlgorithm.quickJ')"
                 >
                   <div class="variable-item">
-                    <span class="variable-item__label">j:</span>
+                    <span class="variable-item__label">{{
+                      t("learning.variableLabels.j")
+                    }}</span>
                     <span class="variable-item__value">{{
                       displayIndex(currentStep.variables.j)
                     }}</span>
                   </div>
                 </a-tooltip>
-                <a-tooltip title="Variável pivot do pseudo-código">
+                <a-tooltip
+                  :title="
+                    t('learning.tooltips.variablesByAlgorithm.quickPivot')
+                  "
+                >
                   <div class="variable-item">
-                    <span class="variable-item__label">pivot:</span>
+                    <span class="variable-item__label">{{
+                      t("learning.variableLabels.pivot")
+                    }}</span>
                     <span class="variable-item__value">{{
                       currentStep.variables.pivot !== null
                         ? currentStep.variables.pivot
@@ -1208,10 +1203,12 @@ prepareSimulation();
                   </div>
                 </a-tooltip>
                 <a-tooltip
-                  title="Variável q do pseudo-código (posição final do pivot após PARTITION)"
+                  :title="t('learning.tooltips.variablesByAlgorithm.quickQ')"
                 >
                   <div class="variable-item">
-                    <span class="variable-item__label">q:</span>
+                    <span class="variable-item__label">{{
+                      t("learning.variableLabels.q")
+                    }}</span>
                     <span class="variable-item__value">{{
                       displayIndex(partitionIndex)
                     }}</span>
@@ -1221,17 +1218,25 @@ prepareSimulation();
 
               <!-- Fallback for other cases -->
               <template v-else>
-                <a-tooltip title="Índice de iteração do loop externo">
+                <a-tooltip
+                  :title="t('learning.tooltips.variablesByAlgorithm.fallbackI')"
+                >
                   <div class="variable-item">
-                    <span class="variable-item__label">i:</span>
+                    <span class="variable-item__label">{{
+                      t("learning.variableLabels.i")
+                    }}</span>
                     <span class="variable-item__value">{{
                       displayIndex(currentStep.variables.i)
                     }}</span>
                   </div>
                 </a-tooltip>
-                <a-tooltip title="Índice de iteração do loop interno">
+                <a-tooltip
+                  :title="t('learning.tooltips.variablesByAlgorithm.fallbackJ')"
+                >
                   <div class="variable-item">
-                    <span class="variable-item__label">j:</span>
+                    <span class="variable-item__label">{{
+                      t("learning.variableLabels.j")
+                    }}</span>
                     <span class="variable-item__value">{{
                       displayIndex(currentStep.variables.j)
                     }}</span>
@@ -1240,41 +1245,35 @@ prepareSimulation();
               </template>
             </div>
             <div v-else class="variables-display__empty">
-              Prepare uma simulacao para ver as variaveis
+              {{ t("learning.empty.variables") }}
             </div>
           </div>
         </article>
 
         <article class="page-card">
           <h3 class="page-card__title">
-            <a-tooltip
-              title="Resumo das estatísticas da execução: tempo decorrido, total de comparações e total de trocas/deslocamentos."
-            >
-              <span>Metricas Basicas</span>
+            <a-tooltip :title="t('learning.tooltips.basicMetrics')">
+              <span>{{ t("learning.sections.basicMetrics") }}</span>
             </a-tooltip>
           </h3>
           <div class="page-kpis">
-            <a-tooltip
-              title="Tempo total decorrido desde o início da animação, em milissegundos."
-            >
+            <a-tooltip :title="t('learning.tooltips.kpiTime')">
               <div class="kpi-tile">
-                <div class="kpi-tile__label">Tempo (ms)</div>
+                <div class="kpi-tile__label">{{ t("learning.kpi.time") }}</div>
                 <div class="kpi-tile__value">{{ elapsedMs }}</div>
               </div>
             </a-tooltip>
-            <a-tooltip
-              title="Número total de comparações entre elementos até o momento."
-            >
+            <a-tooltip :title="t('learning.tooltips.kpiComparisons')">
               <div class="kpi-tile">
-                <div class="kpi-tile__label">Comparacoes</div>
+                <div class="kpi-tile__label">
+                  {{ t("learning.kpi.comparisons") }}
+                </div>
                 <div class="kpi-tile__value">{{ comparisons }}</div>
               </div>
             </a-tooltip>
-            <a-tooltip
-              title="Número total de trocas ou deslocamentos de elementos realizados."
-            >
+            <a-tooltip :title="t('learning.tooltips.kpiSwaps')">
               <div class="kpi-tile">
-                <div class="kpi-tile__label">Trocas</div>
+                <div class="kpi-tile__label">{{ t("learning.kpi.swaps") }}</div>
                 <div class="kpi-tile__value">{{ swaps }}</div>
               </div>
             </a-tooltip>
@@ -1285,15 +1284,17 @@ prepareSimulation();
       <div class="aprendizado-grid__right">
         <article class="page-card">
           <h3 class="page-card__title">
-            <a-tooltip
-              title="Pseudo-codigo didatico do algoritmo selecionado, usando arrays indexados a partir de 1."
-            >
-              <span>Pseudo Algoritmo</span>
+            <a-tooltip :title="t('learning.tooltips.pseudo')">
+              <span>{{ t("learning.sections.pseudo") }}</span>
             </a-tooltip>
           </h3>
-          <div class="pseudo-code" role="region" aria-label="Pseudo algoritmo">
+          <div
+            class="pseudo-code"
+            role="region"
+            :aria-label="t('learning.aria.pseudoRegion')"
+          >
             <a-tooltip
-              v-for="(line, index) in selectedMetadata.pseudocodeLines"
+              v-for="(line, index) in selectedPseudocodeLines"
               :key="`${selectedAlgorithm}-pseudo-${index}`"
               :title="describePseudoLine(selectedAlgorithm, line, index)"
               placement="left"
@@ -1321,24 +1322,25 @@ prepareSimulation();
 
         <article class="page-card">
           <h3 class="page-card__title">
-            <a-tooltip
-              title="Informações sobre o algoritmo selecionado: conceito, estratégia de funcionamento e complexidade em diferentes cenários."
-            >
-              <span>Descricao e Complexidade</span>
+            <a-tooltip :title="t('learning.tooltips.description')">
+              <span>{{ t("learning.sections.description") }}</span>
             </a-tooltip>
           </h3>
           <a-space direction="vertical" style="width: 100%" :size="10">
-            <p>{{ selectedMetadata.concept }}</p>
-            <p>{{ selectedMetadata.strategy }}</p>
+            <p>{{ t(selectedMetadata.conceptKey) }}</p>
+            <p>{{ t(selectedMetadata.strategyKey) }}</p>
             <a-space wrap>
               <a-tag color="green"
-                >Melhor: {{ selectedMetadata.bestCase }}</a-tag
+                >{{ t("learning.complexity.best") }}:
+                {{ selectedMetadata.bestCase }}</a-tag
               >
               <a-tag color="blue"
-                >Medio: {{ selectedMetadata.averageCase }}</a-tag
+                >{{ t("learning.complexity.average") }}:
+                {{ selectedMetadata.averageCase }}</a-tag
               >
               <a-tag color="volcano"
-                >Pior: {{ selectedMetadata.worstCase }}</a-tag
+                >{{ t("learning.complexity.worst") }}:
+                {{ selectedMetadata.worstCase }}</a-tag
               >
             </a-space>
           </a-space>

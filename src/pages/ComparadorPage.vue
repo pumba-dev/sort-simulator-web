@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { useI18n } from "vue-i18n";
 import {
   algorithmOptions,
   scenarioOptions,
+  scenarioLabelKeyByKey,
   sizeOptions,
-  scenarioLabelByKey,
 } from "../constants/comparator-options";
 import type {
   AlgorithmKey,
@@ -29,14 +30,13 @@ const selectedScenarios = ref<ScenarioType[]>(["aleatorio"]);
 const selectedSizes = ref<number[]>([100, 1000, 5000]);
 const replications = ref<number>(3);
 const timeoutMs = ref<number>(250);
+const { t, locale } = useI18n();
 
 const isRunning = ref<boolean>(false);
 const completed = ref<number>(0);
 const total = ref<number>(0);
 const rows = ref<ComparisonResultRow[]>([]);
-const feedbackMessage = ref<string>(
-  "Configure e inicie uma simulacao comparativa.",
-);
+const feedbackMessage = ref<string>(t("comparator.feedback.initial"));
 
 const selectedMetric = ref<
   "averageTimeMs" | "averageComparisons" | "averageMemoryKb"
@@ -47,21 +47,21 @@ let comparatorWorker: Worker | null = null;
 
 const algorithmSelectOptions = computed(() => {
   return algorithmOptions.map((item) => ({
-    label: item.label,
+    label: t(item.labelKey),
     value: item.key,
   }));
 });
 
 const scenarioSelectOptions = computed(() => {
   return scenarioOptions.map((item) => ({
-    label: item.label,
+    label: t(item.labelKey),
     value: item.key,
   }));
 });
 
 const sizeSelectOptions = computed(() => {
   return sizeOptions.map((item) => ({
-    label: item.toLocaleString("pt-BR"),
+    label: item.toLocaleString(locale.value),
     value: item,
   }));
 });
@@ -81,19 +81,19 @@ const chartScenario = computed(() => {
 
 const validateJob = (): string | null => {
   if (selectedAlgorithms.value.length === 0) {
-    return "Selecione ao menos um algoritmo.";
+    return t("comparator.feedback.validation.selectAlgorithm");
   }
   if (selectedScenarios.value.length === 0) {
-    return "Selecione ao menos um cenario.";
+    return t("comparator.feedback.validation.selectScenario");
   }
   if (selectedSizes.value.length === 0) {
-    return "Selecione ao menos um tamanho de vetor.";
+    return t("comparator.feedback.validation.selectSize");
   }
   if (replications.value < 1) {
-    return "Replicacoes deve ser maior que zero.";
+    return t("comparator.feedback.validation.replications");
   }
   if (timeoutMs.value < 1) {
-    return "Timeout deve ser maior que zero.";
+    return t("comparator.feedback.validation.timeout");
   }
   return null;
 };
@@ -116,27 +116,34 @@ const ensureWorker = (): Worker => {
     if (message.type === "progress") {
       completed.value = message.completed;
       total.value = message.total;
-      feedbackMessage.value = `Simulacao em andamento (${message.completed}/${message.total})`;
+      feedbackMessage.value = t("comparator.feedback.running", {
+        completed: message.completed,
+        total: message.total,
+      });
       return;
     }
 
     if (message.type === "result") {
       rows.value = message.rows;
       isRunning.value = false;
-      feedbackMessage.value = "Simulacao finalizada.";
+      feedbackMessage.value = t("comparator.feedback.finished");
       saveComparisonHistoryEntry(buildJobPayload(), message.rows);
       return;
     }
 
     if (message.type === "cancelled") {
       isRunning.value = false;
-      feedbackMessage.value = "Simulacao cancelada pelo usuario.";
+      feedbackMessage.value = t("comparator.feedback.cancelled");
       return;
     }
 
     if (message.type === "error") {
       isRunning.value = false;
-      feedbackMessage.value = `Erro no comparador: ${message.message}`;
+      const resolvedMessage =
+        message.message === "internal_worker_error"
+          ? t("comparator.feedback.workerError")
+          : message.message;
+      feedbackMessage.value = `${t("comparator.feedback.errorPrefix")}: ${resolvedMessage}`;
     }
   };
 
@@ -168,7 +175,7 @@ const startSimulation = (): void => {
   total.value =
     payload.algorithms.length * payload.scenarios.length * payload.sizes.length;
   isRunning.value = true;
-  feedbackMessage.value = "Iniciando simulacao...";
+  feedbackMessage.value = t("comparator.feedback.starting");
 
   worker.postMessage({
     type: "start",
@@ -195,8 +202,7 @@ onMounted(() => {
   const pendingConfig = consumePendingCompareConfig();
   if (pendingConfig) {
     applyPendingConfiguration(pendingConfig);
-    feedbackMessage.value =
-      "Configuracao carregada do historico. Clique em Iniciar para rodar novamente.";
+    feedbackMessage.value = t("comparator.feedback.pendingLoaded");
   }
 });
 
@@ -211,17 +217,18 @@ onBeforeUnmount(() => {
 <template>
   <div class="page-wrap comparador-grid">
     <section class="page-card page-card--hero">
-      <h2 class="page-card__title">Modulo 2 - Comparador de Algoritmos</h2>
+      <h2 class="page-card__title">{{ t("comparator.hero.title") }}</h2>
       <p class="page-card__description">
-        Configure cenarios, tamanhos e replicacoes para comparar desempenho
-        medio entre algoritmos.
+        {{ t("comparator.hero.description") }}
       </p>
     </section>
 
     <section class="page-card">
-      <h3 class="page-card__title">Configuracao da Simulacao</h3>
+      <h3 class="page-card__title">
+        {{ t("comparator.sections.configuration") }}
+      </h3>
       <div class="comparador-form-grid">
-        <a-form-item label="Algoritmos">
+        <a-form-item :label="t('comparator.form.algorithms')">
           <a-select
             v-model:value="selectedAlgorithms"
             mode="multiple"
@@ -230,7 +237,7 @@ onBeforeUnmount(() => {
           />
         </a-form-item>
 
-        <a-form-item label="Cenarios">
+        <a-form-item :label="t('comparator.form.scenarios')">
           <a-select
             v-model:value="selectedScenarios"
             mode="multiple"
@@ -239,7 +246,7 @@ onBeforeUnmount(() => {
           />
         </a-form-item>
 
-        <a-form-item label="Tamanhos">
+        <a-form-item :label="t('comparator.form.sizes')">
           <a-select
             v-model:value="selectedSizes"
             mode="multiple"
@@ -248,7 +255,7 @@ onBeforeUnmount(() => {
           />
         </a-form-item>
 
-        <a-form-item label="Replicacoes">
+        <a-form-item :label="t('comparator.form.replications')">
           <a-input-number
             v-model:value="replications"
             :min="1"
@@ -258,7 +265,7 @@ onBeforeUnmount(() => {
           />
         </a-form-item>
 
-        <a-form-item label="Timeout por execucao (ms)">
+        <a-form-item :label="t('comparator.form.timeoutMs')">
           <a-input-number
             v-model:value="timeoutMs"
             :min="1"
@@ -270,17 +277,20 @@ onBeforeUnmount(() => {
       </div>
 
       <a-space wrap>
-        <a-button type="primary" :loading="isRunning" @click="startSimulation"
-          >Iniciar comparacao</a-button
+        <a-button
+          type="primary"
+          :loading="isRunning"
+          @click="startSimulation"
+          >{{ t("comparator.buttons.start") }}</a-button
         >
-        <a-button danger :disabled="!isRunning" @click="cancelSimulation"
-          >Cancelar</a-button
-        >
+        <a-button danger :disabled="!isRunning" @click="cancelSimulation">{{
+          t("comparator.buttons.cancel")
+        }}</a-button>
       </a-space>
     </section>
 
     <section class="page-card">
-      <h3 class="page-card__title">Progresso da Simulacao</h3>
+      <h3 class="page-card__title">{{ t("comparator.sections.progress") }}</h3>
       <a-progress
         :percent="progressPercent"
         :status="isRunning ? 'active' : 'normal'"
@@ -290,7 +300,7 @@ onBeforeUnmount(() => {
     </section>
 
     <section class="page-card">
-      <h3 class="page-card__title">Resultados em Tabela</h3>
+      <h3 class="page-card__title">{{ t("comparator.sections.table") }}</h3>
       <ComparisonResultsTable :rows="rows" :loading="isRunning" />
     </section>
 
@@ -306,24 +316,28 @@ onBeforeUnmount(() => {
         "
       >
         <h3 class="page-card__title" style="margin: 0">
-          Resultados em Grafico
+          {{ t("comparator.sections.chart") }}
         </h3>
         <a-space wrap>
           <a-radio-group v-model:value="selectedMetric" button-style="solid">
-            <a-radio-button value="averageTimeMs">Tempo</a-radio-button>
-            <a-radio-button value="averageComparisons"
-              >Comparacoes</a-radio-button
-            >
-            <a-radio-button value="averageMemoryKb">Memoria</a-radio-button>
+            <a-radio-button value="averageTimeMs">{{
+              t("common.metrics.time")
+            }}</a-radio-button>
+            <a-radio-button value="averageComparisons">{{
+              t("common.metrics.comparisons")
+            }}</a-radio-button>
+            <a-radio-button value="averageMemoryKb">{{
+              t("common.metrics.memory")
+            }}</a-radio-button>
           </a-radio-group>
 
           <a-select
             v-model:value="selectedScenarioForChart"
             style="min-width: 170px"
             :options="[
-              { label: 'Todos cenarios', value: 'all' },
+              { label: t('common.scenarios.all'), value: 'all' },
               ...scenarioOptions.map((item) => ({
-                label: scenarioLabelByKey[item.key],
+                label: t(scenarioLabelKeyByKey[item.key]),
                 value: item.key,
               })),
             ]"

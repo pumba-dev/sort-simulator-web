@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 import { Line } from "vue-chartjs";
 import {
   CategoryScale,
@@ -13,7 +14,7 @@ import {
 } from "chart.js";
 import type { ChartOptions, TooltipItem } from "chart.js";
 import type { ComparisonResultRow, ScenarioType } from "../types/comparator";
-import { algorithmLabelByKey } from "../constants/comparator-options";
+import { algorithmLabelKeyByKey } from "../constants/comparator-options";
 
 ChartJS.register(
   CategoryScale,
@@ -37,6 +38,8 @@ const props = withDefaults(
     scenario: undefined,
   },
 );
+
+const { t, locale } = useI18n();
 
 const palette = ["#1d4ed8", "#d97706", "#0f766e", "#a21caf", "#b91c1c"];
 
@@ -81,7 +84,7 @@ const datasets = computed(() => {
     });
 
     return {
-      label: algorithmLabelByKey[algorithm],
+      label: t(algorithmLabelKeyByKey[algorithm]),
       data,
       borderColor: palette[index % palette.length],
       backgroundColor: palette[index % palette.length],
@@ -102,15 +105,19 @@ const chartData = computed(() => {
 
 const yAxisLabel = computed(() => {
   if (props.metric === "averageTimeMs") {
-    return "Tempo medio (ms)";
+    return t("chart.yAxis.avgTimeMs");
   }
   if (props.metric === "averageComparisons") {
-    return "Comparacoes medias";
+    return t("chart.yAxis.avgComparisons");
   }
-  return "Memoria media (KB)";
+  return t("chart.yAxis.avgMemoryKb");
 });
 
 const chartOptions = computed<ChartOptions<"line">>(() => {
+  const numberFormatter = new Intl.NumberFormat(locale.value, {
+    maximumFractionDigits: 3,
+  });
+
   return {
     responsive: true,
     maintainAspectRatio: false,
@@ -126,7 +133,7 @@ const chartOptions = computed<ChartOptions<"line">>(() => {
         callbacks: {
           label(context: TooltipItem<"line">) {
             const value = context.parsed.y ?? 0;
-            return `${context.dataset.label ?? "Serie"}: ${value}`;
+            return `${context.dataset.label ?? t("chart.series")}: ${numberFormatter.format(value)}`;
           },
         },
       },
@@ -135,7 +142,7 @@ const chartOptions = computed<ChartOptions<"line">>(() => {
       x: {
         title: {
           display: true,
-          text: "Tamanho do vetor",
+          text: t("chart.vectorSize"),
         },
       },
       y: {
@@ -153,6 +160,6 @@ const chartOptions = computed<ChartOptions<"line">>(() => {
 <template>
   <div style="height: 320px">
     <Line v-if="rows.length > 0" :data="chartData" :options="chartOptions" />
-    <a-empty v-else description="Sem dados para grafico" />
+    <a-empty v-else :description="t('chart.empty')" />
   </div>
 </template>

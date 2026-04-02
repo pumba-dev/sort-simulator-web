@@ -242,7 +242,7 @@ workerScope.onmessage = (event: MessageEvent<WorkerCommand>): void => {
 
   void runSimulation(command.payload).catch((error: unknown) => {
     const message =
-      error instanceof Error ? error.message : "Erro interno no worker";
+      error instanceof Error ? error.message : "internal_worker_error";
     workerScope.postMessage({
       type: "error",
       message,
