@@ -4,6 +4,7 @@ import { useRoute, useRouter } from "vue-router";
 import {
   BarChartOutlined,
   BookOutlined,
+  CodeOutlined,
   HistoryOutlined,
 } from "@ant-design/icons-vue";
 
@@ -38,8 +39,13 @@ const navigateTo = ({ key }: MenuSelection): void => {
         tabindex="0"
         @click="navigateTo({ key: '/aprendizado' })"
       >
-        <span class="brand__title">Sorting Lab</span>
-        <span class="brand__subtitle">Simulador Iterativo</span>
+        <span class="brand__icon" aria-hidden="true">
+          <CodeOutlined />
+        </span>
+        <span class="brand__text">
+          <span class="brand__title">Sorting Lab</span>
+          <span class="brand__subtitle">Simulador Iterativo</span>
+        </span>
       </div>
 
       <a-menu
@@ -68,7 +74,16 @@ const navigateTo = ({ key }: MenuSelection): void => {
     </a-layout-content>
 
     <a-layout-footer class="app-footer">
-      Sorting Algorithms Simulator · Pumba Developer © 2026
+      <div class="app-footer__content">
+        <a
+          class="app-footer__link"
+          href="https://pumbadev.com"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Sorting Algorithms Simulator · Pumba Developer © 2026
+        </a>
+      </div>
     </a-layout-footer>
   </a-layout>
 </template>

@@ -14,23 +14,47 @@
   justify-content: space-between;
   gap: 18px;
   padding: 12px 20px;
-  background: rgba(255, 255, 255, 0.96);
-  backdrop-filter: blur(8px);
-  border-bottom: 1px solid var(--sl-border);
-  box-shadow: 0 8px 18px rgba(16, 44, 108, 0.08);
+  background: linear-gradient(
+    118deg,
+    rgba(255, 255, 255, 0.96) 0%,
+    rgba(239, 246, 255, 0.96) 56%,
+    rgba(226, 237, 255, 0.96) 100%
+  );
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(152, 176, 225, 0.55);
+  box-shadow: 0 10px 22px rgba(16, 44, 108, 0.12);
+  animation: header-enter 380ms ease-out;
+}
+
+@keyframes header-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .brand {
-  display: grid;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
   line-height: 1.1;
   cursor: pointer;
-  border-radius: 10px;
-  padding: 6px 8px;
-  transition: background 0.2s ease;
+  border-radius: 12px;
+  padding: 7px 10px;
+  background: rgba(255, 255, 255, 0.52);
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
 }
 
 .brand:hover {
-  background: var(--sl-bg-soft);
+  background: rgba(255, 255, 255, 0.82);
+  transform: translateY(-1px);
 }
 
 .brand:focus-visible {
@@ -38,31 +62,51 @@
   outline-offset: 2px;
 }
 
+.brand__icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: inline-grid;
+  place-items: center;
+  color: #ffffff;
+  font-size: 17px;
+  background: linear-gradient(145deg, #1f63ff 0%, #164bc6 100%);
+  box-shadow: 0 8px 16px rgba(24, 67, 170, 0.28);
+  flex-shrink: 0;
+}
+
+.brand__text {
+  display: grid;
+  gap: 1px;
+}
+
 .brand__title {
   font-weight: 800;
-  color: var(--sl-accent-strong);
+  color: #102a64;
+  letter-spacing: 0.2px;
   font-size: 1.02rem;
 }
 
 .brand__subtitle {
   font-size: 0.78rem;
-  color: var(--sl-text-soft);
+  color: #40557f;
 }
 
 .main-menu {
   min-width: 360px;
-  flex: 1;
-  justify-content: flex-end;
-  background: transparent;
-  border-bottom: 0 !important;
-  padding-inline: 6px;
+
+  padding-inline: 0;
 }
 
 .main-menu.ant-menu-horizontal {
   display: flex;
-  justify-content: flex-end;
+
   gap: 6px;
   line-height: 1;
+  padding: 4px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.63);
+  border: 1px solid rgba(160, 183, 229, 0.46);
 }
 
 .main-menu.ant-menu-horizontal > .ant-menu-item,
@@ -79,13 +123,17 @@
   margin-bottom: 0;
   padding: 0 14px;
   border-radius: 10px;
-  color: var(--sl-text-main) !important;
+  color: #2e4675 !important;
   font-weight: 600;
   white-space: nowrap;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .main-menu.ant-menu-horizontal > .ant-menu-item:not(.ant-menu-item-selected) {
-  color: #c8cedd !important;
+  color: #2f4a7d !important;
 }
 
 .main-menu.ant-menu-horizontal > .ant-menu-item .ant-menu-title-content,
@@ -100,13 +148,14 @@
 }
 
 .main-menu.ant-menu-horizontal > .ant-menu-item:hover {
-  color: var(--sl-accent-strong) !important;
-  background: var(--sl-bg-soft);
+  color: #103eab !important;
+  background: rgba(221, 234, 255, 0.88);
 }
 
 .main-menu.ant-menu-horizontal > .ant-menu-item-selected {
-  color: var(--sl-accent-strong) !important;
-  background: var(--sl-accent-soft);
+  color: #ffffff !important;
+  background: linear-gradient(130deg, #2160ec 0%, #143ca4 100%);
+  box-shadow: 0 6px 14px rgba(20, 61, 161, 0.3);
 }
 
 .main-menu.ant-menu-horizontal > .ant-menu-item:hover::after,
@@ -116,7 +165,7 @@
 
 .app-content {
   padding: 22px;
-  width: min(1240px, 100%);
+  width: min(80vw, 100%);
   margin: 0 auto;
 }
 
@@ -128,12 +177,44 @@
   padding: 20px 16px 24px;
 }
 
+.app-footer__content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.app-footer__link {
+  color: var(--sl-text-soft);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.app-footer__link:hover {
+  color: var(--sl-accent-strong);
+  text-decoration: underline;
+}
+
+.app-footer__button {
+  font-weight: 600;
+}
+
 @media (max-width: 900px) {
   .app-header {
     flex-direction: column;
     align-items: stretch;
     gap: 8px;
     padding: 10px 12px;
+  }
+
+  .brand {
+    width: fit-content;
+  }
+
+  .brand__icon {
+    width: 32px;
+    height: 32px;
   }
 
   .main-menu {
@@ -155,5 +236,10 @@
 
   .app-content {
     padding: 14px;
+  }
+
+  .app-footer__content {
+    flex-direction: column;
+    gap: 10px;
   }
 }

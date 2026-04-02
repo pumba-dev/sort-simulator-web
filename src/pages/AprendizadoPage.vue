@@ -35,12 +35,222 @@ type AnimationStep = {
   sortedPartition?: { start: number; end: number }; // bubble sort: already sorted region
 };
 
-const selectedAlgorithm = ref<AlgorithmKey>("bubble");
+type PseudoTokenKind =
+  | "plain"
+  | "space"
+  | "keyword"
+  | "operator"
+  | "array"
+  | "number"
+  | "routine";
+
+type PseudoToken = {
+  value: string;
+  kind: PseudoTokenKind;
+};
+
+const pseudoKeywords = new Set([
+  "function",
+  "procedure",
+  "for",
+  "to",
+  "downto",
+  "if",
+  "then",
+  "else",
+  "while",
+  "return",
+  "and",
+  "or",
+  "not",
+  "break",
+]);
+
+const pseudoOperators = new Set([
+  "<-",
+  "!=",
+  "<=",
+  ">=",
+  "<",
+  ">",
+  "=",
+  "+",
+  "-",
+  "*",
+  "/",
+  "..",
+]);
+
+const pseudoRoutines = new Set([
+  "INSERTION-SORT",
+  "BUBBLE-SORT",
+  "MERGE-SORT",
+  "MERGE",
+  "BUILD-MAX-HEAP",
+  "MAX-HEAPIFY",
+  "HEAP-SORT",
+  "QUICK-SORT",
+  "PARTITION",
+]);
+
+const tokenizePseudoLine = (line: string): PseudoToken[] => {
+  if (!line) {
+    return [{ value: " ", kind: "space" }];
+  }
+
+  const tokens = line.match(
+    /[A-Za-z][A-Za-z0-9_]*\[[^\]]+\]|[A-Za-z]+(?:-[A-Za-z]+)?|\d+|!=|<=|>=|<-|\.{2}|[(),:+*/=-]|\s+|\S/g,
+  ) ?? [line];
+
+  return tokens.map((token) => {
+    if (/^\s+$/.test(token)) {
+      return { value: token, kind: "space" };
+    }
+
+    if (/^[A-Za-z][A-Za-z0-9_]*\[[^\]]+\]$/.test(token)) {
+      return { value: token, kind: "array" };
+    }
+
+    if (/^\d+$/.test(token)) {
+      return { value: token, kind: "number" };
+    }
+
+    if (pseudoOperators.has(token)) {
+      return { value: token, kind: "operator" };
+    }
+
+    const normalized = token.toLowerCase();
+    if (pseudoKeywords.has(normalized)) {
+      return { value: token, kind: "keyword" };
+    }
+
+    if (pseudoRoutines.has(token)) {
+      return { value: token, kind: "routine" };
+    }
+
+    return { value: token, kind: "plain" };
+  });
+};
+
+const pseudoLineTooltips: Record<AlgorithmKey, string[]> = {
+  insertion: [
+    "Define a funcao principal do Insertion Sort para um vetor indexado de 1 ate n.",
+    "Percorre o vetor da segunda posicao ate o fim, inserindo um elemento por iteracao.",
+    "Copia o valor atual para a variavel temporaria X antes dos deslocamentos.",
+    "Inicializa j na posicao imediatamente anterior a i para comparar com os elementos ja ordenados.",
+    "Continua deslocando enquanto houver elementos maiores que a chave na parte ordenada.",
+    "Desloca o elemento de A[j] uma posicao para a direita para abrir espaco.",
+    "Move j para a esquerda para seguir procurando a posicao correta de insercao.",
+    "Insere a chave na posicao final encontrada apos os deslocamentos.",
+  ],
+  bubble: [
+    "Define a funcao principal do Bubble Sort para o vetor inteiro.",
+    "Controla as passagens externas; a cada passagem, o maior elemento restante vai para o fim.",
+    "Reinicia a flag de troca para detectar se ainda ha desordem nesta passagem.",
+    "Percorre pares adjacentes da parte ainda nao consolidada do vetor.",
+    "Compara o par atual e verifica se esta fora de ordem.",
+    "Troca os dois elementos para corrigir a ordem local.",
+    "Marca que houve troca nesta passagem.",
+    "Se nenhuma troca ocorreu, o vetor ja esta ordenado.",
+    "Encerra antecipadamente para evitar iteracoes desnecessarias.",
+  ],
+  merge: [
+    "Define a funcao recursiva principal do Merge Sort para o intervalo [p, r].",
+    "Verifica o caso recursivo: so divide se houver pelo menos dois elementos.",
+    "Calcula o ponto medio q para separar o intervalo em duas metades.",
+    "Ordena recursivamente a metade esquerda [p, q].",
+    "Ordena recursivamente a metade direita [q + 1, r].",
+    "Intercala as duas metades ja ordenadas no intervalo original.",
+    "Separador visual entre a funcao principal e a funcao auxiliar de merge.",
+    "Define a funcao auxiliar que intercala duas particoes ordenadas.",
+    "Calcula o tamanho da particao esquerda.",
+    "Calcula o tamanho da particao direita.",
+    "Percorre os elementos da particao esquerda temporaria.",
+    "Copia cada elemento da metade esquerda para o vetor auxiliar L.",
+    "Percorre os elementos da particao direita temporaria.",
+    "Copia cada elemento da metade direita para o vetor auxiliar R.",
+    "Adiciona sentinela no fim de L para simplificar comparacoes de limite.",
+    "Adiciona sentinela no fim de R para simplificar comparacoes de limite.",
+    "Inicializa o ponteiro i para o inicio de L.",
+    "Inicializa o ponteiro j para o inicio de R.",
+    "Percorre todas as posicoes do intervalo original [p, r].",
+    "Compara os elementos atuais de L e R para decidir qual entra no vetor final.",
+    "Grava em A[k] o menor elemento entre as cabecas de L e R.",
+    "Avanca o ponteiro i apos consumir um elemento de L.",
+    "Caminho alternativo quando o elemento de R e menor.",
+    "Grava em A[k] o elemento atual de R.",
+    "Avanca o ponteiro j apos consumir um elemento de R.",
+  ],
+  heap: [
+    "Define a funcao principal do Heap Sort para um vetor indexado de 1 ate n.",
+    "Constroi inicialmente um max-heap com todos os elementos do vetor.",
+    "Percorre o fim do vetor para extrair o maior elemento da heap em cada iteracao.",
+    "Move o maior elemento (raiz) para sua posicao final no fim do vetor.",
+    "Reduz o tamanho util da heap apos fixar um elemento no final.",
+    "Restaura a propriedade de max-heap a partir da raiz.",
+    "Separador visual entre a funcao principal e as funcoes auxiliares.",
+    "Define a funcao auxiliar para construir o max-heap inicial.",
+    "Inicializa o tamanho da heap com o tamanho total do vetor.",
+    "Percorre os nos internos de baixo para cima para heapificar tudo.",
+    "Aplica heapify em cada no interno para garantir a propriedade de max-heap.",
+    "Separador visual antes da rotina de ajuste local da heap.",
+    "Define a funcao que corrige a heap no no i considerando um heapSize atual.",
+    "Calcula o indice do filho esquerdo do no i.",
+    "Calcula o indice do filho direito do no i.",
+    "Assume inicialmente que o maior elemento esta na raiz local i.",
+    "Compara o filho esquerdo com o maior atual, respeitando o limite heapSize.",
+    "Atualiza o indice do maior quando o filho esquerdo vence a comparacao.",
+    "Compara o filho direito com o maior atual, respeitando o limite heapSize.",
+    "Atualiza o indice do maior quando o filho direito vence a comparacao.",
+    "Verifica se o maior elemento nao esta na raiz local e precisa de ajuste.",
+    "Troca a raiz local com o maior filho para restaurar a ordem da heap.",
+    "Continua recursivamente o ajuste na subarvore afetada pela troca.",
+  ],
+  quick: [
+    "Define a funcao recursiva principal do Quick Sort para o intervalo [p, r].",
+    "Executa o particionamento apenas quando o intervalo possui mais de um elemento.",
+    "Particiona o intervalo e obtem a posicao final q do pivo.",
+    "Ordena recursivamente a particao esquerda do pivo.",
+    "Ordena recursivamente a particao direita do pivo.",
+    "Separador visual entre Quick Sort e sua rotina de particionamento.",
+    "Define a funcao de particionamento usada pelo Quick Sort.",
+    "Seleciona o ultimo elemento como pivo da particao atual.",
+    "Inicializa i para delimitar a fronteira dos elementos menores ou iguais ao pivo.",
+    "Percorre o intervalo de comparacao de p ate r - 1.",
+    "Testa se o elemento atual deve ir para o lado esquerdo do pivo.",
+    "Avanca a fronteira de elementos menores ou iguais ao pivo.",
+    "Troca para manter os elementos <= pivo agrupados a esquerda.",
+    "Coloca o pivo entre os dois grupos apos o fim do loop.",
+    "Retorna o indice final do pivo para dividir as chamadas recursivas.",
+  ],
+};
+
+const describePseudoLine = (
+  algorithm: AlgorithmKey,
+  line: string,
+  lineIndex: number,
+): string => {
+  const tips = pseudoLineTooltips[algorithm];
+  if (tips && tips[lineIndex]) {
+    return tips[lineIndex];
+  }
+
+  if (!line.trim()) {
+    return "Separador visual entre blocos do pseudo-codigo.";
+  }
+
+  const algorithmTitle = learningByKey[algorithm]?.title ?? "algoritmo";
+  return `Executa o passo ${lineIndex + 1} do ${algorithmTitle}.`;
+};
+
+const selectedAlgorithm = ref<AlgorithmKey>("insertion");
 const inputMode = ref<InputMode>("gerado");
 const generatedScenario = ref<ScenarioType>("aleatorio");
 const generatedSize = ref<number>(24);
 const manualVectorText = ref<string>("8, 4, 6, 1, 3, 9, 2, 7");
 const speed = ref<number>(3);
+
+const manualVectorFormatRegex = /^\s*-?\d+(?:(?:\s*[,;]\s*|\s+)-?\d+)*\s*$/;
 
 const steps = ref<AnimationStep[]>([]);
 const currentStepIndex = ref<number>(0);
@@ -48,6 +258,7 @@ const comparisons = ref<number>(0);
 const swaps = ref<number>(0);
 const elapsedMs = ref<number>(0);
 const isPlaying = ref<boolean>(false);
+const hasPlaybackStarted = ref<boolean>(false);
 const playbackStartedAt = ref<number | null>(null);
 
 let timerId: number | null = null;
@@ -121,17 +332,92 @@ const progressPercent = computed(() => {
   return Math.round((currentStepIndex.value / (steps.value.length - 1)) * 100);
 });
 
+const displayIndex = (index: number | null | undefined): number | string => {
+  if (index === null || index === undefined) {
+    return "—";
+  }
+
+  return index + 1;
+};
+
+const displayBubbleNMinusI = (
+  outerIndex: number | null | undefined,
+): number | string => {
+  if (outerIndex === null || outerIndex === undefined) {
+    return "—";
+  }
+
+  return Math.max(0, bars.value.length - (outerIndex + 1));
+};
+
+const manualVectorValidationMessage = computed(() => {
+  if (inputMode.value !== "manual") {
+    return "";
+  }
+
+  const trimmedInput = manualVectorText.value.trim();
+  if (trimmedInput.length === 0) {
+    return "Informe números separados por vírgula, espaço ou ponto e vírgula.";
+  }
+
+  if (!manualVectorFormatRegex.test(trimmedInput)) {
+    return "Formato inválido. Exemplo: 8, 4, 6, 1 ou 8 4 6 1.";
+  }
+
+  const valuesCount = trimmedInput.split(/[\s,;]+/).filter(Boolean).length;
+  if (valuesCount < 2) {
+    return "Informe pelo menos 2 números para iniciar a simulação.";
+  }
+
+  return "";
+});
+
+const hasValidManualVector = computed(() => {
+  return manualVectorValidationMessage.value.length === 0;
+});
+
+const canPrepare = computed(() => {
+  return (
+    !isPlaying.value &&
+    (inputMode.value !== "manual" || hasValidManualVector.value)
+  );
+});
+
 const canStart = computed(() => {
-  return steps.value.length > 0 && !isPlaying.value;
+  return (
+    steps.value.length > 0 &&
+    !isPlaying.value &&
+    !hasPlaybackStarted.value &&
+    (inputMode.value !== "manual" || hasValidManualVector.value)
+  );
 });
 
 const canPause = computed(() => {
-  return isPlaying.value;
+  return isPlaying.value && hasPlaybackStarted.value;
 });
 
 const canContinue = computed(() => {
   return (
     !isPlaying.value &&
+    hasPlaybackStarted.value &&
+    currentStepIndex.value < steps.value.length - 1 &&
+    steps.value.length > 0
+  );
+});
+
+const canStepBackward = computed(() => {
+  return (
+    !isPlaying.value &&
+    hasPlaybackStarted.value &&
+    currentStepIndex.value > 0 &&
+    steps.value.length > 0
+  );
+});
+
+const canStepForward = computed(() => {
+  return (
+    !isPlaying.value &&
+    hasPlaybackStarted.value &&
     currentStepIndex.value < steps.value.length - 1 &&
     steps.value.length > 0
   );
@@ -144,6 +430,9 @@ const canReset = computed(() => {
 const statusText = computed(() => {
   if (steps.value.length === 0) {
     return "Pronto para preparar simulacao";
+  }
+  if (!hasPlaybackStarted.value) {
+    return "Pronto para iniciar";
   }
   if (isPlaying.value) {
     return "Executando";
@@ -164,6 +453,12 @@ const stopTimer = (): void => {
     window.clearInterval(timerId);
     timerId = null;
   }
+};
+
+const syncMetricsWithCurrentStep = (): void => {
+  const current = steps.value[currentStepIndex.value];
+  comparisons.value = current?.comparisons ?? 0;
+  swaps.value = current?.swaps ?? 0;
 };
 
 const createArrayByScenario = (
@@ -189,12 +484,20 @@ const createArrayByScenario = (
 };
 
 const parseManualValues = (): number[] => {
+  if (!hasValidManualVector.value) {
+    return [];
+  }
+
   const parsed = manualVectorText.value
     .split(/[\s,;]+/)
     .map((item) => Number(item.trim()))
     .filter((item) => Number.isFinite(item));
 
   return parsed.slice(0, 80);
+};
+
+const handleManualVectorInput = (value: string): void => {
+  manualVectorText.value = value.replace(/[^0-9,;\s-]/g, "");
 };
 
 const buildAnimationSteps = (baseVector: number[]): AnimationStep[] => {
@@ -244,6 +547,15 @@ const prepareSimulation = (): void => {
   isPlaying.value = false;
   playbackStartedAt.value = null;
 
+  if (inputMode.value === "manual" && !hasValidManualVector.value) {
+    steps.value = [];
+    currentStepIndex.value = 0;
+    hasPlaybackStarted.value = false;
+    syncMetricsWithCurrentStep();
+    elapsedMs.value = 0;
+    return;
+  }
+
   const sourceVector =
     inputMode.value === "manual"
       ? parseManualValues()
@@ -256,10 +568,8 @@ const prepareSimulation = (): void => {
     sourceVector.length > 1 ? sourceVector : [5, 1, 4, 2, 3];
   steps.value = buildAnimationSteps(fallbackVector);
   currentStepIndex.value = 0;
-
-  const firstStep = steps.value[0];
-  comparisons.value = firstStep?.comparisons ?? 0;
-  swaps.value = firstStep?.swaps ?? 0;
+  hasPlaybackStarted.value = false;
+  syncMetricsWithCurrentStep();
   elapsedMs.value = 0;
 };
 
@@ -274,20 +584,21 @@ const advanceOneStep = (): void => {
   }
 
   currentStepIndex.value += 1;
-  const current = steps.value[currentStepIndex.value];
-  if (current) {
-    comparisons.value = current.comparisons;
-    swaps.value = current.swaps;
-  }
+  syncMetricsWithCurrentStep();
 };
 
 const startSimulation = (): void => {
+  if (inputMode.value === "manual" && !hasValidManualVector.value) {
+    return;
+  }
+
   if (steps.value.length === 0) {
     prepareSimulation();
   }
 
   stopTimer();
   isPlaying.value = true;
+  hasPlaybackStarted.value = true;
 
   if (playbackStartedAt.value === null) {
     playbackStartedAt.value = performance.now() - elapsedMs.value;
@@ -317,12 +628,30 @@ const continueSimulation = (): void => {
   }
 };
 
+const stepBackwardSimulation = (): void => {
+  if (!canStepBackward.value) {
+    return;
+  }
+
+  currentStepIndex.value -= 1;
+  syncMetricsWithCurrentStep();
+};
+
+const stepForwardSimulation = (): void => {
+  if (!canStepForward.value) {
+    return;
+  }
+
+  currentStepIndex.value += 1;
+  syncMetricsWithCurrentStep();
+};
+
 const resetSimulation = (): void => {
   stopTimer();
   isPlaying.value = false;
   currentStepIndex.value = 0;
-  comparisons.value = steps.value[0]?.comparisons ?? 0;
-  swaps.value = steps.value[0]?.swaps ?? 0;
+  hasPlaybackStarted.value = false;
+  syncMetricsWithCurrentStep();
   elapsedMs.value = 0;
   playbackStartedAt.value = null;
 };
@@ -439,7 +768,16 @@ prepareSimulation();
               </a-form-item>
             </template>
 
-            <a-form-item v-else>
+            <a-form-item
+              v-else
+              :validate-status="
+                manualVectorValidationMessage ? 'error' : undefined
+              "
+              :help="
+                manualVectorValidationMessage ||
+                'Formato aceito: números separados por vírgula, espaço ou ponto e vírgula.'
+              "
+            >
               <template #label>
                 <a-tooltip
                   title="Insira números separados por vírgula, espaço ou ponto e vírgula. Máximo 80 valores."
@@ -448,46 +786,22 @@ prepareSimulation();
                 </a-tooltip>
               </template>
               <a-textarea
-                v-model:value="manualVectorText"
+                :value="manualVectorText"
                 :disabled="isPlaying"
                 :rows="4"
+                @update:value="handleManualVectorInput"
               />
             </a-form-item>
 
             <a-space>
               <a-button
                 type="default"
-                :disabled="isPlaying"
+                :disabled="!canPrepare"
                 @click="regenerateVector"
                 >Preparar</a-button
               >
             </a-space>
           </a-form>
-        </article>
-
-        <article class="page-card">
-          <h3 class="page-card__title">
-            <a-tooltip
-              title="Informações sobre o algoritmo selecionado: conceito, estratégia de funcionamento e complexidade em diferentes cenários."
-            >
-              <span>Descricao e Complexidade</span>
-            </a-tooltip>
-          </h3>
-          <a-space direction="vertical" style="width: 100%" :size="10">
-            <p>{{ selectedMetadata.concept }}</p>
-            <p>{{ selectedMetadata.strategy }}</p>
-            <a-space wrap>
-              <a-tag color="green"
-                >Melhor: {{ selectedMetadata.bestCase }}</a-tag
-              >
-              <a-tag color="blue"
-                >Medio: {{ selectedMetadata.averageCase }}</a-tag
-              >
-              <a-tag color="volcano"
-                >Pior: {{ selectedMetadata.worstCase }}</a-tag
-              >
-            </a-space>
-          </a-space>
         </article>
 
         <article class="page-card">
@@ -516,7 +830,7 @@ prepareSimulation();
             </a-form-item>
           </a-form>
 
-          <a-space wrap>
+          <a-space v-if="!hasPlaybackStarted" wrap>
             <a-tooltip title="Inicia a execução automatizada do algoritmo">
               <a-button
                 type="primary"
@@ -525,16 +839,55 @@ prepareSimulation();
                 >Iniciar</a-button
               >
             </a-tooltip>
+          </a-space>
+
+          <a-space v-else-if="canPause" wrap>
             <a-tooltip title="Pausa a animação no passo atual">
-              <a-button :disabled="!canPause" @click="pauseSimulation"
-                >Pausar</a-button
+              <a-button @click="pauseSimulation">Pausar</a-button>
+            </a-tooltip>
+            <a-tooltip title="Volta ao primeiro passo da animação">
+              <a-button :disabled="!canReset" @click="resetSimulation"
+                >Reiniciar</a-button
               >
             </a-tooltip>
-            <a-tooltip title="Continua a animação do ponto onde foi pausada">
-              <a-button :disabled="!canContinue" @click="continueSimulation"
-                >Continuar</a-button
-              >
-            </a-tooltip>
+          </a-space>
+
+          <a-space v-else-if="canContinue" direction="vertical" :size="16">
+            <a-space wrap>
+              <a-tooltip title="Continua a animação do ponto onde foi pausada">
+                <a-button
+                  type="primary"
+                  :disabled="!canContinue"
+                  @click="continueSimulation"
+                  >Continuar</a-button
+                >
+              </a-tooltip>
+              <a-tooltip title="Volta ao primeiro passo da animação">
+                <a-button :disabled="!canReset" @click="resetSimulation"
+                  >Reiniciar</a-button
+                >
+              </a-tooltip>
+            </a-space>
+
+            <a-space wrap>
+              <a-tooltip title="Volta para o estado anterior da animação">
+                <a-button
+                  :disabled="!canStepBackward"
+                  @click="stepBackwardSimulation"
+                  >Passo Anterior</a-button
+                >
+              </a-tooltip>
+              <a-tooltip title="Avança para o próximo passo da animação">
+                <a-button
+                  :disabled="!canStepForward"
+                  @click="stepForwardSimulation"
+                  >Próximo Passo</a-button
+                >
+              </a-tooltip>
+            </a-space>
+          </a-space>
+
+          <a-space v-else wrap>
             <a-tooltip title="Volta ao primeiro passo da animação">
               <a-button :disabled="!canReset" @click="resetSimulation"
                 >Reiniciar</a-button
@@ -552,7 +905,7 @@ prepareSimulation();
         </article>
       </div>
 
-      <div class="aprendizado-grid__right">
+      <div class="aprendizado-grid__middle">
         <article class="page-card">
           <h3 class="page-card__title">
             <a-tooltip
@@ -648,36 +1001,32 @@ prepareSimulation();
               <!-- Bubble Sort variables -->
               <template v-if="selectedAlgorithm === 'bubble'">
                 <a-tooltip
-                  title="Índice da passagem externa (quantas vezes a bolha passou)"
+                  title="Variável i do pseudo-código (passagem externa do bubble sort)"
                 >
                   <div class="variable-item">
-                    <span class="variable-item__label">i (passagem):</span>
+                    <span class="variable-item__label">i:</span>
                     <span class="variable-item__value">{{
-                      currentStep.variables.i !== null
-                        ? currentStep.variables.i
-                        : "—"
+                      displayIndex(currentStep.variables.i)
                     }}</span>
                   </div>
                 </a-tooltip>
                 <a-tooltip
-                  title="Índice de comparação na passagem atual (comparando com o anterior)"
+                  title="Variável j do pseudo-código (loop interno de comparação)"
                 >
                   <div class="variable-item">
-                    <span class="variable-item__label">j (comparacao):</span>
+                    <span class="variable-item__label">j:</span>
                     <span class="variable-item__value">{{
-                      currentStep.variables.j !== null
-                        ? currentStep.variables.j
-                        : "—"
+                      displayIndex(currentStep.variables.j)
                     }}</span>
                   </div>
                 </a-tooltip>
                 <a-tooltip
-                  title="A partir deste índice, os elementos já estão na posição final"
+                  title="Faixa já ordenada associada ao limite n - i do pseudo-código"
                 >
                   <div v-if="sortedPartition" class="variable-item">
-                    <span class="variable-item__label">Ordenado desde:</span>
+                    <span class="variable-item__label">n - i:</span>
                     <span class="variable-item__value">{{
-                      sortedPartition.start
+                      displayBubbleNMinusI(currentStep.variables.i)
                     }}</span>
                   </div>
                 </a-tooltip>
@@ -686,32 +1035,30 @@ prepareSimulation();
               <!-- Insertion Sort variables -->
               <template v-else-if="selectedAlgorithm === 'insertion'">
                 <a-tooltip
-                  title="Índice do elemento sendo inserido na sequência ordenada"
+                  title="Variável i do pseudo-código (índice do elemento sendo inserido)"
                 >
                   <div class="variable-item">
-                    <span class="variable-item__label">j (elemento):</span>
+                    <span class="variable-item__label">i:</span>
                     <span class="variable-item__value">{{
-                      currentStep.variables.j !== null
-                        ? currentStep.variables.j
-                        : "—"
+                      displayIndex(currentStep.variables.j)
                     }}</span>
                   </div>
                 </a-tooltip>
                 <a-tooltip
-                  title="Índice da comparação durante a busca da posição correta"
+                  title="Variável j do pseudo-código (posição analisada na parte ordenada)"
                 >
                   <div class="variable-item">
-                    <span class="variable-item__label">i (comparacao):</span>
+                    <span class="variable-item__label">j:</span>
                     <span class="variable-item__value">{{
-                      currentStep.variables.i !== null
-                        ? currentStep.variables.i
-                        : "—"
+                      displayIndex(currentStep.variables.i)
                     }}</span>
                   </div>
                 </a-tooltip>
-                <a-tooltip title="Valor do elemento que está sendo inserido">
+                <a-tooltip
+                  title="Variável X do pseudo-código (valor temporário sendo inserido)"
+                >
                   <div class="variable-item">
-                    <span class="variable-item__label">key:</span>
+                    <span class="variable-item__label">X:</span>
                     <span class="variable-item__value">{{
                       currentStep.variables.key !== null
                         ? currentStep.variables.key
@@ -724,42 +1071,40 @@ prepareSimulation();
                 >
                   <div v-if="gapIndex !== null" class="variable-item">
                     <span class="variable-item__label">Lacuna em:</span>
-                    <span class="variable-item__value">{{ gapIndex }}</span>
+                    <span class="variable-item__value">{{
+                      displayIndex(gapIndex)
+                    }}</span>
                   </div>
                 </a-tooltip>
               </template>
 
               <!-- Merge Sort variables -->
               <template v-else-if="selectedAlgorithm === 'merge'">
-                <a-tooltip title="Índice do início da partição esquerda">
+                <a-tooltip
+                  title="Variável p do pseudo-código (início da partição)"
+                >
                   <div class="variable-item">
-                    <span class="variable-item__label">Esquerda:</span>
+                    <span class="variable-item__label">p:</span>
                     <span class="variable-item__value">{{
-                      currentStep.variables.left !== null
-                        ? currentStep.variables.left
-                        : "—"
+                      displayIndex(currentStep.variables.left)
+                    }}</span>
+                  </div>
+                </a-tooltip>
+                <a-tooltip title="Variável q do pseudo-código (ponto médio)">
+                  <div class="variable-item">
+                    <span class="variable-item__label">q:</span>
+                    <span class="variable-item__value">{{
+                      displayIndex(currentStep.variables.mid)
                     }}</span>
                   </div>
                 </a-tooltip>
                 <a-tooltip
-                  title="Índice do ponto meio (divisão entre esquerda e direita)"
+                  title="Variável r do pseudo-código (fim da partição)"
                 >
                   <div class="variable-item">
-                    <span class="variable-item__label">Meio:</span>
+                    <span class="variable-item__label">r:</span>
                     <span class="variable-item__value">{{
-                      currentStep.variables.mid !== null
-                        ? currentStep.variables.mid
-                        : "—"
-                    }}</span>
-                  </div>
-                </a-tooltip>
-                <a-tooltip title="Índice do final da partição direita">
-                  <div class="variable-item">
-                    <span class="variable-item__label">Direita:</span>
-                    <span class="variable-item__value">{{
-                      currentStep.variables.right !== null
-                        ? currentStep.variables.right
-                        : "—"
+                      displayIndex(currentStep.variables.right)
                     }}</span>
                   </div>
                 </a-tooltip>
@@ -781,34 +1126,26 @@ prepareSimulation();
               <!-- Heap Sort variables -->
               <template v-else-if="selectedAlgorithm === 'heap'">
                 <a-tooltip
-                  title="Índice do nó sendo heapificado (comparado com seus filhos)"
+                  title="Variável i do pseudo-código (nó sendo heapificado)"
                 >
                   <div class="variable-item">
-                    <span class="variable-item__label">i (indice):</span>
+                    <span class="variable-item__label">i:</span>
                     <span class="variable-item__value">{{
-                      currentStep.variables.i !== null
-                        ? currentStep.variables.i
-                        : "—"
+                      displayIndex(currentStep.variables.i)
                     }}</span>
                   </div>
                 </a-tooltip>
-                <a-tooltip
-                  title="Índice do maior elemento entre o nó e seus filhos"
-                >
+                <a-tooltip title="Variável largest do pseudo-código">
                   <div class="variable-item">
-                    <span class="variable-item__label">Maior:</span>
+                    <span class="variable-item__label">largest:</span>
                     <span class="variable-item__value">{{
-                      currentStep.variables.largest !== null
-                        ? currentStep.variables.largest
-                        : "—"
+                      displayIndex(currentStep.variables.largest)
                     }}</span>
                   </div>
                 </a-tooltip>
-                <a-tooltip
-                  title="Tamanho atual do heap (diminui a cada extração do máximo)"
-                >
+                <a-tooltip title="Variável heapSize do pseudo-código">
                   <div class="variable-item">
-                    <span class="variable-item__label">Heap Size:</span>
+                    <span class="variable-item__label">heapSize:</span>
                     <span class="variable-item__value">{{
                       currentStep.variables.heapSize !== null
                         ? currentStep.variables.heapSize
@@ -821,50 +1158,62 @@ prepareSimulation();
               <!-- Quick Sort variables -->
               <template v-else-if="selectedAlgorithm === 'quick'">
                 <a-tooltip
-                  title="Índice esquerdo (p) da partição sendo processada"
+                  title="Variável p do pseudo-código (início da partição)"
                 >
                   <div class="variable-item">
-                    <span class="variable-item__label">Esquerda (p):</span>
+                    <span class="variable-item__label">p:</span>
                     <span class="variable-item__value">{{
-                      currentStep.variables.p !== null
-                        ? currentStep.variables.p
-                        : "—"
+                      displayIndex(currentStep.variables.p)
                     }}</span>
                   </div>
                 </a-tooltip>
                 <a-tooltip
-                  title="Índice direito (r) da partição sendo processada (pivot)"
+                  title="Variável r do pseudo-código (fim da partição)"
                 >
                   <div class="variable-item">
-                    <span class="variable-item__label">Direita (r):</span>
+                    <span class="variable-item__label">r:</span>
                     <span class="variable-item__value">{{
-                      currentStep.variables.r !== null
-                        ? currentStep.variables.r
-                        : "—"
+                      displayIndex(currentStep.variables.r)
                     }}</span>
                   </div>
                 </a-tooltip>
                 <a-tooltip
-                  title="Índice sendo comparado com o pivot durante particionamento"
+                  title="Variável i do pseudo-código (fronteira dos valores <= pivot)"
                 >
                   <div class="variable-item">
-                    <span class="variable-item__label">Comparando (j):</span>
+                    <span class="variable-item__label">i:</span>
                     <span class="variable-item__value">{{
-                      currentStep.variables.j !== null
-                        ? currentStep.variables.j
-                        : "—"
+                      displayIndex(currentStep.variables.i)
                     }}</span>
                   </div>
                 </a-tooltip>
                 <a-tooltip
-                  title="Valor do pivot (elemento usado como referência para partição)"
+                  title="Variável j do pseudo-código (índice atualmente comparado)"
                 >
                   <div class="variable-item">
-                    <span class="variable-item__label">Pivot:</span>
+                    <span class="variable-item__label">j:</span>
+                    <span class="variable-item__value">{{
+                      displayIndex(currentStep.variables.j)
+                    }}</span>
+                  </div>
+                </a-tooltip>
+                <a-tooltip title="Variável pivot do pseudo-código">
+                  <div class="variable-item">
+                    <span class="variable-item__label">pivot:</span>
                     <span class="variable-item__value">{{
                       currentStep.variables.pivot !== null
                         ? currentStep.variables.pivot
                         : "—"
+                    }}</span>
+                  </div>
+                </a-tooltip>
+                <a-tooltip
+                  title="Variável q do pseudo-código (posição final do pivot após PARTITION)"
+                >
+                  <div class="variable-item">
+                    <span class="variable-item__label">q:</span>
+                    <span class="variable-item__value">{{
+                      displayIndex(partitionIndex)
                     }}</span>
                   </div>
                 </a-tooltip>
@@ -876,9 +1225,7 @@ prepareSimulation();
                   <div class="variable-item">
                     <span class="variable-item__label">i:</span>
                     <span class="variable-item__value">{{
-                      currentStep.variables.i !== null
-                        ? currentStep.variables.i
-                        : "—"
+                      displayIndex(currentStep.variables.i)
                     }}</span>
                   </div>
                 </a-tooltip>
@@ -886,9 +1233,7 @@ prepareSimulation();
                   <div class="variable-item">
                     <span class="variable-item__label">j:</span>
                     <span class="variable-item__value">{{
-                      currentStep.variables.j !== null
-                        ? currentStep.variables.j
-                        : "—"
+                      displayIndex(currentStep.variables.j)
                     }}</span>
                   </div>
                 </a-tooltip>
@@ -903,7 +1248,7 @@ prepareSimulation();
         <article class="page-card">
           <h3 class="page-card__title">
             <a-tooltip
-              title="Resumo das estatísticas da execução: tempo decorrido, total de comparações, total de trocas/deslocamentos e memória estimada."
+              title="Resumo das estatísticas da execução: tempo decorrido, total de comparações e total de trocas/deslocamentos."
             >
               <span>Metricas Basicas</span>
             </a-tooltip>
@@ -933,17 +1278,70 @@ prepareSimulation();
                 <div class="kpi-tile__value">{{ swaps }}</div>
               </div>
             </a-tooltip>
+          </div>
+        </article>
+      </div>
+
+      <div class="aprendizado-grid__right">
+        <article class="page-card">
+          <h3 class="page-card__title">
             <a-tooltip
-              title="Estimativa de memória usada pelo vetor (cada número = 8 bytes)."
+              title="Pseudo-codigo didatico do algoritmo selecionado, usando arrays indexados a partir de 1."
             >
-              <div class="kpi-tile">
-                <div class="kpi-tile__label">Memoria estimada</div>
-                <div class="kpi-tile__value">
-                  {{ Math.max(1, Math.round((bars.length * 8) / 1024)) }} KB
-                </div>
-              </div>
+              <span>Pseudo Algoritmo</span>
+            </a-tooltip>
+          </h3>
+          <div class="pseudo-code" role="region" aria-label="Pseudo algoritmo">
+            <a-tooltip
+              v-for="(line, index) in selectedMetadata.pseudocodeLines"
+              :key="`${selectedAlgorithm}-pseudo-${index}`"
+              :title="describePseudoLine(selectedAlgorithm, line, index)"
+              placement="left"
+            >
+              <span class="pseudo-code__line pseudo-code__line--interactive">
+                <span class="pseudo-code__number">{{ index + 1 }}</span>
+                <span class="pseudo-code__text">
+                  <template
+                    v-for="(token, tokenIndex) in tokenizePseudoLine(line)"
+                    :key="`${selectedAlgorithm}-pseudo-${index}-${tokenIndex}`"
+                  >
+                    <span
+                      :class="[
+                        'pseudo-code__token',
+                        `pseudo-code__token--${token.kind}`,
+                      ]"
+                      >{{ token.value }}</span
+                    >
+                  </template>
+                </span>
+              </span>
             </a-tooltip>
           </div>
+        </article>
+
+        <article class="page-card">
+          <h3 class="page-card__title">
+            <a-tooltip
+              title="Informações sobre o algoritmo selecionado: conceito, estratégia de funcionamento e complexidade em diferentes cenários."
+            >
+              <span>Descricao e Complexidade</span>
+            </a-tooltip>
+          </h3>
+          <a-space direction="vertical" style="width: 100%" :size="10">
+            <p>{{ selectedMetadata.concept }}</p>
+            <p>{{ selectedMetadata.strategy }}</p>
+            <a-space wrap>
+              <a-tag color="green"
+                >Melhor: {{ selectedMetadata.bestCase }}</a-tag
+              >
+              <a-tag color="blue"
+                >Medio: {{ selectedMetadata.averageCase }}</a-tag
+              >
+              <a-tag color="volcano"
+                >Pior: {{ selectedMetadata.worstCase }}</a-tag
+              >
+            </a-space>
+          </a-space>
         </article>
       </div>
     </section>
