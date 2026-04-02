@@ -171,7 +171,7 @@ const selectedAlgorithm = ref<AlgorithmKey>("insertion");
 const inputMode = ref<InputMode>("gerado");
 const generatedScenario = ref<ScenarioType>("aleatorio");
 const MAX_VISUALIZATION_SIZE = 30;
-const generatedSize = ref<number>(24);
+const generatedSize = ref<number>(10);
 const manualVectorText = ref<string>("8, 4, 6, 1, 3, 9, 2, 7");
 const speed = ref<number>(3);
 
