@@ -13,12 +13,14 @@ const workerScope: DedicatedWorkerGlobalScope =
 
 let cancelled = false;
 
+// Aguarda alguns milissegundos para ceder o loop de eventos do worker.
 const delay = (ms: number): Promise<void> => {
   return new Promise((resolve) => {
     setTimeout(resolve, ms);
   });
 };
 
+// Estima o tempo de execucao (ms) com base em complexidade, cenario e jitter.
 const estimateDurationMs = (
   algorithm: AlgorithmKey,
   scenario: ScenarioType,
@@ -74,6 +76,7 @@ const estimateDurationMs = (
   );
 };
 
+// Estima a quantidade de comparacoes para algoritmo, cenario e tamanho.
 const estimateComparisons = (
   algorithm: AlgorithmKey,
   scenario: ScenarioType,
@@ -103,6 +106,7 @@ const estimateComparisons = (
   return Math.round(base[algorithm]);
 };
 
+// Estima o consumo de memoria em KB para cada algoritmo.
 const estimateMemoryKb = (algorithm: AlgorithmKey, size: number): number => {
   const baseKb = (size * 8) / 1024;
   if (algorithm === "merge") {
@@ -114,6 +118,7 @@ const estimateMemoryKb = (algorithm: AlgorithmKey, size: number): number => {
   return Math.round(baseKb);
 };
 
+// Calcula a media aritmetica; retorna 0 para lista vazia.
 const average = (values: number[]): number => {
   if (values.length === 0) {
     return 0;
@@ -124,6 +129,7 @@ const average = (values: number[]): number => {
   return total / values.length;
 };
 
+// Calcula um percentil com interpolacao linear em um array ja ordenado.
 const percentile = (sortedValues: number[], p: number): number => {
   const position = (sortedValues.length - 1) * p;
   const baseIndex = Math.floor(position);
@@ -139,6 +145,7 @@ const percentile = (sortedValues: number[], p: number): number => {
   );
 };
 
+// Remove outliers usando IQR; se remover tudo, retorna os dados ordenados.
 const removeOutliersIqr = (values: number[]): number[] => {
   if (values.length < 4) {
     return values;
@@ -161,6 +168,7 @@ const removeOutliersIqr = (values: number[]): number[] => {
   return filtered.length > 0 ? filtered : sorted;
 };
 
+// Executa a simulacao do job completo e publica progresso/resultados no worker.
 const runSimulation = async (job: CompareJob): Promise<void> => {
   const rows: ComparisonResultRow[] = [];
   const total = job.algorithms.length * job.scenarios.length * job.sizes.length;
@@ -230,6 +238,7 @@ const runSimulation = async (job: CompareJob): Promise<void> => {
   workerScope.postMessage({ type: "result", rows });
 };
 
+// Processa comandos recebidos pela thread principal (start/cancel).
 workerScope.onmessage = (event: MessageEvent<WorkerCommand>): void => {
   const command = event.data;
 
