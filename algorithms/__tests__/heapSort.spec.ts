@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import heapSort from '../heapSort.js'
+import heapSort from '../heapSort.ts'
 
 const runSteps = (arr: number[]) => heapSort(arr).steps
 const runFinal = (arr: number[]) => heapSort(arr).finalArray

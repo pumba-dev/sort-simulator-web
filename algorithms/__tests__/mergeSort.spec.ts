@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import mergeSort from '../mergeSort.js'
+import mergeSort from '../mergeSort.ts'
 
 const runSteps = (arr: number[]) => mergeSort(arr).steps
 const runFinal = (arr: number[]) => mergeSort(arr).finalArray

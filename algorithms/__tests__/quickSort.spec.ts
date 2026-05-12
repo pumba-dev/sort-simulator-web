@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import quickSort from '../quickSort.js'
+import quickSort from '../quickSort.ts'
 
 const runSteps = (arr: number[]) => quickSort(arr).steps
 const runFinal = (arr: number[]) => quickSort(arr).finalArray

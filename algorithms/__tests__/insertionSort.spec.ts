@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import insertionSort from '../inserctionSort.js'
+import insertionSort from '../inserctionSort.ts'
 
 const runSteps = (arr: number[]) => insertionSort(arr).steps
 const runFinal = (arr: number[]) => insertionSort(arr).finalArray

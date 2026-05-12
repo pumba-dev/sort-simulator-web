@@ -1,21 +1,24 @@
+import type {
+  SortRunOptions,
+  SortRunResult,
+  SortStep,
+} from "../src/types/sort-types";
+
 const ABORT_SENTINEL = Symbol("sort-aborted");
 const BYTES_PER_NUMBER = 8;
 
-export default (A, options = {}) => {
+export default (A: number[], options: SortRunOptions = {}): SortRunResult => {
   const { recordSteps = true, signal, yieldEveryOps = 50000 } = options;
 
-  // [BENCHMARK] Acumuladores de métricas e array de passos
-  const steps = [];
+  const steps: SortStep[] = [];
   let comparisons = 0;
   let swaps = 0;
 
-  // [SORT] Cópia do array de entrada para não mutar o original
   const arr = [...A];
 
-  // [BENCHMARK] Memória auxiliar: apenas o próprio array + variável key (algoritmo in-place)
+  // Memória auxiliar: apenas o próprio array + variável key (algoritmo in-place)
   const peakAux = arr.length * BYTES_PER_NUMBER;
 
-  // [BENCHMARK] Controle de abort e yield periódico
   let ops = 0;
   const tick = () => {
     ops += 1;
@@ -27,18 +30,16 @@ export default (A, options = {}) => {
     }
   };
 
-  // [BENCHMARK] Registra snapshot para visualização passo a passo
-  const pushStep = (fields) => {
+  const pushStep = (fields: SortStep) => {
     if (recordSteps) steps.push(fields);
   };
 
   try {
-    // [SORT] Loop externo: insere arr[j] na posição correta dentro do prefixo já ordenado
+    // Loop externo: insere arr[j] na posição correta dentro do prefixo já ordenado
     for (let j = 1; j < arr.length; j++) {
-      const key = arr[j]; // [SORT] elemento a ser inserido
-      let i = j - 1; // [SORT] índice do último elemento do prefixo ordenado
+      const key = arr[j];
+      let i = j - 1;
 
-      // [BENCHMARK] Snapshot com o elemento sendo selecionado para inserção
       pushStep({
         values: [...arr],
         activeIndexes: [j],
@@ -49,12 +50,11 @@ export default (A, options = {}) => {
         gapIndex: j,
       });
 
-      // [SORT] Desloca elementos maiores que key uma posição à direita
+      // Desloca elementos maiores que key uma posição à direita
       while (i >= 0 && arr[i] > key) {
-        arr[i + 1] = arr[i]; // [SORT] deslocamento
-        swaps++; // [BENCHMARK]
+        arr[i + 1] = arr[i];
+        swaps++;
 
-        // [BENCHMARK] Snapshot após deslocamento
         pushStep({
           values: [...arr],
           activeIndexes: [i, i + 1],
@@ -65,18 +65,16 @@ export default (A, options = {}) => {
           gapIndex: i,
         });
 
-        i = i - 1; // [SORT] move para o próximo elemento do prefixo ordenado
-        comparisons++; // [BENCHMARK]
-        tick(); // [BENCHMARK]
+        i = i - 1;
+        comparisons++;
+        tick();
       }
 
-      comparisons++; // [BENCHMARK] conta a comparação que encerrou o while
-      tick(); // [BENCHMARK]
+      comparisons++;
+      tick();
 
-      // [SORT] Insere key na posição encontrada
       arr[i + 1] = key;
 
-      // [BENCHMARK] Snapshot após inserção
       pushStep({
         values: [...arr],
         activeIndexes: [i + 1],
@@ -89,7 +87,6 @@ export default (A, options = {}) => {
     }
   } catch (error) {
     if (error === ABORT_SENTINEL) {
-      // [BENCHMARK] Retorno parcial ao abortar
       return {
         steps,
         finalArray: arr,
@@ -102,7 +99,7 @@ export default (A, options = {}) => {
     throw error;
   }
 
-  // [BENCHMARK] Garante ao menos um passo para arrays já ordenados ou unitários
+  // Garante ao menos um passo para arrays já ordenados ou unitários
   if (recordSteps && steps.length === 0) {
     steps.push({
       values: [...arr],

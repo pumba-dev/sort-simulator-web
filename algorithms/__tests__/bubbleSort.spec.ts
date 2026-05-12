@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import bubbleSort from '../bubbleSort.js'
+import bubbleSort from '../bubbleSort.ts'
 
 const runSteps = (arr: number[]) => bubbleSort(arr).steps
 const runFinal = (arr: number[]) => bubbleSort(arr).finalArray
