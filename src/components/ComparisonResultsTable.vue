@@ -71,8 +71,8 @@ const columns = computed(() => {
 const dataSource = computed(() => {
   const integerFormatter = new Intl.NumberFormat(locale.value);
   const decimalFormatter = new Intl.NumberFormat(locale.value, {
-    minimumFractionDigits: 3,
-    maximumFractionDigits: 3,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   });
 
   return props.rows.map((row) => {

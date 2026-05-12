@@ -1,5 +1,6 @@
 import {
   COMPARISON_HISTORY_KEY,
+  type BenchmarkEnvironment,
   type CompareJob,
   type ComparisonHistoryEntry,
   type ComparisonResultRow,
@@ -39,12 +40,14 @@ export const loadComparisonHistory = (): ComparisonHistoryEntry[] => {
 export const saveComparisonHistoryEntry = (
   config: CompareJob,
   rows: ComparisonResultRow[],
+  environment?: BenchmarkEnvironment,
 ): ComparisonHistoryEntry => {
   const entry: ComparisonHistoryEntry = {
     id: `${Date.now()}`,
     executedAt: new Date().toISOString(),
     config,
     rows,
+    environment,
   };
 
   const nextHistory = [entry, ...loadComparisonHistory()].slice(
@@ -87,5 +90,11 @@ export const consumePendingCompareConfig = (): CompareJob | null => {
   );
 
   window.sessionStorage.removeItem(COMPARISON_PENDING_CONFIG_KEY);
-  return parsed;
+  if (!parsed) return null;
+  return {
+    ...parsed,
+    seed: typeof parsed.seed === "number" ? parsed.seed : 42,
+    removeOutliers:
+      typeof parsed.removeOutliers === "boolean" ? parsed.removeOutliers : true,
+  };
 };

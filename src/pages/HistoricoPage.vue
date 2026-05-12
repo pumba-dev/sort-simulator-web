@@ -9,7 +9,7 @@ import {
   loadComparisonHistory,
   setPendingCompareConfig,
 } from "../utils/comparison-history";
-import type { ComparisonHistoryEntry, ScenarioType } from "../types/comparator";
+import type { BenchmarkEnvironment, ComparisonHistoryEntry, ScenarioType } from "../types/comparator";
 import {
   scenarioLabelKeyByKey,
   scenarioOptions,
@@ -37,6 +37,10 @@ const selectedEntry = computed(() => {
 const chartScenario = computed(() => {
   return selectedScenario.value === "all" ? undefined : selectedScenario.value;
 });
+
+const selectedEntryEnvironment = computed(
+  (): BenchmarkEnvironment | undefined => selectedEntry.value?.environment,
+);
 
 const formatDateTime = (isoDate: string): string => {
   return new Date(isoDate).toLocaleString(locale.value);
@@ -233,6 +237,29 @@ const exportChartPng = (): void => {
               })
             }}
           </p>
+
+          <div
+            v-if="selectedEntryEnvironment"
+            class="benchmark-env benchmark-env--compact"
+            style="margin-bottom: 14px"
+          >
+            <p class="benchmark-env__label">{{ t("environment.executedOn") }}</p>
+            <p class="benchmark-env__line benchmark-env__line--strong">
+              {{ selectedEntryEnvironment.browser }} {{ selectedEntryEnvironment.browserVersion }}
+              <span v-if="selectedEntryEnvironment.engine"> ({{ selectedEntryEnvironment.engine }})</span>
+            </p>
+            <p class="benchmark-env__line">{{ selectedEntryEnvironment.os }}</p>
+            <p class="benchmark-env__line">
+              <span v-if="selectedEntryEnvironment.cpuThreads">{{ t("environment.threads", { count: selectedEntryEnvironment.cpuThreads }) }}</span>
+              <span v-if="selectedEntryEnvironment.cpuThreads && selectedEntryEnvironment.memoryGB"> · </span>
+              <span v-if="selectedEntryEnvironment.memoryGB">{{ t("environment.memory", { gb: selectedEntryEnvironment.memoryGB }) }}</span>
+              <span v-if="selectedEntryEnvironment.cpuThreads || selectedEntryEnvironment.memoryGB"> · </span>
+              {{ selectedEntryEnvironment.mobile ? t("environment.mobile") : t("environment.desktop") }}
+            </p>
+            <p class="benchmark-env__score">
+              {{ t("environment.baselineScore", { score: selectedEntryEnvironment.baselineScore }) }}
+            </p>
+          </div>
 
           <ComparisonResultsTable :rows="selectedEntry.rows" compact />
 

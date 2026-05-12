@@ -1,20 +1,38 @@
-export default (A) => {
+const ABORT_SENTINEL = Symbol("sort-aborted");
+const BYTES_PER_NUMBER = 8;
+const STACK_FRAME_BYTES = 32;
+
+export default (A, options = {}) => {
+  const {
+    recordSteps = true,
+    signal,
+    yieldEveryOps = 50000,
+  } = options;
+
   const steps = [];
   let comparisons = 0;
   let swaps = 0;
-  const arr = [...A]; // copy to avoid mutating input
+  const arr = [...A];
 
-  function quickSortRecursive(p, r) {
-    if (p < r) {
-      const result = partitionWithSteps(p, r);
-      const q = result.partitionIndex;
-      comparisons = result.comparisons;
-      swaps = result.swaps;
+  const baseAux = arr.length * BYTES_PER_NUMBER;
+  let maxRecursionDepth = 0;
+  let peakAux = baseAux;
+  const updatePeak = (depth) => {
+    if (depth > maxRecursionDepth) maxRecursionDepth = depth;
+    const current = baseAux + maxRecursionDepth * STACK_FRAME_BYTES;
+    if (current > peakAux) peakAux = current;
+  };
 
-      quickSortRecursive(p, q - 1);
-      quickSortRecursive(q + 1, r);
+  let ops = 0;
+  const tick = () => {
+    ops += 1;
+    if (ops >= yieldEveryOps) {
+      ops = 0;
+      if (signal && signal.aborted) {
+        throw ABORT_SENTINEL;
+      }
     }
-  }
+  };
 
   function partitionWithSteps(p, r) {
     const x = arr[r];
@@ -25,24 +43,10 @@ export default (A) => {
     for (let j = p; j <= r - 1; j++) {
       localComps++;
 
-      steps.push({
-        values: [...arr],
-        activeIndexes: [j],
-        comparisons: localComps,
-        swaps: localSwaps,
-        variables: { i, j, pivot: x, p, r },
-        pivotIndex: r,
-        partitionIndex: null,
-      });
-
-      if (arr[j] <= x) {
-        i += 1;
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-        localSwaps++;
-
+      if (recordSteps) {
         steps.push({
           values: [...arr],
-          activeIndexes: [i, j],
+          activeIndexes: [j],
           comparisons: localComps,
           swaps: localSwaps,
           variables: { i, j, pivot: x, p, r },
@@ -50,20 +54,41 @@ export default (A) => {
           partitionIndex: null,
         });
       }
+
+      if (arr[j] <= x) {
+        i += 1;
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+        localSwaps++;
+
+        if (recordSteps) {
+          steps.push({
+            values: [...arr],
+            activeIndexes: [i, j],
+            comparisons: localComps,
+            swaps: localSwaps,
+            variables: { i, j, pivot: x, p, r },
+            pivotIndex: r,
+            partitionIndex: null,
+          });
+        }
+      }
+      tick();
     }
 
     [arr[i + 1], arr[r]] = [arr[r], arr[i + 1]];
     localSwaps++;
 
-    steps.push({
-      values: [...arr],
-      activeIndexes: [i + 1, r],
-      comparisons: localComps,
-      swaps: localSwaps,
-      variables: { i: i + 1, j: r, pivot: x, p, r },
-      pivotIndex: i + 1,
-      partitionIndex: i + 1,
-    });
+    if (recordSteps) {
+      steps.push({
+        values: [...arr],
+        activeIndexes: [i + 1, r],
+        comparisons: localComps,
+        swaps: localSwaps,
+        variables: { i: i + 1, j: r, pivot: x, p, r },
+        pivotIndex: i + 1,
+        partitionIndex: i + 1,
+      });
+    }
 
     return {
       partitionIndex: i + 1,
@@ -72,10 +97,36 @@ export default (A) => {
     };
   }
 
-  quickSortRecursive(0, arr.length - 1);
+  function quickSortRecursive(p, r, depth) {
+    updatePeak(depth);
+    if (p < r) {
+      const result = partitionWithSteps(p, r);
+      const q = result.partitionIndex;
+      comparisons = result.comparisons;
+      swaps = result.swaps;
 
-  // Ensure we have at least one step
-  if (steps.length === 0) {
+      quickSortRecursive(p, q - 1, depth + 1);
+      quickSortRecursive(q + 1, r, depth + 1);
+    }
+  }
+
+  try {
+    quickSortRecursive(0, arr.length - 1, 1);
+  } catch (error) {
+    if (error === ABORT_SENTINEL) {
+      return {
+        steps,
+        finalArray: arr,
+        comparisons,
+        swaps,
+        peakAuxBytes: peakAux,
+        aborted: true,
+      };
+    }
+    throw error;
+  }
+
+  if (recordSteps && steps.length === 0) {
     steps.push({
       values: [...arr],
       activeIndexes: [],
@@ -87,5 +138,12 @@ export default (A) => {
     });
   }
 
-  return steps;
+  return {
+    steps,
+    finalArray: arr,
+    comparisons,
+    swaps,
+    peakAuxBytes: peakAux,
+    aborted: false,
+  };
 };

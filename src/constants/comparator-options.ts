@@ -25,7 +25,7 @@ export const scenarioOptions: ScenarioOption[] = [
 ];
 
 export const sizeOptions: number[] = [
-  100, 1000, 5000, 30000, 50000, 100000, 150000, 200000,
+  10, 100, 1000, 5000, 30000, 50000, 100000, 150000, 200000,
 ];
 
 export const algorithmLabelKeyByKey: Record<AlgorithmKey, string> =

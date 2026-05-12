@@ -44,6 +44,7 @@ const ptBR = {
       comparisons: "Comparacoes",
       memory: "Memoria",
     },
+    notSelected: "Nao selecionado",
   },
   mobileValidation: {
     title: "Acesso indisponivel",
@@ -80,6 +81,7 @@ const ptBR = {
     sections: {
       configuration: "Configuracao da Simulacao",
       progress: "Progresso da Simulacao",
+      environment: "Ambiente de Execucao",
       table: "Resultados em Tabela",
       chart: "Resultados em Grafico",
     },
@@ -89,10 +91,15 @@ const ptBR = {
       sizes: "Tamanhos",
       replications: "Replicacoes",
       timeoutMs: "Timeout por execucao (ms)",
+      timeoutMinutes: "Timeout por execucao (min)",
+      seed: "Semente (seed)",
+      removeOutliers: "Remover outliers (IQR)",
     },
     buttons: {
       start: "Iniciar comparacao",
       cancel: "Cancelar",
+      downloadMarkdown: "Baixar Markdown",
+      downloadPdf: "Baixar PDF",
     },
     feedback: {
       initial: "Configure e inicie uma simulacao comparativa.",
@@ -112,6 +119,15 @@ const ptBR = {
       pendingLoaded:
         "Configuracao carregada do historico. Clique em Iniciar para rodar novamente.",
     },
+  },
+  environment: {
+    executedOn: "Benchmark executado em:",
+    threads: "{count} Thread(s)",
+    memory: "{gb} GB RAM",
+    desktop: "Desktop",
+    mobile: "Mobile",
+    baselineScore: "Baseline Score: {score} ms",
+    gpu: "GPU: {name}",
   },
   history: {
     hero: {

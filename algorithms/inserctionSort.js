@@ -1,63 +1,100 @@
-export default (A) => {
+const ABORT_SENTINEL = Symbol("sort-aborted");
+const BYTES_PER_NUMBER = 8;
+
+export default (A, options = {}) => {
+  const {
+    recordSteps = true,
+    signal,
+    yieldEveryOps = 50000,
+  } = options;
+
   const steps = [];
   let comparisons = 0;
   let swaps = 0;
-  const arr = [...A]; // copy to avoid mutating input
+  const arr = [...A];
 
-  for (let j = 1; j < arr.length; j++) {
-    const key = arr[j];
-    let i = j - 1;
-
-    // Record initial step with gap at position j
-    steps.push({
-      values: [...arr],
-      activeIndexes: [j],
-      comparisons: comparisons,
-      swaps: swaps,
-      variables: { i, j, key },
-      pivotIndex: null,
-      gapIndex: j,
-    });
-
-    while (i >= 0 && arr[i] > key) {
-      // Shift elements to the right
-      arr[i + 1] = arr[i];
-      swaps++;
-
-      // Record step after shift
-      steps.push({
-        values: [...arr],
-        activeIndexes: [i, i + 1],
-        comparisons: comparisons,
-        swaps: swaps,
-        variables: { i, j, key },
-        pivotIndex: null,
-        gapIndex: i,
-      });
-
-      i = i - 1;
-      comparisons++;
+  const peakAux = arr.length * BYTES_PER_NUMBER;
+  let ops = 0;
+  const tick = () => {
+    ops += 1;
+    if (ops >= yieldEveryOps) {
+      ops = 0;
+      if (signal && signal.aborted) {
+        throw ABORT_SENTINEL;
+      }
     }
+  };
 
-    comparisons++;
+  try {
+    for (let j = 1; j < arr.length; j++) {
+      const key = arr[j];
+      let i = j - 1;
 
-    // Insert key at final position
-    arr[i + 1] = key;
+      if (recordSteps) {
+        steps.push({
+          values: [...arr],
+          activeIndexes: [j],
+          comparisons,
+          swaps,
+          variables: { i, j, key },
+          pivotIndex: null,
+          gapIndex: j,
+        });
+      }
 
-    // Record final step for this iteration
-    steps.push({
-      values: [...arr],
-      activeIndexes: [i + 1],
-      comparisons: comparisons,
-      swaps: swaps,
-      variables: { i: i + 1, j, key },
-      pivotIndex: null,
-      gapIndex: null,
-    });
+      while (i >= 0 && arr[i] > key) {
+        arr[i + 1] = arr[i];
+        swaps++;
+
+        if (recordSteps) {
+          steps.push({
+            values: [...arr],
+            activeIndexes: [i, i + 1],
+            comparisons,
+            swaps,
+            variables: { i, j, key },
+            pivotIndex: null,
+            gapIndex: i,
+          });
+        }
+
+        i = i - 1;
+        comparisons++;
+        tick();
+      }
+
+      comparisons++;
+      tick();
+
+      arr[i + 1] = key;
+
+      if (recordSteps) {
+        steps.push({
+          values: [...arr],
+          activeIndexes: [i + 1],
+          comparisons,
+          swaps,
+          variables: { i: i + 1, j, key },
+          pivotIndex: null,
+          gapIndex: null,
+        });
+      }
+    }
+  } catch (error) {
+    if (error === ABORT_SENTINEL) {
+      return {
+        steps,
+        finalArray: arr,
+        comparisons,
+        swaps,
+        peakAuxBytes: peakAux,
+        aborted: true,
+      };
+    }
+    throw error;
   }
 
-  // Ensure we have at least one step
-  if (steps.length === 0) {
+  if (recordSteps && steps.length === 0) {
     steps.push({
       values: [...arr],
       activeIndexes: [],
@@ -69,5 +106,12 @@ export default (A) => {
     });
   }
 
-  return steps;
+  return {
+    steps,
+    finalArray: arr,
+    comparisons,
+    swaps,
+    peakAuxBytes: peakAux,
+    aborted: false,
+  };
 };

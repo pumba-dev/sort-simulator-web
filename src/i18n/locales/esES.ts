@@ -44,6 +44,7 @@ const esES = {
       comparisons: "Comparaciones",
       memory: "Memoria",
     },
+    notSelected: "No seleccionado",
   },
   mobileValidation: {
     title: "Acceso no disponible",
@@ -80,6 +81,7 @@ const esES = {
     sections: {
       configuration: "Configuracion de la Simulacion",
       progress: "Progreso de la Simulacion",
+      environment: "Entorno de Ejecucion",
       table: "Resultados en Tabla",
       chart: "Resultados en Grafico",
     },
@@ -89,10 +91,15 @@ const esES = {
       sizes: "Tamanos",
       replications: "Replicaciones",
       timeoutMs: "Timeout por ejecucion (ms)",
+      timeoutMinutes: "Timeout por ejecucion (min)",
+      seed: "Semilla (seed)",
+      removeOutliers: "Eliminar outliers (IQR)",
     },
     buttons: {
       start: "Iniciar comparacion",
       cancel: "Cancelar",
+      downloadMarkdown: "Descargar Markdown",
+      downloadPdf: "Descargar PDF",
     },
     feedback: {
       initial: "Configura e inicia una simulacion comparativa.",
@@ -112,6 +119,15 @@ const esES = {
       pendingLoaded:
         "Configuracion cargada desde el historial. Haz clic en Iniciar para ejecutar de nuevo.",
     },
+  },
+  environment: {
+    executedOn: "Benchmark ejecutado en:",
+    threads: "{count} Subproceso(s)",
+    memory: "{gb} GB RAM",
+    desktop: "Escritorio",
+    mobile: "Movil",
+    baselineScore: "Puntuacion base: {score} ms",
+    gpu: "GPU: {name}",
   },
   history: {
     hero: {

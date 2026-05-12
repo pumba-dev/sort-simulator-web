@@ -1,53 +1,37 @@
 import { describe, it, expect } from 'vitest'
 import mergeSort from '../mergeSort.js'
 
-const lastValues = (arr: number[]) => {
-  const steps = mergeSort(arr)
-  return steps[steps.length - 1].values
-}
+const runSteps = (arr: number[]) => mergeSort(arr).steps
+const runFinal = (arr: number[]) => mergeSort(arr).finalArray
 
 describe('mergeSort', () => {
   describe('sorting correctness', () => {
     it('sorts random array', () => {
-      const input = [3, 1, 4, 1, 5, 9, 2, 6]
-      const expected = [1, 1, 2, 3, 4, 5, 6, 9]
-      expect(lastValues(input)).toEqual(expected)
+      expect(runFinal([3, 1, 4, 1, 5, 9, 2, 6])).toEqual([1, 1, 2, 3, 4, 5, 6, 9])
     })
 
     it('sorts reverse-ordered array', () => {
-      const input = [5, 4, 3, 2, 1]
-      const expected = [1, 2, 3, 4, 5]
-      expect(lastValues(input)).toEqual(expected)
+      expect(runFinal([5, 4, 3, 2, 1])).toEqual([1, 2, 3, 4, 5])
     })
 
     it('handles already sorted array', () => {
-      const input = [1, 2, 3, 4, 5]
-      const expected = [1, 2, 3, 4, 5]
-      expect(lastValues(input)).toEqual(expected)
+      expect(runFinal([1, 2, 3, 4, 5])).toEqual([1, 2, 3, 4, 5])
     })
 
     it('handles array with duplicates', () => {
-      const input = [3, 1, 3, 2, 1]
-      const expected = [1, 1, 2, 3, 3]
-      expect(lastValues(input)).toEqual(expected)
+      expect(runFinal([3, 1, 3, 2, 1])).toEqual([1, 1, 2, 3, 3])
     })
 
     it('handles two elements in reverse order', () => {
-      const input = [2, 1]
-      const expected = [1, 2]
-      expect(lastValues(input)).toEqual(expected)
+      expect(runFinal([2, 1])).toEqual([1, 2])
     })
 
     it('handles single element', () => {
-      const input = [7]
-      const expected = [7]
-      expect(lastValues(input)).toEqual(expected)
+      expect(runFinal([7])).toEqual([7])
     })
 
     it('handles empty array', () => {
-      const input: number[] = []
-      const expected: number[] = []
-      expect(lastValues(input)).toEqual(expected)
+      expect(runFinal([])).toEqual([])
     })
   })
 
@@ -61,14 +45,12 @@ describe('mergeSort', () => {
   })
 
   describe('step structure', () => {
-    it('returns at least one step', () => {
-      const input = [3, 1, 2]
-      expect(mergeSort(input).length).toBeGreaterThanOrEqual(1)
+    it('returns at least one step by default', () => {
+      expect(runSteps([3, 1, 2]).length).toBeGreaterThanOrEqual(1)
     })
 
     it('each step has required fields', () => {
-      const input = [3, 1, 2]
-      for (const step of mergeSort(input)) {
+      for (const step of runSteps([3, 1, 2])) {
         expect(step).toHaveProperty('values')
         expect(step).toHaveProperty('activeIndexes')
         expect(step).toHaveProperty('comparisons')
@@ -79,8 +61,7 @@ describe('mergeSort', () => {
     })
 
     it('comparisons and swaps are non-negative in every step', () => {
-      const input = [3, 1, 2]
-      for (const step of mergeSort(input)) {
+      for (const step of runSteps([3, 1, 2])) {
         expect(step.comparisons).toBeGreaterThanOrEqual(0)
         expect(step.swaps).toBeGreaterThanOrEqual(0)
       }
@@ -88,19 +69,43 @@ describe('mergeSort', () => {
 
     it('step values length matches input length', () => {
       const input = [3, 1, 2]
-      for (const step of mergeSort(input)) {
+      for (const step of runSteps(input)) {
         expect(step.values).toHaveLength(input.length)
       }
     })
 
     it('merge steps have merging region with start and end', () => {
-      const input = [3, 1, 2]
-      const mergeSteps = mergeSort(input).filter((s) => s.merging != null)
+      const mergeSteps = runSteps([3, 1, 2]).filter((s: any) => s.merging != null)
       expect(mergeSteps.length).toBeGreaterThan(0)
       for (const step of mergeSteps) {
         expect(step.merging).toHaveProperty('start')
         expect(step.merging).toHaveProperty('end')
       }
+    })
+  })
+
+  describe('benchmark mode', () => {
+    it('skips step recording when recordSteps is false', () => {
+      const result = mergeSort([5, 4, 3, 2, 1], { recordSteps: false })
+      expect(result.steps).toEqual([])
+      expect(result.finalArray).toEqual([1, 2, 3, 4, 5])
+    })
+
+    it('reports counters and aux bytes', () => {
+      const result = mergeSort([3, 1, 2])
+      expect(result.peakAuxBytes).toBeGreaterThan(0)
+      expect(result.aborted).toBe(false)
+    })
+
+    it('honors abort signal', () => {
+      const controller = new AbortController()
+      controller.abort()
+      const result = mergeSort([5, 4, 3, 2, 1, 6, 7, 8], {
+        recordSteps: false,
+        signal: controller.signal,
+        yieldEveryOps: 1,
+      })
+      expect(result.aborted).toBe(true)
     })
   })
 })

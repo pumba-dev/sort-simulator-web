@@ -228,9 +228,99 @@
 }
 
 .comparador-form-grid {
-  display: grid;
+  display: flex;
+  flex-wrap: wrap;
   gap: 12px;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  align-items: flex-end;
+
+  .ant-form-item {
+    flex: 1;
+    min-width: 130px;
+    margin-bottom: 0;
+  }
+}
+
+.comparador-form-buttons {
+  margin-top: 12px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.comparador-tags-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.comparador-tags-group {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.comparador-tags-label {
+  font-size: 12px;
+  color: var(--text-secondary, #888);
+  white-space: nowrap;
+}
+
+.comparador-tags-empty {
+  font-size: 12px;
+  font-style: italic;
+  color: var(--text-tertiary, #aaa);
+}
+
+.comparador-table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.benchmark-env {
+  line-height: 1.6;
+}
+
+.benchmark-env__label {
+  margin: 0 0 4px;
+  font-size: 0.8rem;
+  color: var(--sl-text-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.benchmark-env__line {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--sl-text-default);
+}
+
+.benchmark-env__line--strong {
+  font-weight: 700;
+}
+
+.benchmark-env__line--soft {
+  color: var(--sl-text-soft);
+  font-size: 0.88rem;
+}
+
+.benchmark-env__score {
+  margin: 6px 0 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--sl-accent-strong);
+}
+
+.benchmark-env--compact {
+  padding: 10px 14px;
+  background: var(--sl-panel-bg);
+  border: 1px solid var(--sl-border);
+  border-radius: var(--sl-radius-sm);
 }
 
 .historico-grid {

@@ -1,36 +1,148 @@
-export default function mergeSort(A) {
+const ABORT_SENTINEL = Symbol("sort-aborted");
+const BYTES_PER_NUMBER = 8;
+
+export default function mergeSort(A, options = {}) {
+  const {
+    recordSteps = true,
+    signal,
+    yieldEveryOps = 50000,
+  } = options;
+
   const steps = [];
   const arr = [...A];
   let comparisons = 0;
   let swaps = 0;
 
-  function mergeSortRecursive(left, mid, right, depth = 0) {
+  let liveAux = arr.length * BYTES_PER_NUMBER;
+  let peakAux = liveAux;
+  const trackAlloc = (numbers) => {
+    liveAux += numbers * BYTES_PER_NUMBER;
+    if (liveAux > peakAux) peakAux = liveAux;
+  };
+  const trackFree = (numbers) => {
+    liveAux -= numbers * BYTES_PER_NUMBER;
+    if (liveAux < 0) liveAux = 0;
+  };
+
+  let ops = 0;
+  const tick = () => {
+    ops += 1;
+    if (ops >= yieldEveryOps) {
+      ops = 0;
+      if (signal && signal.aborted) {
+        throw ABORT_SENTINEL;
+      }
+    }
+  };
+
+  function mergeDanceWithSteps(workingArr, left, mid, right, depth) {
+    const leftLen = mid - left + 1;
+    const rightLen = right - mid;
+    const leftArr = workingArr.slice(left, mid + 1);
+    const rightArr = workingArr.slice(mid + 1, right + 1);
+    trackAlloc(leftLen + rightLen);
+
+    let leftIndex = 0;
+    let rightIndex = 0;
+    let localComparisons = 0;
+    let localSwaps = 0;
+
+    if (recordSteps) {
+      steps.push({
+        values: [...workingArr],
+        activeIndexes: [],
+        comparisons: localComparisons,
+        swaps: localSwaps,
+        variables: { left, mid, right, depth },
+        pivotIndex: null,
+        merging: { start: left, end: right + 1 },
+        divisionDepth: depth,
+      });
+    }
+
+    let mainIndex = left;
+    while (leftIndex < leftArr.length && rightIndex < rightArr.length) {
+      localComparisons++;
+      if (leftArr[leftIndex] <= rightArr[rightIndex]) {
+        workingArr[mainIndex] = leftArr[leftIndex];
+        leftIndex++;
+      } else {
+        workingArr[mainIndex] = rightArr[rightIndex];
+        rightIndex++;
+      }
+      localSwaps++;
+      tick();
+
+      if (recordSteps) {
+        steps.push({
+          values: [...workingArr],
+          activeIndexes: [mainIndex],
+          comparisons: localComparisons,
+          swaps: localSwaps,
+          variables: { left, mid, right, depth },
+          pivotIndex: null,
+          merging: { start: left, end: right + 1 },
+          divisionDepth: depth,
+        });
+      }
+
+      mainIndex++;
+    }
+
+    while (leftIndex < leftArr.length) {
+      workingArr[mainIndex] = leftArr[leftIndex];
+      leftIndex++;
+      localSwaps++;
+      mainIndex++;
+      tick();
+
+      if (recordSteps) {
+        steps.push({
+          values: [...workingArr],
+          activeIndexes: [mainIndex - 1],
+          comparisons: localComparisons,
+          swaps: localSwaps,
+          variables: { left, mid, right, depth },
+          pivotIndex: null,
+          merging: { start: left, end: right + 1 },
+          divisionDepth: depth,
+        });
+      }
+    }
+
+    while (rightIndex < rightArr.length) {
+      workingArr[mainIndex] = rightArr[rightIndex];
+      rightIndex++;
+      localSwaps++;
+      mainIndex++;
+      tick();
+
+      if (recordSteps) {
+        steps.push({
+          values: [...workingArr],
+          activeIndexes: [mainIndex - 1],
+          comparisons: localComparisons,
+          swaps: localSwaps,
+          variables: { left, mid, right, depth },
+          pivotIndex: null,
+          merging: { start: left, end: right + 1 },
+          divisionDepth: depth,
+        });
+      }
+    }
+
+    trackFree(leftLen + rightLen);
+    return { comparisons: localComparisons, swaps: localSwaps };
+  }
+
+  function mergeSortRecursive(left, right, depth) {
     if (left >= right) {
       return { comparisons: 0, swaps: 0 };
     }
-
-    // Divide step
     const middle = Math.floor((left + right) / 2);
-
-    // Recursively sort left and right
-    const leftResult = mergeSortRecursive(left, left, middle, depth + 1);
-    const rightResult = mergeSortRecursive(
-      middle + 1,
-      middle + 1,
-      right,
-      depth + 1,
-    );
-
-    // Merge step
-    const mergeResult = mergeDanceWithSteps(
-      arr,
-      left,
-      middle,
-      right,
-      steps,
-      depth,
-    );
-
+    const leftResult = mergeSortRecursive(left, middle, depth + 1);
+    const rightResult = mergeSortRecursive(middle + 1, right, depth + 1);
+    const mergeResult = mergeDanceWithSteps(arr, left, middle, right, depth);
     return {
       comparisons:
         leftResult.comparisons +
@@ -40,12 +152,25 @@ export default function mergeSort(A) {
     };
   }
 
-  const result = mergeSortRecursive(0, 0, arr.length - 1);
-  comparisons = result.comparisons;
-  swaps = result.swaps;
+  try {
+    const result = mergeSortRecursive(0, arr.length - 1, 0);
+    comparisons = result.comparisons;
+    swaps = result.swaps;
+  } catch (error) {
+    if (error === ABORT_SENTINEL) {
+      return {
+        steps,
+        finalArray: arr,
+        comparisons,
+        swaps,
+        peakAuxBytes: peakAux,
+        aborted: true,
+      };
+    }
+    throw error;
+  }
 
-  // Final sorted step
-  if (steps.length === 0) {
+  if (recordSteps && steps.length === 0) {
     steps.push({
       values: [...arr],
       activeIndexes: [],
@@ -56,92 +181,12 @@ export default function mergeSort(A) {
     });
   }
 
-  return steps;
-}
-
-function mergeDanceWithSteps(arr, left, mid, right, steps, depth = 0) {
-  const leftArr = arr.slice(left, mid + 1);
-  const rightArr = arr.slice(mid + 1, right + 1);
-  let leftIndex = 0;
-  let rightIndex = 0;
-  let comparisons = 0;
-  let swaps = 0;
-
-  // Record merge start
-  steps.push({
-    values: [...arr],
-    activeIndexes: [],
-    comparisons: comparisons,
-    swaps: swaps,
-    variables: { left, mid, right, depth },
-    pivotIndex: null,
-    merging: { start: left, end: right + 1 },
-    divisionDepth: depth,
-  });
-
-  let mainIndex = left;
-  while (leftIndex < leftArr.length && rightIndex < rightArr.length) {
-    comparisons++;
-    if (leftArr[leftIndex] <= rightArr[rightIndex]) {
-      arr[mainIndex] = leftArr[leftIndex];
-      leftIndex++;
-    } else {
-      arr[mainIndex] = rightArr[rightIndex];
-      rightIndex++;
-    }
-    swaps++;
-
-    // Record merge progress
-    steps.push({
-      values: [...arr],
-      activeIndexes: [mainIndex],
-      comparisons: comparisons,
-      swaps: swaps,
-      variables: { left, mid, right, depth },
-      pivotIndex: null,
-      merging: { start: left, end: right + 1 },
-      divisionDepth: depth,
-    });
-
-    mainIndex++;
-  }
-
-  // Copy remaining elements
-  while (leftIndex < leftArr.length) {
-    arr[mainIndex] = leftArr[leftIndex];
-    leftIndex++;
-    swaps++;
-    mainIndex++;
-
-    steps.push({
-      values: [...arr],
-      activeIndexes: [mainIndex - 1],
-      comparisons: comparisons,
-      swaps: swaps,
-      variables: { left, mid, right, depth },
-      pivotIndex: null,
-      merging: { start: left, end: right + 1 },
-      divisionDepth: depth,
-    });
-  }
-
-  while (rightIndex < rightArr.length) {
-    arr[mainIndex] = rightArr[rightIndex];
-    rightIndex++;
-    swaps++;
-    mainIndex++;
-
-    steps.push({
-      values: [...arr],
-      activeIndexes: [mainIndex - 1],
-      comparisons: comparisons,
-      swaps: swaps,
-      variables: { left, mid, right, depth },
-      pivotIndex: null,
-      merging: { start: left, end: right + 1 },
-      divisionDepth: depth,
-    });
-  }
-
-  return { comparisons, swaps };
+  return {
+    steps,
+    finalArray: arr,
+    comparisons,
+    swaps,
+    peakAuxBytes: peakAux,
+    aborted: false,
+  };
 }

@@ -44,6 +44,7 @@ const enUS = {
       comparisons: "Comparisons",
       memory: "Memory",
     },
+    notSelected: "Not selected",
   },
   mobileValidation: {
     title: "Access unavailable",
@@ -80,6 +81,7 @@ const enUS = {
     sections: {
       configuration: "Simulation Configuration",
       progress: "Simulation Progress",
+      environment: "Execution Environment",
       table: "Table Results",
       chart: "Chart Results",
     },
@@ -89,10 +91,15 @@ const enUS = {
       sizes: "Sizes",
       replications: "Replications",
       timeoutMs: "Timeout per execution (ms)",
+      timeoutMinutes: "Timeout per execution (min)",
+      seed: "Seed",
+      removeOutliers: "Remove outliers (IQR)",
     },
     buttons: {
       start: "Start comparison",
       cancel: "Cancel",
+      downloadMarkdown: "Download Markdown",
+      downloadPdf: "Download PDF",
     },
     feedback: {
       initial: "Configure and start a comparative simulation.",
@@ -112,6 +119,15 @@ const enUS = {
       pendingLoaded:
         "Configuration loaded from history. Click Start to run again.",
     },
+  },
+  environment: {
+    executedOn: "Benchmark executed on:",
+    threads: "{count} Thread(s)",
+    memory: "{gb} GB RAM",
+    desktop: "Desktop",
+    mobile: "Mobile",
+    baselineScore: "Baseline Score: {score} ms",
+    gpu: "GPU: {name}",
   },
   history: {
     hero: {

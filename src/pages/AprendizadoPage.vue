@@ -442,23 +442,22 @@ const buildAnimationSteps = (baseVector: number[]): AnimationStep[] => {
 
   switch (selectedAlgorithm.value) {
     case "bubble":
-      algorithmSteps = bubbleSort(baseVector);
+      algorithmSteps = bubbleSort(baseVector).steps;
       break;
     case "insertion":
-      algorithmSteps = insertionSort(baseVector);
+      algorithmSteps = insertionSort(baseVector).steps;
       break;
     case "merge":
-      algorithmSteps = mergeSort(baseVector);
+      algorithmSteps = mergeSort(baseVector).steps;
       break;
     case "heap":
-      algorithmSteps = heapSort(baseVector);
+      algorithmSteps = heapSort(baseVector).steps;
       break;
     case "quick":
-      algorithmSteps = quickSort(baseVector);
+      algorithmSteps = quickSort(baseVector).steps;
       break;
     default:
-      // Fallback to bubble sort
-      algorithmSteps = bubbleSort(baseVector);
+      algorithmSteps = bubbleSort(baseVector).steps;
   }
 
   // Ensure we always have at least one step
