@@ -16,6 +16,7 @@ import type {
   ScenarioType,
   WorkerMessage,
 } from "../types/comparator";
+import { detectEnvironment } from "../services/device-detector";
 import ComparisonResultsTable from "../components/ComparisonResultsTable.vue";
 import ComparisonResultsChart from "../components/ComparisonResultsChart.vue";
 import {
@@ -208,7 +209,11 @@ const ensureWorker = (): Worker => {
       environment.value = message.report.environment ?? null;
       isRunning.value = false;
       feedbackMessage.value = t("comparator.feedback.finished");
-      saveComparisonHistoryEntry(buildJobPayload(), message.rows, environment.value ?? undefined);
+      saveComparisonHistoryEntry(
+        buildJobPayload(),
+        message.rows,
+        environment.value ?? undefined,
+      );
       return;
     }
 
@@ -317,6 +322,9 @@ onMounted(() => {
   if (pendingConfig) {
     applyPendingConfiguration(pendingConfig);
     feedbackMessage.value = t("comparator.feedback.pendingLoaded");
+  } else {
+    // If no pending config, we can detect the environment right away
+    environment.value = detectEnvironment();
   }
 });
 
@@ -334,6 +342,44 @@ onBeforeUnmount(() => {
       <h2 class="page-card__title">{{ t("comparator.hero.title") }}</h2>
       <p class="page-card__description">
         {{ t("comparator.hero.description") }}
+      </p>
+    </section>
+
+    <section v-if="environment" class="page-card benchmark-env">
+      <h3 class="page-card__title">
+        {{ t("comparator.sections.environment") }}
+      </h3>
+      <p class="benchmark-env__label">{{ t("environment.executedOn") }}</p>
+      <p class="benchmark-env__line benchmark-env__line--strong">
+        {{ environment.browser }} {{ environment.browserVersion }}
+        <span v-if="environment.engine"> ({{ environment.engine }})</span>
+      </p>
+      <p class="benchmark-env__line">{{ environment.os }}</p>
+      <p class="benchmark-env__line">
+        <span v-if="environment.cpuThreads">{{
+          t("environment.threads", { count: environment.cpuThreads })
+        }}</span>
+        <span v-if="environment.cpuThreads && environment.memoryGB"> · </span>
+        <span v-if="environment.memoryGB">{{
+          t("environment.memory", { gb: environment.memoryGB })
+        }}</span>
+        <span v-if="environment.cpuThreads || environment.memoryGB"> · </span>
+        {{
+          environment.mobile
+            ? t("environment.mobile")
+            : t("environment.desktop")
+        }}
+      </p>
+      <p
+        v-if="environment.gpu"
+        class="benchmark-env__line benchmark-env__line--soft"
+      >
+        {{ t("environment.gpu", { name: environment.gpu }) }}
+      </p>
+      <p class="benchmark-env__score">
+        {{
+          t("environment.baselineScore", { score: environment.baselineScore })
+        }}
       </p>
     </section>
 
@@ -487,31 +533,6 @@ onBeforeUnmount(() => {
         :stroke-color="{ from: '#78a8ff', to: '#164fd6' }"
       />
       <p style="margin: 8px 0 0">{{ feedbackMessage }}</p>
-    </section>
-
-    <section v-if="environment" class="page-card benchmark-env">
-      <h3 class="page-card__title">
-        {{ t("comparator.sections.environment") }}
-      </h3>
-      <p class="benchmark-env__label">{{ t("environment.executedOn") }}</p>
-      <p class="benchmark-env__line benchmark-env__line--strong">
-        {{ environment.browser }} {{ environment.browserVersion }}
-        <span v-if="environment.engine"> ({{ environment.engine }})</span>
-      </p>
-      <p class="benchmark-env__line">{{ environment.os }}</p>
-      <p class="benchmark-env__line">
-        <span v-if="environment.cpuThreads">{{ t("environment.threads", { count: environment.cpuThreads }) }}</span>
-        <span v-if="environment.cpuThreads && environment.memoryGB"> · </span>
-        <span v-if="environment.memoryGB">{{ t("environment.memory", { gb: environment.memoryGB }) }}</span>
-        <span v-if="environment.cpuThreads || environment.memoryGB"> · </span>
-        {{ environment.mobile ? t("environment.mobile") : t("environment.desktop") }}
-      </p>
-      <p v-if="environment.gpu" class="benchmark-env__line benchmark-env__line--soft">
-        {{ t("environment.gpu", { name: environment.gpu }) }}
-      </p>
-      <p class="benchmark-env__score">
-        {{ t("environment.baselineScore", { score: environment.baselineScore }) }}
-      </p>
     </section>
 
     <section class="page-card">

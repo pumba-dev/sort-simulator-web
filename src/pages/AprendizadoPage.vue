@@ -1330,18 +1330,27 @@ prepareSimulation();
             <p>{{ t(selectedMetadata.conceptKey) }}</p>
             <p>{{ t(selectedMetadata.strategyKey) }}</p>
             <a-space wrap :style="{ margin: 0 }">
-              <a-tag color="green"
-                >{{ t("learning.complexity.best") }}:
-                {{ selectedMetadata.bestCase }}</a-tag
+              <a-tag
+                color="green"
+                :style="{ fontSize: '0.9rem', fontWeight: 500 }"
               >
-              <a-tag color="blue"
-                >{{ t("learning.complexity.average") }}:
-                {{ selectedMetadata.averageCase }}</a-tag
+                {{ t("learning.complexity.best") }}:
+                {{ selectedMetadata.bestCase }}
+              </a-tag>
+              <a-tag
+                color="blue"
+                :style="{ fontSize: '0.9rem', fontWeight: 500 }"
               >
-              <a-tag color="volcano"
-                >{{ t("learning.complexity.worst") }}:
-                {{ selectedMetadata.worstCase }}</a-tag
+                {{ t("learning.complexity.average") }}:
+                {{ selectedMetadata.averageCase }}
+              </a-tag>
+              <a-tag
+                color="volcano"
+                :style="{ fontSize: '0.9rem', fontWeight: 500 }"
               >
+                {{ t("learning.complexity.worst") }}:
+                {{ selectedMetadata.worstCase }}
+              </a-tag>
             </a-space>
           </a-space>
         </article>
