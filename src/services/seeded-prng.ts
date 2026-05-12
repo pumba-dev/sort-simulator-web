@@ -1,4 +1,4 @@
-import type { AlgorithmKey, ScenarioType } from "../types/comparator";
+import type { ScenarioType } from "../types/comparator";
 
 // Mulberry32-based seeded PRNG — deterministic, no external dependency.
 export class SeededPrng {
@@ -23,14 +23,6 @@ export class SeededPrng {
   }
 }
 
-const algorithmIndex: Record<AlgorithmKey, number> = {
-  insertion: 1,
-  bubble: 2,
-  merge: 3,
-  heap: 4,
-  quick: 5,
-};
-
 const scenarioIndex: Record<ScenarioType, number> = {
   crescente: 1,
   decrescente: 2,
@@ -40,18 +32,19 @@ const scenarioIndex: Record<ScenarioType, number> = {
 const SIZE_MIX = 2654435761;
 
 // Derives a deterministic seed for a benchmark cell from the job seed and cell coordinates
-// (algorithm, scenario, size). All replications within the same cell share this seed so they
-// run on the same input array, isolating CPU noise as the only variation across replications.
+// (scenario, size, rep). All algorithms within the same (scenario, size, rep) share this seed
+// so they sort the same input array, ensuring a fair comparison. Each replication uses a
+// distinct seed so algorithms are not biased by a single array permutation.
 export const deriveCellSeed = (
   baseSeed: number,
-  algorithm: AlgorithmKey,
   scenario: ScenarioType,
   size: number,
+  rep: number,
 ): number => {
   const mixed =
     (baseSeed >>> 0) ^
     Math.imul(size >>> 0, SIZE_MIX) ^
-    (algorithmIndex[algorithm] << 16) ^
+    ((rep & 0xff) << 16) ^
     (scenarioIndex[scenario] << 8);
   return mixed >>> 0;
 };

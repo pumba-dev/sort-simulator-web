@@ -51,9 +51,9 @@ export class BenchmarkService {
       job.algorithms.length * job.scenarios.length * job.sizes.length;
     let completed = 0;
 
-    for (const algorithm of job.algorithms) {
-      for (const scenario of job.scenarios) {
-        for (const size of job.sizes) {
+    for (const scenario of job.scenarios) {
+      for (const size of job.sizes) {
+        for (const algorithm of job.algorithms) {
           if (callbacks.signal?.aborted) {
             const report = this.buildReport(job, cells);
             report.elapsedMs = Date.now() - startMs;
@@ -109,12 +109,12 @@ export class BenchmarkService {
         break;
       }
 
-      const cellSeed = deriveCellSeed(options.seed, algorithm, scenario, size);
+      const cellSeed = deriveCellSeed(options.seed, scenario, size, rep);
       const input = generateScenarioArray(size, scenario, cellSeed);
 
       console.log(
         `Running cell: algorithm=${algorithm}, scenario=${scenario}, size=${size}, replication=${rep + 1}/${replications}`,
-        `Arranjo=${input}`,
+        `Arranjo=${input.length <= 20 ? `[${input.join(", ")}]` : `[${input.slice(0, 10).join(", ")}, ..., ${input.slice(-10).join(", ")}]`}`,
       );
 
       const controller = new AbortController();

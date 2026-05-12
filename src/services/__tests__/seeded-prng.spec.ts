@@ -43,15 +43,27 @@ describe("SeededPrng", () => {
 
 describe("deriveCellSeed", () => {
   it("is deterministic", () => {
-    expect(deriveCellSeed(42, "bubble", "aleatorio", 100)).toBe(
-      deriveCellSeed(42, "bubble", "aleatorio", 100),
+    expect(deriveCellSeed(42, "aleatorio", 100, 0)).toBe(
+      deriveCellSeed(42, "aleatorio", 100, 0),
     );
   });
 
   it("differs for distinct sizes", () => {
-    const seedA = deriveCellSeed(42, "bubble", "aleatorio", 100);
-    const seedB = deriveCellSeed(42, "bubble", "aleatorio", 200);
+    const seedA = deriveCellSeed(42, "aleatorio", 100, 0);
+    const seedB = deriveCellSeed(42, "aleatorio", 200, 0);
     expect(seedA).not.toBe(seedB);
+  });
+
+  it("differs for distinct replications", () => {
+    const seedA = deriveCellSeed(42, "aleatorio", 100, 0);
+    const seedB = deriveCellSeed(42, "aleatorio", 100, 1);
+    expect(seedA).not.toBe(seedB);
+  });
+
+  it("is identical for same (scenario, size, rep) — algorithm does not affect seed", () => {
+    const s1 = deriveCellSeed(42, "aleatorio", 100, 0);
+    const s2 = deriveCellSeed(42, "aleatorio", 100, 0);
+    expect(s1).toBe(s2);
   });
 });
 
