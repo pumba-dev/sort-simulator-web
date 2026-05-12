@@ -55,13 +55,35 @@ describe('NomeDoModulo', () => {
 
   describe('nomeDaFuncao', () => {
     it('descrição do comportamento esperado', () => {
-      // Arrange
-      // Act
-      // Assert
-      expect(...).toBe(...)
+      const input = ...
+      const expected = ...
+      expect(fn(input)).toEqual(expected)
     })
   })
 })
+```
+
+## Legibilidade de dados de teste
+
+Sempre instanciar input e resultado esperado em constantes nomeadas antes do `expect`. Nunca colocar literais de array diretamente dentro da chamada `expect(fn([...])).toEqual([...])`.
+
+```ts
+// ✗ dificulta leitura e diagnóstico de falhas
+expect(lastValues([3, 1, 4, 1, 5, 9, 2, 6])).toEqual([1, 1, 2, 3, 4, 5, 6, 9])
+
+// ✓ input e resultado nomeados e visíveis
+const input = [3, 1, 4, 1, 5, 9, 2, 6]
+const expected = [1, 1, 2, 3, 4, 5, 6, 9]
+expect(lastValues(input)).toEqual(expected)
+```
+
+Para testes de imutabilidade, usar `snapshot` em vez de repetir o literal no `expect`:
+
+```ts
+const input = [3, 1, 2]
+const snapshot = [3, 1, 2]
+fn(input)
+expect(input).toEqual(snapshot)
 ```
 
 ## Prioridade de cobertura
