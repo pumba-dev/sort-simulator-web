@@ -6,16 +6,8 @@ import {
   learningByKey,
 } from "../constants/learningAlgorithms";
 import type { AlgorithmKey, ScenarioType } from "../types/comparator";
-// @ts-ignore
-import bubbleSort from "../../algorithms/bubbleSort";
-// @ts-ignore
-import insertionSort from "../../algorithms/inserctionSort";
-// @ts-ignore
-import mergeSort from "../../algorithms/mergeSort";
-// @ts-ignore
-import heapSort from "../../algorithms/heapSort";
-// @ts-ignore
-import quickSort from "../../algorithms/quickSort";
+
+import { sortAlgorithmRegistry } from "../services/sort-algorithm-registry";
 
 type InputMode = "gerado" | "manual";
 
@@ -437,30 +429,10 @@ const handleManualVectorInput = (value: string): void => {
 };
 
 const buildAnimationSteps = (baseVector: number[]): AnimationStep[] => {
-  // Select and execute the appropriate algorithm
-  let algorithmSteps: AnimationStep[] = [];
+  const algorithmSteps = sortAlgorithmRegistry[selectedAlgorithm.value].run(
+    baseVector,
+  ).steps as AnimationStep[];
 
-  switch (selectedAlgorithm.value) {
-    case "bubble":
-      algorithmSteps = bubbleSort(baseVector).steps;
-      break;
-    case "insertion":
-      algorithmSteps = insertionSort(baseVector).steps;
-      break;
-    case "merge":
-      algorithmSteps = mergeSort(baseVector).steps;
-      break;
-    case "heap":
-      algorithmSteps = heapSort(baseVector).steps;
-      break;
-    case "quick":
-      algorithmSteps = quickSort(baseVector).steps;
-      break;
-    default:
-      algorithmSteps = bubbleSort(baseVector).steps;
-  }
-
-  // Ensure we always have at least one step
   if (algorithmSteps.length === 0) {
     algorithmSteps = [
       {
