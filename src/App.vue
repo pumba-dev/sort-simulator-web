@@ -20,7 +20,6 @@ type MenuSelection = {
 const route = useRoute();
 const router = useRouter();
 const { t } = useI18n();
-const showSecondaryPages = !import.meta.env.PROD;
 const MOBILE_HEADER_BREAKPOINT = 900;
 const isMobileHeader = ref(
   typeof window !== "undefined" &&
@@ -122,11 +121,11 @@ watch(
           <BookOutlined />
           {{ t("menu.learning") }}
         </a-menu-item>
-        <a-menu-item v-if="showSecondaryPages" key="/comparador">
+        <a-menu-item key="/comparador">
           <BarChartOutlined />
           {{ t("menu.comparator") }}
         </a-menu-item>
-        <a-menu-item v-if="showSecondaryPages" key="/historico">
+        <a-menu-item key="/historico">
           <HistoryOutlined />
           {{ t("menu.history") }}
         </a-menu-item>
@@ -163,11 +162,11 @@ watch(
           <BookOutlined />
           {{ t("menu.learning") }}
         </a-menu-item>
-        <a-menu-item v-if="showSecondaryPages" key="/comparador">
+        <a-menu-item key="/comparador">
           <BarChartOutlined />
           {{ t("menu.comparator") }}
         </a-menu-item>
-        <a-menu-item v-if="showSecondaryPages" key="/historico">
+        <a-menu-item key="/historico">
           <HistoryOutlined />
           {{ t("menu.history") }}
         </a-menu-item>
