@@ -98,6 +98,7 @@ const ptBR = {
     buttons: {
       start: "Iniciar comparacao",
       cancel: "Cancelar",
+      download: "Download",
       downloadMarkdown: "Baixar Markdown",
       downloadPdf: "Baixar PDF",
     },
@@ -142,6 +143,7 @@ const ptBR = {
     buttons: {
       clear: "Limpar",
       reopen: "Reabrir no comparador",
+      export: "Exportar",
       exportCsv: "Exportar CSV",
       exportPng: "Exportar PNG",
     },
@@ -159,6 +161,7 @@ const ptBR = {
       entryCounts: "{algorithms} algoritmo(s) · {scenarios} cenario(s)",
       sizeReplication: "{sizes} tamanho(s), {replications} replicacao(oes)",
       executedAt: "Executado em {date}",
+      elapsed: "Tempo total",
     },
     csvHeaders: {
       algorithm: "algoritmo",

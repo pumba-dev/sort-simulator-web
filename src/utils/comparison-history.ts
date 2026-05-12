@@ -1,6 +1,7 @@
 import {
   COMPARISON_HISTORY_KEY,
   type BenchmarkEnvironment,
+  type BenchmarkReport,
   type CompareJob,
   type ComparisonHistoryEntry,
   type ComparisonResultRow,
@@ -41,6 +42,7 @@ export const saveComparisonHistoryEntry = (
   config: CompareJob,
   rows: ComparisonResultRow[],
   environment?: BenchmarkEnvironment,
+  report?: BenchmarkReport,
 ): ComparisonHistoryEntry => {
   const entry: ComparisonHistoryEntry = {
     id: `${Date.now()}`,
@@ -48,6 +50,8 @@ export const saveComparisonHistoryEntry = (
     config,
     rows,
     environment,
+    elapsedMs: report?.elapsedMs,
+    report,
   };
 
   const nextHistory = [entry, ...loadComparisonHistory()].slice(

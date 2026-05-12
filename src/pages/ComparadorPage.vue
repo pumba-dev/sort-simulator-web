@@ -32,7 +32,7 @@ import {
 const selectedAlgorithms = ref<AlgorithmKey[]>([]);
 const selectedScenarios = ref<ScenarioType[]>([]);
 const selectedSizes = ref<number[]>([]);
-const replications = ref<number>(3);
+const replications = ref<number>(1);
 const timeoutMinutes = ref<number>(1);
 const seed = ref<number>(42);
 const removeOutliers = ref<boolean>(false);
@@ -46,11 +46,34 @@ const report = ref<BenchmarkReport | null>(null);
 const environment = ref<BenchmarkEnvironment | null>(null);
 const isExporting = ref<boolean>(false);
 const feedbackMessage = ref<string>(t("comparator.feedback.initial"));
+const elapsedMs = ref<number>(0);
+let timerInterval: ReturnType<typeof setInterval> | null = null;
+let timerStart = 0;
+
+const formatElapsed = (ms: number): string => {
+  if (ms < 1000) return `${ms} ms`;
+  const s = ms / 1000;
+  if (s < 60) return `${s.toFixed(1)} s`;
+  const m = Math.floor(s / 60);
+  const rs = Math.floor(s % 60);
+  if (m < 60) return `${m}m ${rs}s`;
+  return `${Math.floor(m / 60)}h ${m % 60}m`;
+};
+
+const stopTimer = (finalMs?: number) => {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+  if (finalMs !== undefined) elapsedMs.value = finalMs;
+};
 
 const selectedMetric = ref<
   "averageTimeMs" | "averageComparisons" | "averageMemoryKb"
 >("averageTimeMs");
 const selectedScenarioForChart = ref<"all" | ScenarioType>("all");
+const selectedScenarioForTable = ref<"all" | ScenarioType>("all");
+const selectedSizeForTable = ref<"all" | number>("all");
 
 let comparatorWorker: Worker | null = null;
 
@@ -144,6 +167,33 @@ const chartScenario = computed(() => {
     : selectedScenarioForChart.value;
 });
 
+const tableScenario = computed(() =>
+  selectedScenarioForTable.value === "all"
+    ? undefined
+    : (selectedScenarioForTable.value as ScenarioType),
+);
+
+const tableSize = computed(() =>
+  selectedSizeForTable.value === "all"
+    ? undefined
+    : (selectedSizeForTable.value as number),
+);
+
+const availableScenariosForTable = computed(() => [
+  { label: t("common.scenarios.all"), value: "all" },
+  ...[...new Set(rows.value.map((r) => r.scenario))].map((s) => ({
+    label: t(scenarioLabelKeyByKey[s]),
+    value: s,
+  })),
+]);
+
+const availableSizesForTable = computed(() => [
+  { label: t("common.scenarios.all"), value: "all" },
+  ...[...new Set(rows.value.map((r) => r.size))]
+    .sort((a, b) => a - b)
+    .map((s) => ({ label: s.toLocaleString(locale.value), value: s })),
+]);
+
 const isJobValid = computed(() => {
   return (
     selectedAlgorithms.value.length > 0 &&
@@ -204,6 +254,7 @@ const ensureWorker = (): Worker => {
     }
 
     if (message.type === "result") {
+      stopTimer(message.report.elapsedMs);
       rows.value = message.rows;
       report.value = message.report;
       environment.value = message.report.environment ?? null;
@@ -213,17 +264,20 @@ const ensureWorker = (): Worker => {
         buildJobPayload(),
         message.rows,
         environment.value ?? undefined,
+        message.report,
       );
       return;
     }
 
     if (message.type === "cancelled") {
+      stopTimer();
       isRunning.value = false;
       feedbackMessage.value = t("comparator.feedback.cancelled");
       return;
     }
 
     if (message.type === "error") {
+      stopTimer();
       isRunning.value = false;
       const resolvedMessage =
         message.message === "internal_worker_error"
@@ -260,8 +314,14 @@ const startSimulation = (): void => {
 
   rows.value = [];
   report.value = null;
-  environment.value = null;
   completed.value = 0;
+  selectedScenarioForTable.value = "all";
+  selectedSizeForTable.value = "all";
+  elapsedMs.value = 0;
+  timerStart = Date.now();
+  timerInterval = setInterval(() => {
+    elapsedMs.value = Date.now() - timerStart;
+  }, 200);
   total.value =
     payload.algorithms.length * payload.scenarios.length * payload.sizes.length;
   isRunning.value = true;
@@ -289,6 +349,34 @@ const applyPendingConfiguration = (config: CompareJob): void => {
   seed.value = typeof config.seed === "number" ? config.seed : 42;
   removeOutliers.value =
     typeof config.removeOutliers === "boolean" ? config.removeOutliers : true;
+};
+
+const downloadCsv = (): void => {
+  if (!rows.value.length) return;
+  const header = [
+    "algorithm",
+    "scenario",
+    "size",
+    "averageTimeMs",
+    "averageComparisons",
+    "averageMemoryKb",
+    "timeoutCount",
+  ];
+  const lines = rows.value.map((r) =>
+    [
+      r.algorithm,
+      r.scenario,
+      r.size,
+      Math.round(r.averageTimeMs),
+      r.averageComparisons,
+      r.averageMemoryKb,
+      r.timeoutCount,
+    ].join(","),
+  );
+  const blob = new Blob([[header.join(","), ...lines].join("\n")], {
+    type: "text/csv;charset=utf-8;",
+  });
+  triggerDownload(blob, buildReportFilename("csv"));
 };
 
 const downloadMarkdown = (): void => {
@@ -329,6 +417,7 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+  stopTimer();
   if (comparatorWorker) {
     comparatorWorker.terminate();
     comparatorWorker = null;
@@ -345,50 +434,59 @@ onBeforeUnmount(() => {
       </p>
     </section>
 
-    <section v-if="environment" class="page-card benchmark-env">
-      <h3 class="page-card__title">
-        {{ t("comparator.sections.environment") }}
-      </h3>
-      <p class="benchmark-env__label">{{ t("environment.executedOn") }}</p>
-      <p class="benchmark-env__line benchmark-env__line--strong">
-        {{ environment.browser }} {{ environment.browserVersion }}
-        <span v-if="environment.engine"> ({{ environment.engine }})</span>
-      </p>
-      <p class="benchmark-env__line">{{ environment.os }}</p>
-      <p class="benchmark-env__line">
-        <span v-if="environment.cpuThreads">{{
-          t("environment.threads", { count: environment.cpuThreads })
-        }}</span>
-        <span v-if="environment.cpuThreads && environment.memoryGB"> · </span>
-        <span v-if="environment.memoryGB">{{
-          t("environment.memory", { gb: environment.memoryGB })
-        }}</span>
-        <span v-if="environment.cpuThreads || environment.memoryGB"> · </span>
-        {{
-          environment.mobile
-            ? t("environment.mobile")
-            : t("environment.desktop")
-        }}
-      </p>
-      <p
-        v-if="environment.gpu"
-        class="benchmark-env__line benchmark-env__line--soft"
+    <a-collapse
+      v-if="environment"
+      class="page-card benchmark-env"
+      ghost
+      :default-active-key="[]"
+    >
+      <a-collapse-panel
+        key="env"
+        :header="t('comparator.sections.environment')"
       >
-        {{ t("environment.gpu", { name: environment.gpu }) }}
-      </p>
-      <p class="benchmark-env__score">
-        {{
-          t("environment.baselineScore", { score: environment.baselineScore })
-        }}
-      </p>
-    </section>
+        <p class="benchmark-env__label">{{ t("environment.executedOn") }}</p>
+        <p class="benchmark-env__line benchmark-env__line--strong">
+          {{ environment.browser }} {{ environment.browserVersion }}
+          <span v-if="environment.engine"> ({{ environment.engine }})</span>
+        </p>
+        <p class="benchmark-env__line">{{ environment.os }}</p>
+        <p class="benchmark-env__line">
+          <span v-if="environment.cpuThreads">{{
+            t("environment.threads", { count: environment.cpuThreads })
+          }}</span>
+          <span v-if="environment.cpuThreads && environment.memoryGB"> · </span>
+          <span v-if="environment.memoryGB">{{
+            t("environment.memory", { gb: environment.memoryGB })
+          }}</span>
+          <span v-if="environment.cpuThreads || environment.memoryGB"> · </span>
+          {{
+            environment.mobile
+              ? t("environment.mobile")
+              : t("environment.desktop")
+          }}
+        </p>
+        <p
+          v-if="environment.gpu"
+          class="benchmark-env__line benchmark-env__line--soft"
+        >
+          {{ t("environment.gpu", { name: environment.gpu }) }}
+        </p>
+        <p class="benchmark-env__score">
+          {{
+            t("environment.baselineScore", {
+              score: environment.baselineScore,
+            })
+          }}
+        </p>
+      </a-collapse-panel>
+    </a-collapse>
 
     <section class="page-card">
       <h3 class="page-card__title">
         {{ t("comparator.sections.configuration") }}
       </h3>
 
-      <div class="comparador-form-grid">
+      <a-form layout="vertical" class="comparador-form-grid">
         <a-form-item :label="t('comparator.form.algorithms')">
           <a-select
             :value="null"
@@ -452,7 +550,7 @@ onBeforeUnmount(() => {
         <a-form-item :label="t('comparator.form.removeOutliers')">
           <a-switch v-model:checked="removeOutliers" :disabled="isRunning" />
         </a-form-item>
-      </div>
+      </a-form>
 
       <div class="comparador-tags-row">
         <div class="comparador-tags-group">
@@ -533,6 +631,12 @@ onBeforeUnmount(() => {
         :stroke-color="{ from: '#78a8ff', to: '#164fd6' }"
       />
       <p style="margin: 8px 0 0">{{ feedbackMessage }}</p>
+      <p
+        v-if="isRunning || elapsedMs > 0"
+        style="margin: 4px 0 0; font-size: 0.88rem; color: var(--sl-text-soft)"
+      >
+        {{ formatElapsed(elapsedMs) }}
+      </p>
     </section>
 
     <section class="page-card">
@@ -541,19 +645,36 @@ onBeforeUnmount(() => {
           {{ t("comparator.sections.table") }}
         </h3>
         <a-space wrap>
-          <a-button :disabled="!canExport" @click="downloadMarkdown">{{
-            t("comparator.buttons.downloadMarkdown")
-          }}</a-button>
-          <a-button
-            type="primary"
-            :disabled="!canExport"
-            :loading="isExporting"
-            @click="downloadPdf"
-            >{{ t("comparator.buttons.downloadPdf") }}</a-button
-          >
+          <a-select
+            v-model:value="selectedScenarioForTable"
+            style="min-width: 150px"
+            :options="availableScenariosForTable"
+          />
+          <a-select
+            v-model:value="selectedSizeForTable"
+            style="min-width: 120px"
+            :options="availableSizesForTable"
+          />
+          <a-dropdown :disabled="!canExport">
+            <a-button :disabled="!canExport" :loading="isExporting">
+              {{ t("comparator.buttons.download") }} ▾
+            </a-button>
+            <template #overlay>
+              <a-menu>
+                <a-menu-item @click="downloadCsv">CSV</a-menu-item>
+                <a-menu-item @click="downloadMarkdown">Markdown</a-menu-item>
+                <a-menu-item @click="downloadPdf">PDF</a-menu-item>
+              </a-menu>
+            </template>
+          </a-dropdown>
         </a-space>
       </div>
-      <ComparisonResultsTable :rows="rows" :loading="isRunning" />
+      <ComparisonResultsTable
+        :rows="rows"
+        :loading="isRunning"
+        :scenario="tableScenario"
+        :size="tableSize"
+      />
     </section>
 
     <section class="page-card">

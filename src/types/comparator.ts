@@ -62,6 +62,7 @@ export interface BenchmarkReport {
   cells: BenchmarkCell[];
   rows: ComparisonResultRow[];
   environment?: BenchmarkEnvironment;
+  elapsedMs?: number;
 }
 
 export interface ComparisonHistoryEntry {
@@ -70,6 +71,8 @@ export interface ComparisonHistoryEntry {
   config: CompareJob;
   rows: ComparisonResultRow[];
   environment?: BenchmarkEnvironment;
+  elapsedMs?: number;
+  report?: BenchmarkReport;
 }
 
 export type WorkerCommand =

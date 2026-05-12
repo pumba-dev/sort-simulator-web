@@ -98,6 +98,7 @@ const enUS = {
     buttons: {
       start: "Start comparison",
       cancel: "Cancel",
+      download: "Download",
       downloadMarkdown: "Download Markdown",
       downloadPdf: "Download PDF",
     },
@@ -142,6 +143,7 @@ const enUS = {
     buttons: {
       clear: "Clear",
       reopen: "Reopen in comparator",
+      export: "Export",
       exportCsv: "Export CSV",
       exportPng: "Export PNG",
     },
@@ -159,6 +161,7 @@ const enUS = {
       entryCounts: "{algorithms} algorithm(s) · {scenarios} scenario(s)",
       sizeReplication: "{sizes} size(s), {replications} replication(s)",
       executedAt: "Executed at {date}",
+      elapsed: "Total time",
     },
     csvHeaders: {
       algorithm: "algorithm",

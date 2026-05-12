@@ -11,10 +11,7 @@ import {
   sortAlgorithmRegistry,
   type SortAlgorithm,
 } from "./sort-algorithm-registry";
-import {
-  deriveCellSeed,
-  generateScenarioArray,
-} from "./seeded-prng";
+import { deriveCellSeed, generateScenarioArray } from "./seeded-prng";
 
 const BYTES_PER_KB = 1024;
 
@@ -36,7 +33,9 @@ export class BenchmarkService {
   private registry: Record<AlgorithmKey, SortAlgorithm>;
 
   // Accepts an optional registry override so unit tests can inject stub algorithms.
-  constructor(registry: Record<AlgorithmKey, SortAlgorithm> = sortAlgorithmRegistry) {
+  constructor(
+    registry: Record<AlgorithmKey, SortAlgorithm> = sortAlgorithmRegistry,
+  ) {
     this.registry = registry;
   }
 
@@ -46,15 +45,19 @@ export class BenchmarkService {
     job: CompareJob,
     callbacks: BenchmarkRunCallbacks = {},
   ): Promise<BenchmarkReport> {
+    const startMs = Date.now();
     const cells: BenchmarkCell[] = [];
-    const total = job.algorithms.length * job.scenarios.length * job.sizes.length;
+    const total =
+      job.algorithms.length * job.scenarios.length * job.sizes.length;
     let completed = 0;
 
     for (const algorithm of job.algorithms) {
       for (const scenario of job.scenarios) {
         for (const size of job.sizes) {
           if (callbacks.signal?.aborted) {
-            return this.buildReport(job, cells);
+            const report = this.buildReport(job, cells);
+            report.elapsedMs = Date.now() - startMs;
+            return report;
           }
 
           const cell = this.runCell(
@@ -78,7 +81,9 @@ export class BenchmarkService {
       }
     }
 
-    return this.buildReport(job, cells);
+    const report = this.buildReport(job, cells);
+    report.elapsedMs = Date.now() - startMs;
+    return report;
   }
 
   // Runs all replications for a single (algorithm, scenario, size) cell.
@@ -104,13 +109,13 @@ export class BenchmarkService {
         break;
       }
 
-      const cellSeed = deriveCellSeed(
-        options.seed,
-        algorithm,
-        scenario,
-        size,
-      );
+      const cellSeed = deriveCellSeed(options.seed, algorithm, scenario, size);
       const input = generateScenarioArray(size, scenario, cellSeed);
+
+      console.log(
+        `Running cell: algorithm=${algorithm}, scenario=${scenario}, size=${size}, replication=${rep + 1}/${replications}`,
+        `Arranjo=${input}`,
+      );
 
       const controller = new AbortController();
       const cleanup = wireParent(options.parentSignal, controller);
@@ -203,7 +208,9 @@ export class BenchmarkService {
     const upperIndex = Math.ceil(position);
     if (baseIndex === upperIndex) return sortedValues[baseIndex];
     const weight = position - baseIndex;
-    return sortedValues[baseIndex] * (1 - weight) + sortedValues[upperIndex] * weight;
+    return (
+      sortedValues[baseIndex] * (1 - weight) + sortedValues[upperIndex] * weight
+    );
   }
 
   // Splits values into kept/removed using 1.5×IQR fences (Tukey method).
@@ -238,7 +245,10 @@ export class BenchmarkService {
 
   // Assembles the final BenchmarkReport, mapping each cell to a back-compat ComparisonResultRow
   // so existing table and chart components keep working without modification.
-  private buildReport(job: CompareJob, cells: BenchmarkCell[]): BenchmarkReport {
+  private buildReport(
+    job: CompareJob,
+    cells: BenchmarkCell[],
+  ): BenchmarkReport {
     const rows: ComparisonResultRow[] = cells.map((cell) => ({
       id: `${cell.algorithm}-${cell.scenario}-${cell.size}`,
       algorithm: cell.algorithm,

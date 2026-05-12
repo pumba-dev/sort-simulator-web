@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import ComparisonResultsTable from "../components/ComparisonResultsTable.vue";
@@ -9,7 +9,16 @@ import {
   loadComparisonHistory,
   setPendingCompareConfig,
 } from "../utils/comparison-history";
-import type { BenchmarkEnvironment, ComparisonHistoryEntry, ScenarioType } from "../types/comparator";
+import {
+  generateMarkdownReport,
+  generatePdfBlob,
+  triggerDownload,
+} from "../services/benchmark-report";
+import type {
+  BenchmarkEnvironment,
+  ComparisonHistoryEntry,
+  ScenarioType,
+} from "../types/comparator";
 import {
   scenarioLabelKeyByKey,
   scenarioOptions,
@@ -23,10 +32,19 @@ const entries = ref<ComparisonHistoryEntry[]>(loadComparisonHistory());
 const selectedEntryId = ref<string | null>(entries.value[0]?.id ?? null);
 const feedbackMessage = ref<string>("");
 
+const isExporting = ref(false);
+
 const selectedMetric = ref<
   "averageTimeMs" | "averageComparisons" | "averageMemoryKb"
 >("averageTimeMs");
 const selectedScenario = ref<"all" | ScenarioType>("all");
+const selectedScenarioForTable = ref<"all" | ScenarioType>("all");
+const selectedSizeForTable = ref<"all" | number>("all");
+
+watch(selectedEntryId, () => {
+  selectedScenarioForTable.value = "all";
+  selectedSizeForTable.value = "all";
+});
 
 const selectedEntry = computed(() => {
   return (
@@ -37,6 +55,71 @@ const selectedEntry = computed(() => {
 const chartScenario = computed(() => {
   return selectedScenario.value === "all" ? undefined : selectedScenario.value;
 });
+
+const tableScenario = computed(() =>
+  selectedScenarioForTable.value === "all"
+    ? undefined
+    : (selectedScenarioForTable.value as ScenarioType),
+);
+
+const tableSize = computed(() =>
+  selectedSizeForTable.value === "all"
+    ? undefined
+    : (selectedSizeForTable.value as number),
+);
+
+const availableScenariosForTable = computed(() => [
+  { label: t("common.scenarios.all"), value: "all" },
+  ...[...new Set((selectedEntry.value?.rows ?? []).map((r) => r.scenario))].map(
+    (s) => ({
+      label: t(scenarioLabelKeyByKey[s]),
+      value: s,
+    }),
+  ),
+]);
+
+const availableSizesForTable = computed(() => [
+  { label: t("common.scenarios.all"), value: "all" },
+  ...[...new Set((selectedEntry.value?.rows ?? []).map((r) => r.size))]
+    .sort((a, b) => a - b)
+    .map((s) => ({ label: s.toLocaleString(locale.value), value: s })),
+]);
+
+const formatElapsed = (ms: number): string => {
+  if (ms < 1000) return `${ms} ms`;
+  const s = ms / 1000;
+  if (s < 60) return `${s.toFixed(1)} s`;
+  const m = Math.floor(s / 60);
+  const rs = Math.floor(s % 60);
+  if (m < 60) return `${m}m ${rs}s`;
+  return `${Math.floor(m / 60)}h ${m % 60}m`;
+};
+
+const canExportReport = computed(() => !!selectedEntry.value?.report);
+
+const buildHistoryFilename = (ext: string): string => {
+  const stamp =
+    selectedEntry.value?.executedAt.replace(/[:.]/g, "-") ?? "report";
+  return `comparator-report-${stamp}.${ext}`;
+};
+
+const downloadMarkdown = (): void => {
+  if (!selectedEntry.value?.report) return;
+  const md = generateMarkdownReport(selectedEntry.value.report);
+  const blob = new Blob([md], { type: "text/markdown;charset=utf-8" });
+  triggerDownload(blob, buildHistoryFilename("md"));
+};
+
+const downloadPdf = async (): Promise<void> => {
+  if (!selectedEntry.value?.report) return;
+  isExporting.value = true;
+  try {
+    const blob = await generatePdfBlob(selectedEntry.value.report);
+    triggerDownload(blob, buildHistoryFilename("pdf"));
+  } finally {
+    isExporting.value = false;
+  }
+};
 
 const selectedEntryEnvironment = computed(
   (): BenchmarkEnvironment | undefined => selectedEntry.value?.environment,
@@ -221,21 +304,45 @@ const exportChartPng = (): void => {
               <a-button type="primary" @click="reopenSimulation">{{
                 t("history.buttons.reopen")
               }}</a-button>
-              <a-button @click="exportCsv">{{
-                t("history.buttons.exportCsv")
-              }}</a-button>
+              <a-dropdown>
+                <a-button :loading="isExporting">
+                  {{ t("history.buttons.export") }} ▾
+                </a-button>
+                <template #overlay>
+                  <a-menu>
+                    <a-menu-item @click="exportCsv">CSV</a-menu-item>
+                    <a-menu-item
+                      :disabled="!canExportReport"
+                      @click="downloadMarkdown"
+                      >Markdown</a-menu-item
+                    >
+                    <a-menu-item
+                      :disabled="!canExportReport"
+                      @click="downloadPdf"
+                      >PDF</a-menu-item
+                    >
+                  </a-menu>
+                </template>
+              </a-dropdown>
               <a-button @click="exportChartPng">{{
                 t("history.buttons.exportPng")
               }}</a-button>
             </a-space>
           </div>
 
-          <p style="margin: 0 0 12px; color: #4b5a79">
+          <p style="margin: 0 0 4px; color: #4b5a79">
             {{
               t("history.summary.executedAt", {
                 date: formatDateTime(selectedEntry.executedAt),
               })
             }}
+          </p>
+          <p
+            v-if="selectedEntry.elapsedMs"
+            style="margin: 0 0 12px; font-size: 0.88rem; color: var(--sl-text-soft)"
+          >
+            {{ t("history.summary.elapsed") }}:
+            {{ formatElapsed(selectedEntry.elapsedMs) }}
           </p>
 
           <div
@@ -243,27 +350,60 @@ const exportChartPng = (): void => {
             class="benchmark-env benchmark-env--compact"
             style="margin-bottom: 14px"
           >
-            <p class="benchmark-env__label">{{ t("environment.executedOn") }}</p>
+            <p class="benchmark-env__label">
+              {{ t("environment.executedOn") }}
+            </p>
             <p class="benchmark-env__line benchmark-env__line--strong">
-              {{ selectedEntryEnvironment.browser }} {{ selectedEntryEnvironment.browserVersion }}
-              <span v-if="selectedEntryEnvironment.engine"> ({{ selectedEntryEnvironment.engine }})</span>
+              {{ selectedEntryEnvironment.browser }}
+              {{ selectedEntryEnvironment.browserVersion }}
+              <span v-if="selectedEntryEnvironment.engine">
+                ({{ selectedEntryEnvironment.engine }})</span
+              >
             </p>
             <p class="benchmark-env__line">{{ selectedEntryEnvironment.os }}</p>
             <p class="benchmark-env__line">
-              <span v-if="selectedEntryEnvironment.cpuThreads">{{ t("environment.threads", { count: selectedEntryEnvironment.cpuThreads }) }}</span>
-              <span v-if="selectedEntryEnvironment.cpuThreads && selectedEntryEnvironment.memoryGB"> · </span>
-              <span v-if="selectedEntryEnvironment.memoryGB">{{ t("environment.memory", { gb: selectedEntryEnvironment.memoryGB }) }}</span>
-              <span v-if="selectedEntryEnvironment.cpuThreads || selectedEntryEnvironment.memoryGB"> · </span>
-              {{ selectedEntryEnvironment.mobile ? t("environment.mobile") : t("environment.desktop") }}
+              <span v-if="selectedEntryEnvironment.cpuThreads">{{
+                t("environment.threads", {
+                  count: selectedEntryEnvironment.cpuThreads,
+                })
+              }}</span>
+              <span
+                v-if="
+                  selectedEntryEnvironment.cpuThreads &&
+                  selectedEntryEnvironment.memoryGB
+                "
+              >
+                ·
+              </span>
+              <span v-if="selectedEntryEnvironment.memoryGB">{{
+                t("environment.memory", {
+                  gb: selectedEntryEnvironment.memoryGB,
+                })
+              }}</span>
+              <span
+                v-if="
+                  selectedEntryEnvironment.cpuThreads ||
+                  selectedEntryEnvironment.memoryGB
+                "
+              >
+                ·
+              </span>
+              {{
+                selectedEntryEnvironment.mobile
+                  ? t("environment.mobile")
+                  : t("environment.desktop")
+              }}
             </p>
             <p class="benchmark-env__score">
-              {{ t("environment.baselineScore", { score: selectedEntryEnvironment.baselineScore }) }}
+              {{
+                t("environment.baselineScore", {
+                  score: selectedEntryEnvironment.baselineScore,
+                })
+              }}
             </p>
           </div>
 
-          <ComparisonResultsTable :rows="selectedEntry.rows" compact />
-
-          <div ref="chartHost" style="margin-top: 14px">
+          <div ref="chartHost" style="margin-bottom: 14px">
             <div
               style="
                 display: flex;
@@ -306,6 +446,26 @@ const exportChartPng = (): void => {
               :scenario="chartScenario"
             />
           </div>
+
+          <div
+            style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px"
+          >
+            <a-select
+              v-model:value="selectedScenarioForTable"
+              style="min-width: 150px"
+              :options="availableScenariosForTable"
+            />
+            <a-select
+              v-model:value="selectedSizeForTable"
+              style="min-width: 120px"
+              :options="availableSizesForTable"
+            />
+          </div>
+          <ComparisonResultsTable
+            :rows="selectedEntry.rows"
+            :scenario="tableScenario"
+            :size="tableSize"
+          />
         </template>
 
         <a-empty v-else :description="t('history.empty.selectEntry')" />

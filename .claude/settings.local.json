@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(sed -n '95,115p' src/i18n/locales/enUS.ts)",
+      "Bash(sed -n '140,160p' src/i18n/locales/enUS.ts)"
+    ]
+  }
+}

@@ -98,6 +98,7 @@ const esES = {
     buttons: {
       start: "Iniciar comparacion",
       cancel: "Cancelar",
+      download: "Descargar",
       downloadMarkdown: "Descargar Markdown",
       downloadPdf: "Descargar PDF",
     },
@@ -142,6 +143,7 @@ const esES = {
     buttons: {
       clear: "Limpiar",
       reopen: "Reabrir en comparador",
+      export: "Exportar",
       exportCsv: "Exportar CSV",
       exportPng: "Exportar PNG",
     },
@@ -159,6 +161,7 @@ const esES = {
       entryCounts: "{algorithms} algoritmo(s) · {scenarios} escenario(s)",
       sizeReplication: "{sizes} tamano(s), {replications} replicacion(es)",
       executedAt: "Ejecutado en {date}",
+      elapsed: "Tiempo total",
     },
     csvHeaders: {
       algorithm: "algoritmo",
