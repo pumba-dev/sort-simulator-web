@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { BenchmarkService } from "../benchmark-service";
-import type { CompareJob } from "../../types/comparator";
+import { BenchmarkService } from "../../src/services/benchmark-service";
+import type { CompareJob } from "../../src/types/comparator";
 
 const baseJob = (overrides: Partial<CompareJob> = {}): CompareJob => ({
   algorithms: ["bubble"],

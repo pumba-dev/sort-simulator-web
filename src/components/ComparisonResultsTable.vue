@@ -57,7 +57,7 @@ const columns = computed(() => {
       width: 140,
       sorter: (a: any, b: any) => a.averageTimeMs - b.averageTimeMs,
       customRender: ({ value }: { value: number }) =>
-        integerFormatter.format(Math.round(value)),
+        integerFormatter.format(value),
     },
     {
       title: t("table.columns.comparisons"),

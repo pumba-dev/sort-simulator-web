@@ -1,9 +1,10 @@
 import type { AlgorithmKey } from "../types/comparator";
-import bubbleSort from "../../algorithms/bubbleSort";
-import heapSort from "../../algorithms/heapSort";
-import insertionSort from "../../algorithms/inserctionSort";
-import mergeSort from "../../algorithms/mergeSort";
-import quickSort from "../../algorithms/quickSort";
+import bubbleSort from "../../src/algorithms/bubbleSort";
+import heapSort from "../../src/algorithms/heapSort";
+import insertionSort from "../../src/algorithms/inserctionSort";
+import mergeSort from "../../src/algorithms/mergeSort";
+import quickSort from "../../src/algorithms/quickSort";
+import timSort from "../../src/algorithms/timSort";
 
 export type {
   SortStep,
@@ -37,4 +38,5 @@ export const sortAlgorithmRegistry: Record<AlgorithmKey, SortAlgorithm> = {
   insertion: { key: "insertion", run: insertionSort as RawSortFn },
   merge: { key: "merge", run: mergeSort as RawSortFn },
   quick: { key: "quick", run: quickSort as RawSortFn },
+  tim: { key: "tim", run: timSort as RawSortFn },
 };

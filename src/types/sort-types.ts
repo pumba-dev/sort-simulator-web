@@ -24,6 +24,10 @@ export interface SortStep {
   divisionDepth?: number;
   /** Index where the pivot landed after partitioning (Quick Sort). */
   partitionIndex?: number | null;
+  /** Fase atual do TimSort: "insertion" (ordenação de runs) ou "merge" (fusão). */
+  timPhase?: "insertion" | "merge";
+  /** Limites visuais de cada run durante a fase de inserção do TimSort. */
+  timRunBoundaries?: { start: number; end: number }[];
 }
 
 /** Options forwarded to every sort algorithm's `run` function. */

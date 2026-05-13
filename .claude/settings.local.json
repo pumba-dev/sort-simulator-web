@@ -4,7 +4,9 @@
       "Bash(sed -n '95,115p' src/i18n/locales/enUS.ts)",
       "Bash(sed -n '140,160p' src/i18n/locales/enUS.ts)",
       "Bash(Remove-Item \"c:\\\\Users\\\\eduar\\\\github\\\\sort-simulator-web\\\\algorithms\\\\bubbleSort.js\", \"c:\\\\Users\\\\eduar\\\\github\\\\sort-simulator-web\\\\algorithms\\\\heapSort.js\", \"c:\\\\Users\\\\eduar\\\\github\\\\sort-simulator-web\\\\algorithms\\\\inserctionSort.js\", \"c:\\\\Users\\\\eduar\\\\github\\\\sort-simulator-web\\\\algorithms\\\\mergeSort.js\", \"c:\\\\Users\\\\eduar\\\\github\\\\sort-simulator-web\\\\algorithms\\\\quickSort.js\")",
-      "Bash(npx vitest *)"
+      "Bash(npx vitest *)",
+      "Bash(npm run *)",
+      "Bash(npx tsc *)"
     ]
   }
 }

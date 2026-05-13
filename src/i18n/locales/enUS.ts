@@ -32,6 +32,7 @@ const enUS = {
       merge: "Merge Sort",
       heap: "Heap Sort",
       quick: "Quick Sort",
+      tim: "Tim Sort",
     },
     scenarios: {
       crescente: "Ascending",

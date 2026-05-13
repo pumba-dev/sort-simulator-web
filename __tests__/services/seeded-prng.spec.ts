@@ -3,7 +3,7 @@ import {
   SeededPrng,
   deriveCellSeed,
   generateScenarioArray,
-} from "../seeded-prng";
+} from "../../src/services/seeded-prng";
 
 describe("SeededPrng", () => {
   it("returns identical sequence for identical seed", () => {

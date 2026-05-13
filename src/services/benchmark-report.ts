@@ -11,6 +11,7 @@ const algorithmLabel: Record<AlgorithmKey, string> = {
   merge: "Merge Sort",
   heap: "Heap Sort",
   quick: "Quick Sort",
+  tim: "Tim Sort",
 };
 
 const scenarioLabel: Record<ScenarioType, string> = {
@@ -176,7 +177,9 @@ export const generatePdfBlob = async (
   if (report.environment) {
     const env = report.environment;
     writeHeading("Ambiente de Execucao", 12);
-    writeLine(`Navegador: ${env.browser} ${env.browserVersion} (${env.engine})`);
+    writeLine(
+      `Navegador: ${env.browser} ${env.browserVersion} (${env.engine})`,
+    );
     writeLine(`OS: ${env.os}`);
     const hw: string[] = [];
     if (env.cpuThreads) hw.push(`${env.cpuThreads} Threads`);

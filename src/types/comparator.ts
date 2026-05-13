@@ -1,5 +1,5 @@
 export type ScenarioType = "crescente" | "decrescente" | "aleatorio";
-export type AlgorithmKey = "insertion" | "bubble" | "merge" | "heap" | "quick";
+export type AlgorithmKey = "insertion" | "bubble" | "merge" | "heap" | "quick" | "tim";
 
 export interface BenchmarkEnvironment {
   os: string;

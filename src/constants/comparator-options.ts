@@ -16,6 +16,7 @@ export const algorithmOptions: AlgorithmOption[] = [
   { key: "merge", labelKey: "common.algorithms.merge" },
   { key: "heap", labelKey: "common.algorithms.heap" },
   { key: "quick", labelKey: "common.algorithms.quick" },
+  { key: "tim", labelKey: "common.algorithms.tim" },
 ];
 
 export const scenarioOptions: ScenarioOption[] = [
@@ -25,7 +26,8 @@ export const scenarioOptions: ScenarioOption[] = [
 ];
 
 export const sizeOptions: number[] = [
-  10, 100, 1000, 5000, 30000, 50000, 100000, 150000, 200000,
+  10, 25, 50, 75, 100, 500, 1000, 2500, 5000, 30000, 50000, 100000, 150000,
+  200000,
 ];
 
 export const algorithmLabelKeyByKey: Record<AlgorithmKey, string> =
