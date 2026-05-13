@@ -104,9 +104,6 @@ const selectLocale = (locale: AppLocale): void => {
           :alt="selectedLocaleOption.flagAlt"
           class="language-fab__trigger-flag"
         />
-        <span class="language-fab__trigger-icon" aria-hidden="true">
-          <GlobalOutlined />
-        </span>
       </button>
     </a-popover>
   </div>
