@@ -181,7 +181,7 @@ watch(
       <div class="app-footer__content">
         <a
           class="app-footer__link"
-          href="https://pumbadev.com"
+          href="https://github.com/pumba-dev/sort-simulator-web"
           target="_blank"
           rel="noopener noreferrer"
         >
