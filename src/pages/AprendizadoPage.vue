@@ -6,6 +6,7 @@ import {
   learningByKey,
 } from "../constants/learningAlgorithms";
 import type { AlgorithmKey, ScenarioType } from "../types/comparator";
+import type { SortRunResult } from "../types/sort-types";
 
 import { sortAlgorithmRegistry } from "../services/sort-algorithm-registry";
 
@@ -429,8 +430,8 @@ const handleManualVectorInput = (value: string): void => {
 };
 
 const buildAnimationSteps = (baseVector: number[]): AnimationStep[] => {
-  const algorithmSteps = sortAlgorithmRegistry[selectedAlgorithm.value].run(
-    baseVector,
+  let algorithmSteps = (
+    sortAlgorithmRegistry[selectedAlgorithm.value].run(baseVector) as SortRunResult
   ).steps as AnimationStep[];
 
   if (algorithmSteps.length === 0) {

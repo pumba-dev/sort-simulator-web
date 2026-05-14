@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { CheckOutlined, GlobalOutlined } from "@ant-design/icons-vue";
+import { CheckOutlined } from "@ant-design/icons-vue";
 import { useI18n } from "vue-i18n";
 import brFlag from "../assets/flags/br.svg";
 import esFlag from "../assets/flags/es.svg";
