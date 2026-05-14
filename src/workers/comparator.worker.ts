@@ -3,20 +3,18 @@
 import type { WorkerCommand } from "../types/comparator";
 import { BenchmarkService } from "../services/benchmark-service";
 import { detectEnvironment } from "../services/device-detector";
+import { createSubWorkerRegistry } from "./sub-worker-registry";
 
 const workerScope: DedicatedWorkerGlobalScope =
   self as unknown as DedicatedWorkerGlobalScope;
 
 let activeController: AbortController | null = null;
-const service = new BenchmarkService();
+const service = new BenchmarkService(createSubWorkerRegistry());
 
 workerScope.onmessage = (event: MessageEvent<WorkerCommand>): void => {
   const command = event.data;
 
-  console.log("Worker received command:", command);
-
   if (command.type === "cancel") {
-    console.log("Recebido comando de cancelamento");
     if (activeController) {
       activeController.abort();
     }
@@ -54,7 +52,6 @@ workerScope.onmessage = (event: MessageEvent<WorkerCommand>): void => {
         workerScope.postMessage({ type: "error", message });
       })
       .finally(() => {
-        console.log("Worker finished processing command:", command);
         if (activeController === controller) {
           activeController = null;
         }

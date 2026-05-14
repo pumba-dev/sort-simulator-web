@@ -121,7 +121,7 @@ export class BenchmarkService {
       let end = 0;
       try {
         start = nowMs();
-        const runResult = this.registry[algorithm].run(input, {
+        const runResult = await this.registry[algorithm].run(input, {
           recordSteps: false,
           signal: controller.signal,
           yieldEveryOps: 5000,

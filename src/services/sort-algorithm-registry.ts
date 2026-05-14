@@ -21,8 +21,12 @@ export interface SortAlgorithm {
    * Execute the algorithm on the given input array.
    * Returns a SortRunResult containing sorted output, step snapshots,
    * comparison/swap counters, peak memory usage, and abort status.
+   * May return a Promise (e.g., when dispatched to a sub-worker).
    */
-  run: (input: number[], options?: SortRunOptions) => SortRunResult;
+  run: (
+    input: number[],
+    options?: SortRunOptions,
+  ) => SortRunResult | Promise<SortRunResult>;
 }
 
 type RawSortFn = (input: number[], options?: SortRunOptions) => SortRunResult;
