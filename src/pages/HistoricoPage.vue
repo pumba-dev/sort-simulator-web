@@ -4,11 +4,7 @@ import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import ComparisonResultsTable from "../components/ComparisonResultsTable.vue";
 import ComparisonResultsChart from "../components/ComparisonResultsChart.vue";
-import {
-  clearComparisonHistory,
-  loadComparisonHistory,
-  setPendingCompareConfig,
-} from "../utils/comparison-history";
+import { ComparisonHistoryService } from "../services/comparison-history-service";
 import {
   generateMarkdownReport,
   generatePdfBlob,
@@ -28,7 +24,8 @@ const router = useRouter();
 const chartHost = ref<HTMLElement | null>(null);
 const { t, locale } = useI18n();
 
-const entries = ref<ComparisonHistoryEntry[]>(loadComparisonHistory());
+const historyService = new ComparisonHistoryService();
+const entries = ref<ComparisonHistoryEntry[]>(historyService.loadHistory());
 const selectedEntryId = ref<string | null>(entries.value[0]?.id ?? null);
 const feedbackMessage = ref<string>("");
 
@@ -149,12 +146,12 @@ const selectEntry = (entryId: string): void => {
 };
 
 const refreshHistory = (): void => {
-  entries.value = loadComparisonHistory();
+  entries.value = historyService.loadHistory();
   selectedEntryId.value = entries.value[0]?.id ?? null;
 };
 
 const clearHistory = (): void => {
-  clearComparisonHistory();
+  historyService.clearHistory();
   refreshHistory();
   feedbackMessage.value = t("history.feedback.cleared");
 };
@@ -164,7 +161,7 @@ const reopenSimulation = async (): Promise<void> => {
     return;
   }
 
-  setPendingCompareConfig(selectedEntry.value.config);
+  historyService.setPendingConfig(selectedEntry.value.config);
   await router.push("/comparador");
 };
 

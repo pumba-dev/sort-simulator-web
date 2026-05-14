@@ -8,7 +8,8 @@
       "Bash(npm run *)",
       "Bash(npx tsc *)",
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\eduar\\\\github\\\\sort-simulator-web\" -Recurse -Directory)",
-      "Bash(Select-Object -ExpandProperty FullName)"
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(git stash *)"
     ]
   }
 }

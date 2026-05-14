@@ -11,6 +11,7 @@ export default defineConfig({
       include: [
         "src/algorithms/**/*.ts",
         "src/services/benchmark-service.ts",
+        "src/services/comparison-history-service.ts",
         "src/services/seeded-prng.ts",
         "src/services/sort-algorithm-registry.ts",
       ],

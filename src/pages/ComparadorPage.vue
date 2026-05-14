@@ -19,10 +19,7 @@ import type {
 import { detectEnvironment } from "../services/device-detector";
 import ComparisonResultsTable from "../components/ComparisonResultsTable.vue";
 import ComparisonResultsChart from "../components/ComparisonResultsChart.vue";
-import {
-  consumePendingCompareConfig,
-  saveComparisonHistoryEntry,
-} from "../utils/comparison-history";
+import { ComparisonHistoryService } from "../services/comparison-history-service";
 import {
   generateMarkdownReport,
   generatePdfBlob,
@@ -47,6 +44,7 @@ const environment = ref<BenchmarkEnvironment | null>(null);
 const isExporting = ref<boolean>(false);
 const feedbackMessage = ref<string>(t("comparator.feedback.initial"));
 const elapsedMs = ref<number>(0);
+const historyService = new ComparisonHistoryService();
 let timerInterval: ReturnType<typeof setInterval> | null = null;
 let timerStart = 0;
 
@@ -260,7 +258,7 @@ const ensureWorker = (): Worker => {
       environment.value = message.report.environment ?? null;
       isRunning.value = false;
       feedbackMessage.value = t("comparator.feedback.finished");
-      saveComparisonHistoryEntry(
+      historyService.saveEntry(
         buildJobPayload(),
         message.rows,
         environment.value ?? undefined,
@@ -406,14 +404,12 @@ const buildReportFilename = (extension: string): string => {
 };
 
 onMounted(() => {
-  const pendingConfig = consumePendingCompareConfig();
+  const pendingConfig = historyService.consumePendingConfig();
   if (pendingConfig) {
     applyPendingConfiguration(pendingConfig);
     feedbackMessage.value = t("comparator.feedback.pendingLoaded");
-  } else {
-    // If no pending config, we can detect the environment right away
-    environment.value = detectEnvironment();
   }
+  environment.value = detectEnvironment();
 });
 
 onBeforeUnmount(() => {
