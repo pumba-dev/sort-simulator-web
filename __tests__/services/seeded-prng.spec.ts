@@ -39,6 +39,12 @@ describe("SeededPrng", () => {
       expect(value).toBeLessThan(10);
     }
   });
+
+  it("falls back to state=1 when seed is 0", () => {
+    const a = new SeededPrng(0);
+    const b = new SeededPrng(1);
+    expect(a.next()).toBe(b.next());
+  });
 });
 
 describe("deriveCellSeed", () => {

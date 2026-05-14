@@ -6,7 +6,9 @@
       "Bash(Remove-Item \"c:\\\\Users\\\\eduar\\\\github\\\\sort-simulator-web\\\\algorithms\\\\bubbleSort.js\", \"c:\\\\Users\\\\eduar\\\\github\\\\sort-simulator-web\\\\algorithms\\\\heapSort.js\", \"c:\\\\Users\\\\eduar\\\\github\\\\sort-simulator-web\\\\algorithms\\\\inserctionSort.js\", \"c:\\\\Users\\\\eduar\\\\github\\\\sort-simulator-web\\\\algorithms\\\\mergeSort.js\", \"c:\\\\Users\\\\eduar\\\\github\\\\sort-simulator-web\\\\algorithms\\\\quickSort.js\")",
       "Bash(npx vitest *)",
       "Bash(npm run *)",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\eduar\\\\github\\\\sort-simulator-web\" -Recurse -Directory)",
+      "Bash(Select-Object -ExpandProperty FullName)"
     ]
   }
 }

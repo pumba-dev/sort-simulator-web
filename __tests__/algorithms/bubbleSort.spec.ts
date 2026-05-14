@@ -108,5 +108,18 @@ describe("bubbleSort", () => {
       });
       expect(result.aborted).toBe(true);
     });
+
+    it("rethrows non-abort errors from inside try block", () => {
+      const trickySignal = {
+        get aborted() {
+          throw new Error("boom");
+        },
+        addEventListener: () => {},
+        removeEventListener: () => {},
+      } as unknown as AbortSignal;
+      expect(() =>
+        bubbleSort([3, 1, 2], { signal: trickySignal, yieldEveryOps: 1 }),
+      ).toThrow("boom");
+    });
   });
 });

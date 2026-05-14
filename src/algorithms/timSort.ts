@@ -37,7 +37,6 @@ export default (A: number[], options: SortRunOptions = {}): SortRunResult => {
   // [BENCHMARK] Registra liberação de subarrays temporários após o merge
   const trackFree = (numbers: number) => {
     liveAux -= numbers * BYTES_PER_NUMBER;
-    if (liveAux < 0) liveAux = 0;
   };
 
   // [BENCHMARK] Contador de operações para espaçar verificações do sinal de abort

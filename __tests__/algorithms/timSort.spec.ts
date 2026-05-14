@@ -41,6 +41,17 @@ describe("timSort", () => {
       const sorted = Array.from({ length: 33 }, (_, i) => i + 1);
       expect(runFinal(bigArr)).toEqual(sorted);
     });
+
+    it("handles trailing partial merge group (mid==right skip path)", () => {
+      const big = Array.from({ length: 65 }, (_, i) => 65 - i);
+      const expected = Array.from({ length: 65 }, (_, i) => i + 1);
+      expect(runFinal(big)).toEqual(expected);
+    });
+
+    it("merges runs covering left<=right path and right drain", () => {
+      const ascending = Array.from({ length: 40 }, (_, i) => i + 1);
+      expect(runFinal(ascending)).toEqual(ascending);
+    });
   });
 
   describe("input immutability", () => {
@@ -161,6 +172,19 @@ describe("timSort", () => {
         yieldEveryOps: 1,
       });
       expect(result.aborted).toBe(true);
+    });
+
+    it("rethrows non-abort errors from inside try block", () => {
+      const trickySignal = {
+        get aborted() {
+          throw new Error("boom");
+        },
+        addEventListener: () => {},
+        removeEventListener: () => {},
+      } as unknown as AbortSignal;
+      expect(() =>
+        timSort([3, 1, 2], { signal: trickySignal, yieldEveryOps: 1 }),
+      ).toThrow("boom");
     });
   });
 });
