@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import mergeSort from "../../src/algorithms/mergeSort.ts";
+import mergeSort from "../../src/algorithms/mergeSort";
 
 const runSteps = (arr: number[]) => mergeSort(arr).steps;
 const runFinal = (arr: number[]) => mergeSort(arr).finalArray;
@@ -123,6 +123,16 @@ describe("mergeSort", () => {
       expect(() =>
         mergeSort([3, 1, 2], { signal: trickySignal, yieldEveryOps: 1 }),
       ).toThrow("boom");
+    });
+
+    it("aborts when deadlineMs is reached", () => {
+      const reverse = Array.from({ length: 50 }, (_, i) => 50 - i);
+      const result = mergeSort(reverse, {
+        recordSteps: false,
+        yieldEveryOps: 1,
+        deadlineMs: Date.now() - 1,
+      });
+      expect(result.aborted).toBe(true);
     });
   });
 });

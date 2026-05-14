@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import heapSort from "../../src/algorithms/heapSort.ts";
+import heapSort from "../../src/algorithms/heapSort";
 
 const runSteps = (arr: number[]) => heapSort(arr).steps;
 const runFinal = (arr: number[]) => heapSort(arr).finalArray;
@@ -118,6 +118,16 @@ describe("heapSort", () => {
       expect(() =>
         heapSort([3, 1, 2], { signal: trickySignal, yieldEveryOps: 1 }),
       ).toThrow("boom");
+    });
+
+    it("aborts when deadlineMs is reached", () => {
+      const reverse = Array.from({ length: 50 }, (_, i) => 50 - i);
+      const result = heapSort(reverse, {
+        recordSteps: false,
+        yieldEveryOps: 1,
+        deadlineMs: Date.now() - 1,
+      });
+      expect(result.aborted).toBe(true);
     });
   });
 });

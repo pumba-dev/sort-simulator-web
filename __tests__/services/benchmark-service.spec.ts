@@ -205,6 +205,21 @@ describe("BenchmarkService.runJob", () => {
     expect(report.cells).toHaveLength(1);
   });
 
+  it("marks samples as timedOut when deadlineMs elapses", async () => {
+    const service = new BenchmarkService();
+    const report = await service.runJob({
+      algorithms: ["bubble"],
+      scenarios: ["decrescente"],
+      sizes: [2000],
+      replications: 1,
+      timeoutMs: 1,
+      seed: 42,
+      removeOutliers: false,
+    });
+    expect(report.cells[0].timeoutCount).toBe(1);
+    expect(report.cells[0].samples[0].timedOut).toBe(true);
+  });
+
   it("falls back to Date.now when global performance is undefined", async () => {
     vi.stubGlobal("performance", undefined);
     try {

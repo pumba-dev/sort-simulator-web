@@ -334,9 +334,11 @@ const startSimulation = (): void => {
 };
 
 const cancelSimulation = (): void => {
+  console.log("Solicitando cancelamento da simulação...");
   if (!isRunning.value || !comparatorWorker) {
     return;
   }
+  console.log("Enviando mensagem de cancelamento para o worker...");
   comparatorWorker.postMessage({ type: "cancel" });
 };
 

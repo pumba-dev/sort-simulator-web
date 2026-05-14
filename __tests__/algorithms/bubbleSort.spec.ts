@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import bubbleSort from "../../src/algorithms/bubbleSort.ts";
+import bubbleSort from "../../src/algorithms/bubbleSort";
 
 const runSteps = (arr: number[]) => bubbleSort(arr).steps;
 const runFinal = (arr: number[]) => bubbleSort(arr).finalArray;
@@ -120,6 +120,16 @@ describe("bubbleSort", () => {
       expect(() =>
         bubbleSort([3, 1, 2], { signal: trickySignal, yieldEveryOps: 1 }),
       ).toThrow("boom");
+    });
+
+    it("aborts when deadlineMs is reached", () => {
+      const reverse = Array.from({ length: 50 }, (_, i) => 50 - i);
+      const result = bubbleSort(reverse, {
+        recordSteps: false,
+        yieldEveryOps: 1,
+        deadlineMs: Date.now() - 1,
+      });
+      expect(result.aborted).toBe(true);
     });
   });
 });

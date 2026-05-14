@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import quickSort from "../../src/algorithms/quickSort.ts";
+import quickSort from "../../src/algorithms/quickSort";
 
 const runSteps = (arr: number[]) => quickSort(arr).steps;
 const runFinal = (arr: number[]) => quickSort(arr).finalArray;
@@ -126,6 +126,16 @@ describe("quickSort", () => {
       expect(() =>
         quickSort([3, 1, 2], { signal: trickySignal, yieldEveryOps: 1 }),
       ).toThrow("boom");
+    });
+
+    it("aborts when deadlineMs is reached", () => {
+      const reverse = Array.from({ length: 50 }, (_, i) => 50 - i);
+      const result = quickSort(reverse, {
+        recordSteps: false,
+        yieldEveryOps: 1,
+        deadlineMs: Date.now() - 1,
+      });
+      expect(result.aborted).toBe(true);
     });
   });
 });

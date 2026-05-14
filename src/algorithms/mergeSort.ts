@@ -10,7 +10,12 @@ const BYTES_PER_NUMBER = 8;
 
 export default (A: number[], options: SortRunOptions = {}): SortRunResult => {
   // [BENCHMARK] Desestrutura opções de controle: gravação de passos, sinal de abort e frequência de checagem
-  const { recordSteps = true, signal, yieldEveryOps = 50000 } = options;
+  const {
+    recordSteps = true,
+    signal,
+    yieldEveryOps = 50000,
+    deadlineMs,
+  } = options;
 
   // [BENCHMARK] Array de snapshots para animação passo a passo
   const steps: SortStep[] = [];
@@ -44,6 +49,9 @@ export default (A: number[], options: SortRunOptions = {}): SortRunResult => {
     if (ops >= yieldEveryOps) {
       ops = 0;
       if (signal && signal.aborted) {
+        throw ABORT_SENTINEL;
+      }
+      if (deadlineMs !== undefined && Date.now() >= deadlineMs) {
         throw ABORT_SENTINEL;
       }
     }

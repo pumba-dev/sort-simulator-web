@@ -13,7 +13,10 @@ const service = new BenchmarkService();
 workerScope.onmessage = (event: MessageEvent<WorkerCommand>): void => {
   const command = event.data;
 
+  console.log("Worker received command:", command);
+
   if (command.type === "cancel") {
+    console.log("Recebido comando de cancelamento");
     if (activeController) {
       activeController.abort();
     }
@@ -51,6 +54,7 @@ workerScope.onmessage = (event: MessageEvent<WorkerCommand>): void => {
         workerScope.postMessage({ type: "error", message });
       })
       .finally(() => {
+        console.log("Worker finished processing command:", command);
         if (activeController === controller) {
           activeController = null;
         }

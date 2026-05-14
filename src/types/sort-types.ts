@@ -38,6 +38,8 @@ export interface SortRunOptions {
   signal?: AbortSignal;
   /** How many inner operations to process before checking the abort signal. Default: 50000. */
   yieldEveryOps?: number;
+  /** Absolute timestamp (ms, from Date.now()) at which the sort must abort. */
+  deadlineMs?: number;
 }
 
 /** Value returned by every sort algorithm after execution completes or is aborted. */

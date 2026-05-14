@@ -60,7 +60,7 @@ export class BenchmarkService {
             return report;
           }
 
-          const cell = this.runCell(
+          const cell = await this.runCell(
             algorithm,
             scenario,
             size,
@@ -89,7 +89,7 @@ export class BenchmarkService {
   // Runs all replications for a single (algorithm, scenario, size) cell.
   // Each replication gets a per-replication timeout AbortController wired to the parent signal.
   // Timed-out replications are counted but excluded from aggregate statistics.
-  runCell(
+  async runCell(
     algorithm: AlgorithmKey,
     scenario: ScenarioType,
     size: number,
@@ -100,7 +100,7 @@ export class BenchmarkService {
       removeOutliers: boolean;
       parentSignal?: AbortSignal;
     },
-  ): BenchmarkCell {
+  ): Promise<BenchmarkCell> {
     const samples: BenchmarkReplicationSample[] = [];
     let timeoutCount = 0;
 
@@ -108,18 +108,14 @@ export class BenchmarkService {
       if (options.parentSignal?.aborted) {
         break;
       }
+      if (rep > 0) await yieldMicrotask();
 
       const cellSeed = deriveCellSeed(options.seed, scenario, size, rep);
       const input = generateScenarioArray(size, scenario, cellSeed);
 
-      console.log(
-        `Running cell: algorithm=${algorithm}, scenario=${scenario}, size=${size}, replication=${rep + 1}/${replications}`,
-        `Arranjo=${input.length <= 20 ? `[${input.join(", ")}]` : `[${input.slice(0, 10).join(", ")}, ..., ${input.slice(-10).join(", ")}]`}`,
-      );
-
       const controller = new AbortController();
       const cleanup = wireParent(options.parentSignal, controller);
-      const timer = setTimeout(() => controller.abort(), options.timeoutMs);
+      const deadlineMs = Date.now() + options.timeoutMs;
 
       let start = 0;
       let end = 0;
@@ -128,8 +124,10 @@ export class BenchmarkService {
         const runResult = this.registry[algorithm].run(input, {
           recordSteps: false,
           signal: controller.signal,
-          yieldEveryOps: 1000,
+          yieldEveryOps: 5000,
+          deadlineMs,
         });
+
         end = nowMs();
 
         if (runResult.aborted) {
@@ -151,7 +149,6 @@ export class BenchmarkService {
           });
         }
       } finally {
-        clearTimeout(timer);
         cleanup();
       }
     }

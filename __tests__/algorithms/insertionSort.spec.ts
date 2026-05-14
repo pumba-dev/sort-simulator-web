@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import insertionSort from "../../src/algorithms/inserctionSort.ts";
+import insertionSort from "../../src/algorithms/inserctionSort";
 
 const runSteps = (arr: number[]) => insertionSort(arr).steps;
 const runFinal = (arr: number[]) => insertionSort(arr).finalArray;
@@ -117,6 +117,16 @@ describe("insertionSort", () => {
       expect(() =>
         insertionSort([3, 1, 2], { signal: trickySignal, yieldEveryOps: 1 }),
       ).toThrow("boom");
+    });
+
+    it("aborts when deadlineMs is reached", () => {
+      const reverse = Array.from({ length: 50 }, (_, i) => 50 - i);
+      const result = insertionSort(reverse, {
+        recordSteps: false,
+        yieldEveryOps: 1,
+        deadlineMs: Date.now() - 1,
+      });
+      expect(result.aborted).toBe(true);
     });
   });
 });

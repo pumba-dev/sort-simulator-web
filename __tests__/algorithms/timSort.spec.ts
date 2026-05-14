@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import timSort from "../../src/algorithms/timSort.ts";
+import timSort from "../../src/algorithms/timSort";
 
 const runSteps = (arr: number[]) => timSort(arr).steps;
 const runFinal = (arr: number[]) => timSort(arr).finalArray;
@@ -185,6 +185,16 @@ describe("timSort", () => {
       expect(() =>
         timSort([3, 1, 2], { signal: trickySignal, yieldEveryOps: 1 }),
       ).toThrow("boom");
+    });
+
+    it("aborts when deadlineMs is reached", () => {
+      const reverse = Array.from({ length: 50 }, (_, i) => 50 - i);
+      const result = timSort(reverse, {
+        recordSteps: false,
+        yieldEveryOps: 1,
+        deadlineMs: Date.now() - 1,
+      });
+      expect(result.aborted).toBe(true);
     });
   });
 });
