@@ -15,7 +15,7 @@ jsdom
 
 <local>
 
-/__tests__
+/**tests**
 
 </local>
 
@@ -85,22 +85,15 @@ or simple stub
 
 <coverage>
 
-comparison-history:
+100% coverage for:
 
-loadComparisonHistory
-saveComparisonHistoryEntry
-clearComparisonHistory
-pending config
-SSR guards
+general:
 
-worker:
-
-average
-percentile
-removeOutliersIqr
-estimateDurationMs
-estimateComparisons
-estimateMemoryKb
+algorithms
+services
+workers
+utils
+composables
 
 components:
 
