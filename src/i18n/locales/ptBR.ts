@@ -205,6 +205,7 @@ const ptBR = {
     },
     sections: {
       saved: "Simulacoes salvas",
+      imported: "Simulacoes importadas",
       details: "Detalhes da Simulacao",
     },
     buttons: {
@@ -213,9 +214,14 @@ const ptBR = {
       export: "Exportar",
       exportCsv: "Exportar CSV",
       exportPng: "Exportar PNG",
+      import: "Importar CSV",
+      delete: "Excluir",
+      favorite: "Favoritar",
+      unfavorite: "Desfavoritar",
     },
     empty: {
       noEntries: "Nenhuma simulacao registrada",
+      noImported: "Nenhuma simulacao importada",
       selectEntry: "Selecione uma simulacao para ver os detalhes",
     },
     feedback: {
@@ -224,6 +230,16 @@ const ptBR = {
       reportMissing: "Relatorio completo nao disponivel para esta entrada.",
       pngExported: "Grafico exportado em PNG.",
       pngExportError: "Nao foi possivel exportar o grafico.",
+      deleted: "Simulacao removida.",
+      favoriteAdded: "Simulacao favoritada.",
+      favoriteRemoved: "Removida dos favoritos.",
+      imported: "CSV importado com sucesso.",
+      importError: "Falha ao importar CSV. Verifique o arquivo.",
+      importEmptyFile: "Arquivo vazio.",
+    },
+    confirm: {
+      deleteEntry: "Excluir esta simulacao?",
+      clearAll: "Limpar todo o historico?",
     },
     summary: {
       entryCounts: "{algorithms} algoritmo(s) · {scenarios} cenario(s)",

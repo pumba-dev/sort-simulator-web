@@ -205,6 +205,7 @@ const enUS = {
     },
     sections: {
       saved: "Saved simulations",
+      imported: "Imported simulations",
       details: "Simulation details",
     },
     buttons: {
@@ -213,9 +214,14 @@ const enUS = {
       export: "Export",
       exportCsv: "Export CSV",
       exportPng: "Export PNG",
+      import: "Import CSV",
+      delete: "Delete",
+      favorite: "Favorite",
+      unfavorite: "Unfavorite",
     },
     empty: {
       noEntries: "No saved simulations",
+      noImported: "No imported simulations",
       selectEntry: "Select a simulation to view details",
     },
     feedback: {
@@ -224,6 +230,16 @@ const enUS = {
       reportMissing: "Full report not available for this entry.",
       pngExported: "Chart exported as PNG.",
       pngExportError: "Could not export the chart.",
+      deleted: "Simulation removed.",
+      favoriteAdded: "Simulation favorited.",
+      favoriteRemoved: "Removed from favorites.",
+      imported: "CSV imported successfully.",
+      importError: "Failed to import CSV. Check the file.",
+      importEmptyFile: "Empty file.",
+    },
+    confirm: {
+      deleteEntry: "Delete this simulation?",
+      clearAll: "Clear the entire history?",
     },
     summary: {
       entryCounts: "{algorithms} algorithm(s) · {scenarios} scenario(s)",

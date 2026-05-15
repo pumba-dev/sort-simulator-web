@@ -205,6 +205,7 @@ const esES = {
     },
     sections: {
       saved: "Simulaciones guardadas",
+      imported: "Simulaciones importadas",
       details: "Detalles de la Simulacion",
     },
     buttons: {
@@ -213,9 +214,14 @@ const esES = {
       export: "Exportar",
       exportCsv: "Exportar CSV",
       exportPng: "Exportar PNG",
+      import: "Importar CSV",
+      delete: "Eliminar",
+      favorite: "Marcar favorito",
+      unfavorite: "Quitar favorito",
     },
     empty: {
       noEntries: "No hay simulaciones registradas",
+      noImported: "No hay simulaciones importadas",
       selectEntry: "Selecciona una simulacion para ver los detalles",
     },
     feedback: {
@@ -224,6 +230,16 @@ const esES = {
       reportMissing: "Informe completo no disponible para esta entrada.",
       pngExported: "Grafico exportado en PNG.",
       pngExportError: "No fue posible exportar el grafico.",
+      deleted: "Simulacion eliminada.",
+      favoriteAdded: "Simulacion marcada como favorita.",
+      favoriteRemoved: "Eliminada de favoritas.",
+      imported: "CSV importado correctamente.",
+      importError: "No fue posible importar el CSV. Verifica el archivo.",
+      importEmptyFile: "Archivo vacio.",
+    },
+    confirm: {
+      deleteEntry: "Eliminar esta simulacion?",
+      clearAll: "Limpiar todo el historial?",
     },
     summary: {
       entryCounts: "{algorithms} algoritmo(s) · {scenarios} escenario(s)",

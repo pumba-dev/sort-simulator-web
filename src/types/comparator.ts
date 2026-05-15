@@ -65,6 +65,8 @@ export interface BenchmarkReport {
   elapsedMs?: number;
 }
 
+export type ComparisonHistoryEntrySource = "manual" | "imported";
+
 export interface ComparisonHistoryEntry {
   id: string;
   executedAt: string;
@@ -73,6 +75,8 @@ export interface ComparisonHistoryEntry {
   environment?: BenchmarkEnvironment;
   elapsedMs?: number;
   report?: BenchmarkReport;
+  favorite?: boolean;
+  source?: ComparisonHistoryEntrySource;
 }
 
 export type WorkerCommand =
