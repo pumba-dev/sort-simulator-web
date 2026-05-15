@@ -13,6 +13,12 @@ jsdom
 
 </stack>
 
+<local>
+
+/__tests__
+
+</local>
+
 <rules>
 
 WHEN creating tests
