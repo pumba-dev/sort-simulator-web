@@ -44,50 +44,114 @@ if(typeof window==='undefined')
 WHEN computation heavy
 → MOVE to worker
 
-WHEN comments
-→ DO NOT write comments
 
-EXCEPTION:
-WHY not obvious
+WHEN creating service
+→ ALWAYS use class
 
-WHEN worker
-→ INCLUDE:
 
-/// <reference lib="webworker"/>
+FORBIDDEN:
+- standalone functions
+- exported loose methods
+- utility-style service files
 
-WHEN creating composable
-→ RETURN:
-state
-derived
-actions
+
+REQUIRED:
+
+export class ExampleService {
+
+  public execute(): Result {
+    return this.validate()
+  }
+
+  private validate(): Result {
+    ...
+  }
+}
+
+
+WHEN service has internal steps
+→ SPLIT logic into private methods
+
+
+WHEN exposing service API
+→ EXPOSE only public methods
+
+
+WHEN service logic grows
+→ EXTRACT internal behavior to additional private methods
+
+
+WHEN creating business logic
+→ DOCUMENT file and functions
+
+
+APPLIES TO:
+- services
+- utils
+- workers
+- validators
+- adapters
+- business/domain logic
+
+
+FILE HEADER REQUIRED:
+
+/**
+ * Purpose:
+ * Responsibility of file
+ * Main flow or business context
+ */
+
+
+FUNCTION HEADER REQUIRED:
+
+/**
+ * Purpose:
+ * Input:
+ * Output:
+ * Business rules:
+ */
+
+
+WHEN function has complex behavior
+→ EXPLAIN:
+- invariants
+- side effects
+- edge cases
+- constraints
+
+
+WHEN workaround exists
+→ EXPLAIN WHY
+
+
+WHEN component/UI code
+→ DO NOT add verbose comments
+
+
+WHEN comment
+→ EXPLAIN WHY not WHAT
+
+
+GOOD:
+
+/**
+ * Calculates benchmark average after IQR outlier removal.
+ *
+ * Rules:
+ * - Never return empty array
+ * - Ignore outliers only with sample >=4
+ */
+
+private removeOutliersIqr(...)
+
+
+BAD:
+
+// increment i
+i++
 
 </rules>
-
-
-<algorithm_flow>
-
-WHEN adding algorithm
-
-1 create:
-algorithms/<name>Sort.js
-
-2 update:
-AlgorithmKey
-
-3 update:
-learningAlgorithms
-
-4 update:
-comparator.worker.ts
-
-5 add:
-styles/_algorithm.scss
-
-6 add i18n
-
-</algorithm_flow>
-
-
 <pre_execution>
 
 1 search utils
