@@ -76,6 +76,10 @@ const enUS = {
     empty: "No chart data",
     series: "Series",
     vectorSize: "Vector size",
+    scaleLinear: "Linear scale",
+    scaleLog: "Logarithmic scale",
+    resetZoom: "Reset zoom",
+    zoomHint: "Scroll: zoom · Drag: zoom box · Ctrl+drag: pan",
   },
   comparator: {
     hero: {

@@ -16,7 +16,14 @@
       "Bash(xargs grep -l \"delete\\\\|remove.*entry\\\\|Modal\\\\|Popconfirm\")",
       "Bash(npx vue-tsc *)",
       "Bash(Get-ChildItem -Recurse \"c:\\\\Users\\\\eduar\\\\github\\\\sort-simulator-web\\\\src\\\\i18n\" -ErrorAction SilentlyContinue)",
-      "Bash(Select-Object FullName)"
+      "Bash(Select-Object FullName)",
+      "Bash(grep -r \"chartjs.*zoom\\\\|plugin.*zoom\" src/ 2>nul || echo \"No zoom plugins found\")",
+      "Skill(coder)",
+      "Skill(coder:*)",
+      "Bash(npm install *)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\eduar\\github\\sort-simulator-web"
     ]
   }
 }

@@ -76,6 +76,10 @@ const ptBR = {
     empty: "Sem dados para o gráfico",
     series: "Série",
     vectorSize: "Tamanho do vetor",
+    scaleLinear: "Escala linear",
+    scaleLog: "Escala logarítmica",
+    resetZoom: "Resetar zoom",
+    zoomHint: "Scroll: zoom · Arrastar: caixa de zoom · Ctrl+arrastar: mover",
   },
   comparator: {
     hero: {

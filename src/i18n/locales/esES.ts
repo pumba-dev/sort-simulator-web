@@ -76,6 +76,10 @@ const esES = {
     empty: "Sin datos para el gráfico",
     series: "Serie",
     vectorSize: "Tamaño del vector",
+    scaleLinear: "Escala lineal",
+    scaleLog: "Escala logarítmica",
+    resetZoom: "Restablecer zoom",
+    zoomHint: "Scroll: zoom · Arrastrar: caja de zoom · Ctrl+arrastrar: desplazar",
   },
   comparator: {
     hero: {
