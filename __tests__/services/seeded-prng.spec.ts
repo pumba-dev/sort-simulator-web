@@ -1,9 +1,8 @@
 import { describe, it, expect } from "vitest";
-import {
-  SeededPrng,
-  deriveCellSeed,
-  generateScenarioArray,
-} from "../../src/services/seeded-prng";
+import { SeededPrng } from "../../src/services/seeded-prng";
+
+const deriveCellSeed = SeededPrng.deriveCellSeed;
+const generateScenarioArray = SeededPrng.generateScenarioArray;
 
 describe("SeededPrng", () => {
   it("returns identical sequence for identical seed", () => {

@@ -10,6 +10,11 @@ import type {
 } from "../types/comparator";
 import { i18n } from "../i18n";
 
+/**
+ * Generates and parses benchmark reports in multiple formats (Markdown, PDF, CSV).
+ * All user-facing labels are localized through the shared i18n instance.
+ * Exposed as the singleton `benchmarkReport` at the bottom of this module.
+ */
 class BenchmarkReportService {
   private static readonly ALGORITHM_KEYS: AlgorithmKey[] = [
     "insertion",
@@ -27,6 +32,11 @@ class BenchmarkReportService {
 
   // ─── Public API ─────────────────────────────────────────────────────────────
 
+  /**
+   * Builds a Markdown document containing the header, environment, configuration,
+   * aggregated results table and per-cell raw sample tables. Suitable for embedding
+   * in issue trackers or for human reading.
+   */
   generateMarkdownReport(report: BenchmarkReport): string {
     const lines: string[] = [];
     const cfg = report.config;
@@ -175,6 +185,11 @@ class BenchmarkReportService {
     return lines.join("\n");
   }
 
+  /**
+   * Renders the report as a printable A4 PDF and returns it as a Blob.
+   * jsPDF is loaded lazily so it is excluded from the main bundle.
+   * Tables and headings handle page breaks via the `ensureSpace` helper.
+   */
   async generatePdfBlob(report: BenchmarkReport): Promise<Blob> {
     const { jsPDF } = await import("jspdf");
     const doc = new jsPDF({ unit: "pt", format: "a4" });
@@ -410,6 +425,12 @@ class BenchmarkReportService {
     return doc.output("blob");
   }
 
+  /**
+   * Serializes the report into a sectioned CSV string. Each section is preceded
+   * by a `# section:<name>` marker, allowing `parseCsvReport` to reconstruct
+   * the report later. Sections emitted: header, environment, config, aggregated,
+   * rawSamples, outliers (last two optional).
+   */
   generateCsvReport(report: BenchmarkReport): string {
     const sections: string[] = [];
     const cfg = report.config;
@@ -533,6 +554,11 @@ class BenchmarkReportService {
     return sections.join("\n\n");
   }
 
+  /**
+   * Inverse of `generateCsvReport`. Reads the sectioned CSV produced by this
+   * service and rebuilds a BenchmarkReport. Throws when required sections
+   * (header, config, aggregated) are missing or when values cannot be parsed.
+   */
   parseCsvReport(csv: string): BenchmarkReport {
     const sectionMap = new Map<string, string[]>();
     let currentName = "";
@@ -717,6 +743,10 @@ class BenchmarkReportService {
     return { config, executedAt, cells, rows, environment, elapsedMs };
   }
 
+  /**
+   * Triggers a browser download for a Blob by creating a temporary `<a>` element.
+   * No-op when called outside a browser context (SSR guard).
+   */
   triggerDownload(blob: Blob, filename: string): void {
     if (typeof window === "undefined") return;
     const url = URL.createObjectURL(blob);
@@ -731,18 +761,25 @@ class BenchmarkReportService {
 
   // ─── i18n / formatting helpers ──────────────────────────────────────────────
 
+  /** Short alias for `i18n.global.t` with optional interpolation params. */
   private t(key: string, params?: Record<string, unknown>): string {
     return i18n.global.t(key, params ?? {}) as string;
   }
 
+  /** Returns the localized label for an algorithm key. */
   private algLabel(key: AlgorithmKey): string {
     return this.t(`common.algorithms.${key}`);
   }
 
+  /** Returns the localized label for a scenario key. */
   private scnLabel(key: ScenarioType): string {
     return this.t(`common.scenarios.${key}`);
   }
 
+  /**
+   * Formats a duration in milliseconds as a human-readable string,
+   * picking the most appropriate unit (ms, s, m s, or h m).
+   */
   private formatElapsed(ms: number): string {
     if (ms < 1000) return `${ms} ms`;
     const s = ms / 1000;
@@ -753,6 +790,10 @@ class BenchmarkReportService {
     return `${Math.floor(m / 60)}h ${m % 60}m`;
   }
 
+  /**
+   * Formats a number using the current locale. Integers are shown in full,
+   * non-integers are truncated to 3 significant digits.
+   */
   private formatNumber(value: number): string {
     const locale = i18n.global.locale.value as string;
     if (Number.isInteger(value)) return value.toLocaleString(locale);
@@ -761,6 +802,10 @@ class BenchmarkReportService {
 
   // ─── CSV helpers ────────────────────────────────────────────────────────────
 
+  /**
+   * Quotes a CSV field when it contains characters that would otherwise
+   * break parsing (comma, double-quote, or newline). Inner quotes are doubled.
+   */
   private csvQuote(value: string): string {
     if (value.includes(",") || value.includes('"') || value.includes("\n")) {
       return `"${value.replace(/"/g, '""')}"`;
@@ -768,10 +813,15 @@ class BenchmarkReportService {
     return value;
   }
 
+  /** Builds a single CSV row by stringifying and quoting each cell. */
   private csvRow(cells: (string | number | boolean)[]): string {
     return cells.map((c) => this.csvQuote(String(c))).join(",");
   }
 
+  /**
+   * Parses a single CSV line into its raw fields, honoring quoted values and
+   * escaped double-quotes (`""`). Returns the fields without enclosing quotes.
+   */
   private parseCsvLine(line: string): string[] {
     const result: string[] = [];
     let current = "";
@@ -802,6 +852,10 @@ class BenchmarkReportService {
     return result;
   }
 
+  /**
+   * Parses a key/value CSV section (header, environment, config) into a Map.
+   * The first line is assumed to be the column header and is skipped.
+   */
   private parseKVSection(lines: string[]): Map<string, string> {
     const map = new Map<string, string>();
     for (let i = 1; i < lines.length; i++) {
@@ -811,6 +865,7 @@ class BenchmarkReportService {
     return map;
   }
 
+  /** Parses a numeric CSV cell, throwing a descriptive error when invalid. */
   private assertNum(v: string | undefined, field: string): number {
     const n = Number(v);
     if (v === undefined || v === "" || isNaN(n))
@@ -818,12 +873,14 @@ class BenchmarkReportService {
     return n;
   }
 
+  /** Narrows a string to an `AlgorithmKey`, throwing when the value is unknown. */
   private assertAlgorithm(v: string): AlgorithmKey {
     if (!BenchmarkReportService.ALGORITHM_KEYS.includes(v as AlgorithmKey))
       throw new Error(`parseCsvReport: unknown algorithm "${v}"`);
     return v as AlgorithmKey;
   }
 
+  /** Narrows a string to a `ScenarioType`, throwing when the value is unknown. */
   private assertScenario(v: string): ScenarioType {
     if (!BenchmarkReportService.SCENARIO_KEYS.includes(v as ScenarioType))
       throw new Error(`parseCsvReport: unknown scenario "${v}"`);
@@ -832,6 +889,11 @@ class BenchmarkReportService {
 
   // ─── PDF table helper ───────────────────────────────────────────────────────
 
+  /**
+   * Renders a table in the jsPDF document at the current Y cursor, wrapping cell
+   * text inside fixed column widths and handling page breaks via `newPage`.
+   * `getY`/`setY` allow the caller to keep their own Y state in sync.
+   */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private drawTable(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

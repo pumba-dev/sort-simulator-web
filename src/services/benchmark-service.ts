@@ -11,17 +11,9 @@ import {
   sortAlgorithmRegistry,
   type SortAlgorithm,
 } from "./sort-algorithm-registry";
-import { deriveCellSeed, generateScenarioArray } from "./seeded-prng";
+import { SeededPrng } from "./seeded-prng";
 
 const BYTES_PER_KB = 1024;
-
-// Returns current time in milliseconds using high-resolution timer when available.
-const nowMs = (): number => {
-  if (typeof performance !== "undefined" && performance.now) {
-    return performance.now();
-  }
-  return Date.now();
-};
 
 export interface BenchmarkRunCallbacks {
   onProgress?: (completed: number, total: number) => void;
@@ -77,7 +69,7 @@ export class BenchmarkService {
 
           completed += 1;
           callbacks.onProgress?.(completed, total);
-          await yieldMicrotask();
+          await BenchmarkService.yieldMicrotask();
         }
       }
     }
@@ -110,13 +102,21 @@ export class BenchmarkService {
       if (options.parentSignal?.aborted) {
         break;
       }
-      if (rep > 0) await yieldMicrotask();
+      if (rep > 0) await BenchmarkService.yieldMicrotask();
 
-      const cellSeed = deriveCellSeed(options.seed, scenario, size, rep);
-      const input = generateScenarioArray(size, scenario, cellSeed);
+      const cellSeed = SeededPrng.deriveCellSeed(
+        options.seed,
+        scenario,
+        size,
+        rep,
+      );
+      const input = SeededPrng.generateScenarioArray(size, scenario, cellSeed);
 
       const controller = new AbortController();
-      const cleanup = wireParent(options.parentSignal, controller);
+      const cleanup = BenchmarkService.wireParent(
+        options.parentSignal,
+        controller,
+      );
       const deadlineMs = options.timeoutEnabled
         ? Date.now() + options.timeoutMs
         : Number.POSITIVE_INFINITY;
@@ -124,7 +124,7 @@ export class BenchmarkService {
       let start = 0;
       let end = 0;
       try {
-        start = nowMs();
+        start = BenchmarkService.nowMs();
         const runResult = await this.registry[algorithm].run(input, {
           recordSteps: false,
           signal: controller.signal,
@@ -132,7 +132,7 @@ export class BenchmarkService {
           deadlineMs,
         });
 
-        end = nowMs();
+        end = BenchmarkService.nowMs();
 
         if (runResult.aborted) {
           timeoutCount += 1;
@@ -185,9 +185,12 @@ export class BenchmarkService {
       size,
       samples,
       removedOutlierDurations: removed,
-      averageTimeMs: round(averageTimeMs, 3),
+      averageTimeMs: BenchmarkService.round(averageTimeMs, 3),
       averageComparisons: Math.round(averageComparisons),
-      averageMemoryKb: round(averageMemoryBytes / BYTES_PER_KB, 2),
+      averageMemoryKb: BenchmarkService.round(
+        averageMemoryBytes / BYTES_PER_KB,
+        2,
+      ),
       averageSwaps: Math.round(averageSwaps),
       timeoutCount,
     };
@@ -269,32 +272,41 @@ export class BenchmarkService {
       rows,
     };
   }
-}
 
-// Yields to the event loop between cells so the main thread remains responsive.
-const yieldMicrotask = (): Promise<void> =>
-  new Promise((resolve) => {
-    setTimeout(resolve, 0);
-  });
-
-// Propagates cancellation from a parent AbortSignal to a child AbortController.
-// Returns a cleanup function that removes the listener when the replication completes.
-const wireParent = (
-  parent: AbortSignal | undefined,
-  child: AbortController,
-): (() => void) => {
-  if (!parent) return () => {};
-  if (parent.aborted) {
-    child.abort();
-    return () => {};
+  // Returns current time in milliseconds using high-resolution timer when available.
+  private static nowMs(): number {
+    if (typeof performance !== "undefined" && performance.now) {
+      return performance.now();
+    }
+    return Date.now();
   }
-  const handler = () => child.abort();
-  parent.addEventListener("abort", handler, { once: true });
-  return () => parent.removeEventListener("abort", handler);
-};
 
-// Rounds a number to the specified number of decimal places.
-const round = (value: number, decimals: number): number => {
-  const factor = 10 ** decimals;
-  return Math.round(value * factor) / factor;
-};
+  // Yields to the event loop between cells so the main thread remains responsive.
+  private static yieldMicrotask(): Promise<void> {
+    return new Promise((resolve) => {
+      setTimeout(resolve, 0);
+    });
+  }
+
+  // Propagates cancellation from a parent AbortSignal to a child AbortController.
+  // Returns a cleanup function that removes the listener when the replication completes.
+  private static wireParent(
+    parent: AbortSignal | undefined,
+    child: AbortController,
+  ): () => void {
+    if (!parent) return () => {};
+    if (parent.aborted) {
+      child.abort();
+      return () => {};
+    }
+    const handler = () => child.abort();
+    parent.addEventListener("abort", handler, { once: true });
+    return () => parent.removeEventListener("abort", handler);
+  }
+
+  // Rounds a number to the specified number of decimal places.
+  private static round(value: number, decimals: number): number {
+    const factor = 10 ** decimals;
+    return Math.round(value * factor) / factor;
+  }
+}

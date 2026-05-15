@@ -5,12 +5,28 @@ import { BenchmarkService } from "../services/benchmark-service";
 import { DeviceDetector } from "../services/device-detector";
 import { createSubWorkerRegistry } from "./sub-worker-registry";
 
+/**
+ * Dedicated Web Worker that drives benchmark execution off the main thread.
+ * Receives `WorkerCommand` messages (start/cancel) from the UI, runs the
+ * BenchmarkService against a sub-worker registry (one Worker per algorithm
+ * run for true parallelism), and posts back `WorkerMessage` updates
+ * (progress, result, cancelled, error).
+ */
+
 const workerScope: DedicatedWorkerGlobalScope =
   self as unknown as DedicatedWorkerGlobalScope;
 
+/** Controller for the currently running job; aborted on "cancel". */
 let activeController: AbortController | null = null;
+
+/** Singleton service wired to a sub-worker registry so each algorithm runs in its own Worker. */
 const service = new BenchmarkService(createSubWorkerRegistry());
 
+/**
+ * Dispatches incoming worker commands. On "start", spawns a job and streams
+ * progress events; on "cancel", aborts the active job (if any). Captures
+ * device environment data once per job and attaches it to the final report.
+ */
 workerScope.onmessage = (event: MessageEvent<WorkerCommand>): void => {
   const command = event.data;
 
@@ -25,7 +41,7 @@ workerScope.onmessage = (event: MessageEvent<WorkerCommand>): void => {
     const controller = new AbortController();
     activeController = controller;
 
-    const environment = new DeviceDetector().detect();
+    const environment = DeviceDetector.detect();
 
     service
       .runJob(command.payload, {

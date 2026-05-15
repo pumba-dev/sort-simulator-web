@@ -3,17 +3,18 @@ import type { BenchmarkEnvironment } from "../types/comparator";
 /**
  * Detects the execution environment (OS, browser, hardware) and measures
  * a single-thread JavaScript baseline score. Safe to use inside a Web Worker
- * since it has no DOM dependency.
+ * since it has no DOM dependency. All methods are static — call
+ * `DeviceDetector.detect()` directly without instantiating.
  */
 export class DeviceDetector {
   /**
    * Collects browser, OS, hardware and baseline performance data for the
    * current execution context and returns it as a BenchmarkEnvironment.
    */
-  public detect(): BenchmarkEnvironment {
+  static detect(): BenchmarkEnvironment {
     const ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
-    const { browser, browserVersion, engine } = this.parseBrowser(ua);
-    const os = this.parseOS(ua);
+    const { browser, browserVersion, engine } = DeviceDetector.parseBrowser(ua);
+    const os = DeviceDetector.parseOS(ua);
 
     const cpuThreads =
       typeof navigator !== "undefined" && navigator.hardwareConcurrency
@@ -21,7 +22,8 @@ export class DeviceDetector {
         : undefined;
 
     const nav = navigator as Navigator & { deviceMemory?: number };
-    const memoryGB = typeof nav.deviceMemory === "number" ? nav.deviceMemory : undefined;
+    const memoryGB =
+      typeof nav.deviceMemory === "number" ? nav.deviceMemory : undefined;
 
     const mobile =
       /Mobi|Android/i.test(ua) ||
@@ -29,8 +31,8 @@ export class DeviceDetector {
         navigator.maxTouchPoints > 1 &&
         !/Windows NT/i.test(ua));
 
-    const gpu = this.tryGetGpu();
-    const baselineScore = this.runBaseline();
+    const gpu = DeviceDetector.tryGetGpu();
+    const baselineScore = DeviceDetector.runBaseline();
 
     return {
       os,
@@ -49,9 +51,11 @@ export class DeviceDetector {
    * Parses the browser name, major version and JavaScript engine
    * from a User-Agent string. Falls back to "Unknown" when no token matches.
    */
-  private parseBrowser(
-    ua: string,
-  ): { browser: string; browserVersion: string; engine: string } {
+  private static parseBrowser(ua: string): {
+    browser: string;
+    browserVersion: string;
+    engine: string;
+  } {
     let m: RegExpMatchArray | null;
 
     m = ua.match(/Edg\/(\d+)/);
@@ -61,16 +65,31 @@ export class DeviceDetector {
     if (m) return { browser: "Opera", browserVersion: m[1], engine: "V8" };
 
     m = ua.match(/Firefox\/(\d+)/);
-    if (m) return { browser: "Firefox", browserVersion: m[1], engine: "SpiderMonkey" };
+    if (m)
+      return {
+        browser: "Firefox",
+        browserVersion: m[1],
+        engine: "SpiderMonkey",
+      };
 
     m = ua.match(/Chrome\/(\d+)/);
     if (m) return { browser: "Chrome", browserVersion: m[1], engine: "V8" };
 
     m = ua.match(/Version\/(\d+).*Safari/);
-    if (m) return { browser: "Safari", browserVersion: m[1], engine: "JavaScriptCore" };
+    if (m)
+      return {
+        browser: "Safari",
+        browserVersion: m[1],
+        engine: "JavaScriptCore",
+      };
 
     m = ua.match(/Safari\/(\d+)/);
-    if (m) return { browser: "Safari", browserVersion: "", engine: "JavaScriptCore" };
+    if (m)
+      return {
+        browser: "Safari",
+        browserVersion: "",
+        engine: "JavaScriptCore",
+      };
 
     return { browser: "Unknown", browserVersion: "", engine: "Unknown" };
   }
@@ -79,7 +98,7 @@ export class DeviceDetector {
    * Parses the operating system name (and version when available)
    * from a User-Agent string. Returns "Unknown" if no pattern matches.
    */
-  private parseOS(ua: string): string {
+  private static parseOS(ua: string): string {
     if (/Windows NT 10\.0/.test(ua)) return "Windows 10/11";
     if (/Windows NT 6\.3/.test(ua)) return "Windows 8.1";
     if (/Windows NT 6\.1/.test(ua)) return "Windows 7";
@@ -108,7 +127,7 @@ export class DeviceDetector {
    * when the API is unavailable or the WEBGL_debug_renderer_info
    * extension is blocked by the browser.
    */
-  private tryGetGpu(): string | undefined {
+  private static tryGetGpu(): string | undefined {
     try {
       if (typeof OffscreenCanvas === "undefined") return undefined;
       const canvas = new OffscreenCanvas(1, 1);
@@ -129,7 +148,7 @@ export class DeviceDetector {
    * lower values indicate faster execution and are used to normalize
    * benchmark comparisons across different machines.
    */
-  private runBaseline(): number {
+  private static runBaseline(): number {
     const start = performance.now();
     let x = 0;
     for (let i = 0; i < 50_000_000; i++) {

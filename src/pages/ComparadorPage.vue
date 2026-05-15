@@ -414,7 +414,7 @@ onMounted(() => {
     applyPendingConfiguration(pendingConfig);
     feedbackMessage.value = t("comparator.feedback.pendingLoaded");
   }
-  environment.value = new DeviceDetector().detect();
+  environment.value = DeviceDetector.detect();
 });
 
 onBeforeUnmount(() => {

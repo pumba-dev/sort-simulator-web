@@ -1042,4 +1042,36 @@ describe("ComparisonHistoryService.consumePendingConfig", () => {
     const consumed = service.consumePendingConfig();
     expect(consumed?.removeOutliers).toBe(true);
   });
+
+  it("defaults timeoutEnabled to true when missing", () => {
+    const session = createMemoryStorage();
+    const service = new ComparisonHistoryService({ sessionStorage: session });
+    const { timeoutEnabled: _t, ...partial } = baseJob();
+    session.setItem(PENDING_CONFIG_KEY, JSON.stringify(partial));
+
+    const consumed = service.consumePendingConfig();
+    expect(consumed?.timeoutEnabled).toBe(true);
+  });
+
+  it("defaults timeoutEnabled to true when not a boolean", () => {
+    const session = createMemoryStorage();
+    const service = new ComparisonHistoryService({ sessionStorage: session });
+    session.setItem(
+      PENDING_CONFIG_KEY,
+      JSON.stringify({ ...baseJob(), timeoutEnabled: "yes" }),
+    );
+
+    const consumed = service.consumePendingConfig();
+    expect(consumed?.timeoutEnabled).toBe(true);
+  });
+
+  it("preserves explicit timeoutEnabled=false", () => {
+    const session = createMemoryStorage();
+    const service = new ComparisonHistoryService({ sessionStorage: session });
+    const config = baseJob({ timeoutEnabled: false });
+    session.setItem(PENDING_CONFIG_KEY, JSON.stringify(config));
+
+    const consumed = service.consumePendingConfig();
+    expect(consumed?.timeoutEnabled).toBe(false);
+  });
 });

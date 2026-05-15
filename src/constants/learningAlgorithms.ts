@@ -1,17 +1,36 @@
 import type { AlgorithmKey } from "../types/comparator";
 
+/**
+ * Static metadata used by the Learning module (M1) to render each algorithm's
+ * concept, strategy, complexity table and pseudocode. Strings reference i18n
+ * keys so translations live in the locale files rather than this constant.
+ */
+
+/** All fields needed by the Learning page for a single algorithm. */
 export type LearningAlgorithmMetadata = {
   key: AlgorithmKey;
+  /** i18n key for the algorithm display name. */
   titleKey: string;
+  /** i18n key for the concept/intuition section. */
   conceptKey: string;
+  /** i18n key for the strategy/walkthrough section. */
   strategyKey: string;
+  /** Big-O of the best case as a display string (e.g. "O(n log n)"). */
   bestCase: string;
+  /** Big-O of the average case. */
   averageCase: string;
+  /** Big-O of the worst case. */
   worstCase: string;
+  /** i18n key for the rendered pseudocode block. */
   pseudocodeKey: string;
+  /** i18n key for the per-line pseudocode tooltips/tips. */
   pseudoTipsKey: string;
 };
 
+/**
+ * Ordered list driving the Learning page navigation. TimSort intentionally
+ * omitted here because the learning page exposes only the classic algorithms.
+ */
 export const learningAlgorithms: LearningAlgorithmMetadata[] = [
   {
     key: "insertion",
@@ -70,6 +89,7 @@ export const learningAlgorithms: LearningAlgorithmMetadata[] = [
   },
 ];
 
+/** Reverse lookup: AlgorithmKey → metadata. Built from learningAlgorithms. */
 export const learningByKey: Record<AlgorithmKey, LearningAlgorithmMetadata> =
   learningAlgorithms.reduce(
     (accumulator, item) => {
