@@ -35,6 +35,38 @@ npm run test
 npm run test:run
 ```
 
+## Testes unitários
+
+Os testes unitários (Vitest) são a principal garantia contra regressões no núcleo do simulador — algoritmos, benchmark e serviços.
+
+O que eles validam (resumo):
+
+- **Correção da ordenação**: cada algoritmo ordena em **ordem crescente** para entradas comuns (vazio, duplicatas, já ordenado, reverso).
+- **Imutabilidade**: os algoritmos não mutam o array original.
+- **Contrato de passos (Aprendizado)**: `SortStep` sempre contém campos obrigatórios (valores, índices ativos, variáveis, contadores e campos específicos como pivot no QuickSort).
+- **Modo benchmark (Comparador)**: `recordSteps=false` retorna `steps=[]` (sem overhead), e o algoritmo respeita `AbortSignal`/`deadlineMs`.
+- **Reprodutibilidade e “justiça”**: mesma seed → resultados agregados consistentes; seeds diferentes → permutações e métricas variam como esperado.
+- **Timeout/outliers**: timeouts são contabilizados sem travar a fila; IQR remove outliers de duração quando habilitado.
+- **Exportação/importação**: CSV tem seções obrigatórias, faz round-trip `generate → parse` e é **independente do idioma**.
+- **Histórico**: SSR guard (sem `window`), limites de histórico, favoritos, pending config e comportamento em storages nulos/malformados.
+
+Onde ficam:
+
+- `__tests__/algorithms/*` — correção, estrutura de passos e abort/deadline.
+- `__tests__/services/*` — PRNG (seed), benchmark, relatórios, histórico e registry.
+
+Como rodar:
+
+```bash
+npm run test       # watch
+npm run test:run   # execução única
+npx vitest run --coverage
+```
+
+> Cobertura: `vitest.config.ts` define módulos-alvo e thresholds de 100% (quando rodado com cobertura), protegendo algoritmos e serviços críticos.
+
+> Observação: não há suíte E2E; a cobertura atual é focada em lógica (algoritmos/serviços) e contratos de dados.
+
 ## O projeto em 1 minuto (arquitetura + telas)
 
 O Sorting Lab é uma SPA em Vue 3 com três rotas:

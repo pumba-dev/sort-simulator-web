@@ -308,3 +308,39 @@ flowchart LR
 - Serviços: `src/services/*`
 - Tipos: `src/types/*`
 - Algoritmos: `src/algorithms/*`
+
+## 10. Testes unitários e garantia de qualidade
+
+O Sorting Lab utiliza **Vitest** como suíte de testes unitários. O objetivo não é “provar” formalmente a correção, mas **fixar contratos e invariantes** que impedem regressões nas partes críticas do simulador.
+
+### 10.1 Organização
+
+- `__tests__/algorithms/*`
+  - valida **correção da ordenação** (sempre crescente), casos de borda (vazio, duplicatas etc.) e **imutabilidade** do input;
+  - valida o contrato de `SortStep` (campos obrigatórios por passo), pois o módulo de Aprendizado depende disso para renderizar;
+  - valida modo benchmark: `recordSteps=false`, contadores e estimativa de memória (`peakAuxBytes`), além de `AbortSignal` e `deadlineMs`.
+- `__tests__/services/*`
+  - `SeededPrng`: determinismo (`deriveCellSeed`) e geração de cenários (crescente/decrescente/aleatorio) para **fairness**;
+  - `BenchmarkService`: reprodutibilidade com seed, emissão de progresso, cancelamento, timeout e remoção de outliers (IQR);
+  - `benchmarkReport`: seções obrigatórias no CSV, round-trip `generate → parse`, validação de enums e independência de locale;
+  - `ComparisonHistoryService`: SSR guard (sem `window`), persistência, limites, pending config e resiliência a storages nulos/malformados;
+  - `sortAlgorithmRegistry`: completude do registry e forma do `SortRunResult` para todas as chaves.
+
+### 10.2 Como os testes “garantem” o funcionamento
+
+Na prática, os testes garantem o funcionamento ao **bloquear mudanças** que violariam os contratos usados pela UI e pelos serviços:
+
+- O Aprendizado não quebra se cada passo seguir o shape esperado (`values`, `activeIndexes`, `variables`, contadores e campos do algoritmo).
+- O Comparador permanece **reproduzível** e **justo** (mesma entrada por seed/célula/replicação) e trata cancelamento/timeout sem travar o job.
+- O Histórico continua seguro em ambientes sem storage (ou SSR) e mantém as regras de limite/evicção.
+- Exportar/importar relatórios via CSV continua consistente, inclusive ao trocar o idioma da interface.
+
+### 10.3 Execução e cobertura
+
+- Rodar testes:
+  - `npm run test` (watch)
+  - `npm run test:run` (execução única)
+- Cobertura:
+  - `npx vitest run --coverage`
+
+O arquivo `vitest.config.ts` define um conjunto de módulos-alvo (algoritmos e serviços críticos) e thresholds de **100%** para linhas/funções/branches/statements **quando a execução de cobertura está habilitada**.

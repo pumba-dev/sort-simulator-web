@@ -308,3 +308,39 @@ flowchart LR
 - Services: `src/services/*`
 - Types: `src/types/*`
 - Algorithms: `src/algorithms/*`
+
+## 10. Unit tests and quality assurance
+
+Sorting Lab uses **Vitest** for unit testing. The goal is not formal proof, but to **lock in contracts and invariants** that prevent regressions in the simulator’s critical paths.
+
+### 10.1 Structure
+
+- `__tests__/algorithms/*`
+  - validates **sorting correctness** (always ascending), edge cases (empty, duplicates, etc.) and **input immutability**;
+  - validates the `SortStep` contract (required fields per step), since the Learning module depends on it to render safely;
+  - validates benchmark mode: `recordSteps=false`, counters and memory estimate (`peakAuxBytes`), plus `AbortSignal` and `deadlineMs`.
+- `__tests__/services/*`
+  - `SeededPrng`: determinism (`deriveCellSeed`) and scenario generation (ascending/descending/random) to enforce **fairness**;
+  - `BenchmarkService`: seed reproducibility, progress emission, cancellation, timeout handling, and IQR outlier trimming;
+  - `benchmarkReport`: required CSV sections, `generate → parse` round-trip, enum validation, and locale independence;
+  - `ComparisonHistoryService`: SSR guard (no `window`), persistence, limits, pending config, and resilience to null/malformed storages;
+  - `sortAlgorithmRegistry`: registry completeness and `SortRunResult` shape for all keys.
+
+### 10.2 How tests “guarantee” behavior
+
+In practice, tests guarantee the system’s behavior by **rejecting changes** that would violate contracts relied upon by UI and services:
+
+- Learning stays stable as long as every step matches the expected shape (`values`, `activeIndexes`, `variables`, counters, algorithm-specific fields).
+- Comparator remains **reproducible** and **fair** (same seeded inputs per cell/replication) and handles cancel/timeout without stalling the job.
+- History remains safe when storage is unavailable (or in SSR-like conditions) and keeps its limit/eviction rules.
+- CSV export/import remains consistent, even when switching UI locales.
+
+### 10.3 Running tests and coverage
+
+- Run tests:
+  - `npm run test` (watch)
+  - `npm run test:run` (single run)
+- Coverage:
+  - `npx vitest run --coverage`
+
+`vitest.config.ts` defines a set of targeted modules (algorithms and critical services) and **100%** thresholds for lines/functions/branches/statements **when coverage execution is enabled**.

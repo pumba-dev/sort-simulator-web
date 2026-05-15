@@ -35,6 +35,38 @@ npm run test
 npm run test:run
 ```
 
+## Unit tests
+
+Unit tests (Vitest) are the main protection against regressions in the simulator core — algorithms, benchmarking, and services.
+
+What they validate (summary):
+
+- **Sorting correctness**: each algorithm sorts in **ascending order** for common inputs (empty, duplicates, already sorted, reverse).
+- **Immutability**: algorithms do not mutate the original array.
+- **Step contract (Learning)**: `SortStep` consistently contains required fields (values, active indexes, variables, counters, plus algorithm-specific fields such as QuickSort pivot info).
+- **Benchmark mode (Comparator)**: `recordSteps=false` returns `steps=[]` (no overhead), and algorithms honor `AbortSignal`/`deadlineMs`.
+- **Reproducibility and fairness**: same seed → consistent aggregated results; different seeds → expected variation.
+- **Timeouts/outliers**: timeouts are counted without blocking the queue; IQR removes duration outliers when enabled.
+- **Export/import**: CSV includes required sections, round-trips `generate → parse`, and is **locale-independent**.
+- **History**: SSR guard (no `window`), history limit, favorites, pending config, and resilience to null/malformed storages.
+
+Where they live:
+
+- `__tests__/algorithms/*` — correctness, step structure, abort/deadline.
+- `__tests__/services/*` — PRNG (seed), benchmark, reporting, history, registry.
+
+How to run:
+
+```bash
+npm run test       # watch
+npm run test:run   # single run
+npx vitest run --coverage
+```
+
+> Coverage: `vitest.config.ts` defines targeted modules and 100% thresholds (when running with coverage), protecting critical algorithms and services.
+
+> Note: there is no E2E suite; current coverage focuses on pure logic (algorithms/services) and data contracts.
+
 ## The project in one minute (screens + architecture)
 
 Sorting Lab is a Vue 3 SPA with three routes:
