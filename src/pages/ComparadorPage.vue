@@ -17,7 +17,7 @@ import type {
   WorkerMessage,
 } from "../types/comparator";
 import { notification } from "ant-design-vue";
-import { detectEnvironment } from "../services/device-detector";
+import { DeviceDetector } from "../services/device-detector";
 import ComparisonResultsTable from "../components/ComparisonResultsTable.vue";
 import ComparisonResultsChart from "../components/ComparisonResultsChart.vue";
 import { ComparisonHistoryService } from "../services/comparison-history-service";
@@ -414,7 +414,7 @@ onMounted(() => {
     applyPendingConfiguration(pendingConfig);
     feedbackMessage.value = t("comparator.feedback.pendingLoaded");
   }
-  environment.value = detectEnvironment();
+  environment.value = new DeviceDetector().detect();
 });
 
 onBeforeUnmount(() => {

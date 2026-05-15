@@ -2,7 +2,7 @@
 
 import type { WorkerCommand } from "../types/comparator";
 import { BenchmarkService } from "../services/benchmark-service";
-import { detectEnvironment } from "../services/device-detector";
+import { DeviceDetector } from "../services/device-detector";
 import { createSubWorkerRegistry } from "./sub-worker-registry";
 
 const workerScope: DedicatedWorkerGlobalScope =
@@ -25,7 +25,7 @@ workerScope.onmessage = (event: MessageEvent<WorkerCommand>): void => {
     const controller = new AbortController();
     activeController = controller;
 
-    const environment = detectEnvironment();
+    const environment = new DeviceDetector().detect();
 
     service
       .runJob(command.payload, {
