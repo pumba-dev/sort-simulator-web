@@ -183,7 +183,7 @@ const availableScenariosForTable = computed(() => [
 ]);
 
 const availableSizesForTable = computed(() => [
-  { label: t("common.scenarios.all"), value: "all" },
+  { label: t("common.sizes.all"), value: "all" },
   ...[...new Set(rows.value.map((r) => r.size))]
     .sort((a, b) => a - b)
     .map((s) => ({ label: s.toLocaleString(locale.value), value: s })),

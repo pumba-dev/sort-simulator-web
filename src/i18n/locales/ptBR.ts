@@ -40,6 +40,9 @@ const ptBR = {
       aleatorio: "Aleatório",
       all: "Todos os cenários",
     },
+    sizes: {
+      all: "Todos os tamanhos",
+    },
     metrics: {
       time: "Tempo",
       comparisons: "Comparações",

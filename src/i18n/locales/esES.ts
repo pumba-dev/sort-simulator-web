@@ -40,6 +40,9 @@ const esES = {
       aleatorio: "Aleatorio",
       all: "Todos los escenarios",
     },
+    sizes: {
+      all: "Todos los tamaños",
+    },
     metrics: {
       time: "Tiempo",
       comparisons: "Comparaciones",

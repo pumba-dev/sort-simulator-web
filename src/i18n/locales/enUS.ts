@@ -40,6 +40,9 @@ const enUS = {
       aleatorio: "Random",
       all: "All scenarios",
     },
+    sizes: {
+      all: "All sizes",
+    },
     metrics: {
       time: "Time",
       comparisons: "Comparisons",
