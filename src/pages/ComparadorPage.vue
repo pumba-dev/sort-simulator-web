@@ -20,11 +20,7 @@ import { detectEnvironment } from "../services/device-detector";
 import ComparisonResultsTable from "../components/ComparisonResultsTable.vue";
 import ComparisonResultsChart from "../components/ComparisonResultsChart.vue";
 import { ComparisonHistoryService } from "../services/comparison-history-service";
-import {
-  generateMarkdownReport,
-  generatePdfBlob,
-  triggerDownload,
-} from "../services/benchmark-report";
+import { benchmarkReport } from "../services/benchmark-report";
 
 const selectedAlgorithms = ref<AlgorithmKey[]>([]);
 const selectedScenarios = ref<ScenarioType[]>([]);
@@ -350,46 +346,25 @@ const applyPendingConfiguration = (config: CompareJob): void => {
 };
 
 const downloadCsv = (): void => {
-  if (!rows.value.length) return;
-  const header = [
-    "algorithm",
-    "scenario",
-    "size",
-    "averageTimeMs",
-    "averageComparisons",
-    "averageMemoryKb",
-    "timeoutCount",
-  ];
-  const lines = rows.value.map((r) =>
-    [
-      r.algorithm,
-      r.scenario,
-      r.size,
-      Math.round(r.averageTimeMs),
-      r.averageComparisons,
-      r.averageMemoryKb,
-      r.timeoutCount,
-    ].join(","),
-  );
-  const blob = new Blob([[header.join(","), ...lines].join("\n")], {
-    type: "text/csv;charset=utf-8;",
-  });
-  triggerDownload(blob, buildReportFilename("csv"));
+  if (!report.value) return;
+  const csv = benchmarkReport.generateCsvReport(report.value);
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  benchmarkReport.triggerDownload(blob, buildReportFilename("csv"));
 };
 
 const downloadMarkdown = (): void => {
   if (!report.value) return;
-  const md = generateMarkdownReport(report.value);
+  const md = benchmarkReport.generateMarkdownReport(report.value);
   const blob = new Blob([md], { type: "text/markdown;charset=utf-8" });
-  triggerDownload(blob, buildReportFilename("md"));
+  benchmarkReport.triggerDownload(blob, buildReportFilename("md"));
 };
 
 const downloadPdf = async (): Promise<void> => {
   if (!report.value) return;
   isExporting.value = true;
   try {
-    const blob = await generatePdfBlob(report.value);
-    triggerDownload(blob, buildReportFilename("pdf"));
+    const blob = await benchmarkReport.generatePdfBlob(report.value);
+    benchmarkReport.triggerDownload(blob, buildReportFilename("pdf"));
   } finally {
     isExporting.value = false;
   }

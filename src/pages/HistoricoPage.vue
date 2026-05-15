@@ -5,11 +5,7 @@ import { useRouter } from "vue-router";
 import ComparisonResultsTable from "../components/ComparisonResultsTable.vue";
 import ComparisonResultsChart from "../components/ComparisonResultsChart.vue";
 import { ComparisonHistoryService } from "../services/comparison-history-service";
-import {
-  generateMarkdownReport,
-  generatePdfBlob,
-  triggerDownload,
-} from "../services/benchmark-report";
+import { benchmarkReport } from "../services/benchmark-report";
 import type {
   BenchmarkEnvironment,
   ComparisonHistoryEntry,
@@ -102,17 +98,17 @@ const buildHistoryFilename = (ext: string): string => {
 
 const downloadMarkdown = (): void => {
   if (!selectedEntry.value?.report) return;
-  const md = generateMarkdownReport(selectedEntry.value.report);
+  const md = benchmarkReport.generateMarkdownReport(selectedEntry.value.report);
   const blob = new Blob([md], { type: "text/markdown;charset=utf-8" });
-  triggerDownload(blob, buildHistoryFilename("md"));
+  benchmarkReport.triggerDownload(blob, buildHistoryFilename("md"));
 };
 
 const downloadPdf = async (): Promise<void> => {
   if (!selectedEntry.value?.report) return;
   isExporting.value = true;
   try {
-    const blob = await generatePdfBlob(selectedEntry.value.report);
-    triggerDownload(blob, buildHistoryFilename("pdf"));
+    const blob = await benchmarkReport.generatePdfBlob(selectedEntry.value.report);
+    benchmarkReport.triggerDownload(blob, buildHistoryFilename("pdf"));
   } finally {
     isExporting.value = false;
   }
@@ -166,45 +162,15 @@ const reopenSimulation = async (): Promise<void> => {
 };
 
 const exportCsv = (): void => {
-  if (!selectedEntry.value) {
+  if (!selectedEntry.value) return;
+  if (!selectedEntry.value.report) {
+    feedbackMessage.value = t("history.feedback.reportMissing");
     return;
   }
-
-  const header = [
-    t("history.csvHeaders.algorithm"),
-    t("history.csvHeaders.scenario"),
-    t("history.csvHeaders.size"),
-    t("history.csvHeaders.avgTimeMs"),
-    t("history.csvHeaders.avgComparisons"),
-    t("history.csvHeaders.avgMemoryKb"),
-    t("history.csvHeaders.timeouts"),
-  ];
-
-  const rows = selectedEntry.value.rows.map((row) => {
-    return [
-      row.algorithm,
-      row.scenario,
-      row.size,
-      row.averageTimeMs,
-      row.averageComparisons,
-      row.averageMemoryKb,
-      row.timeoutCount,
-    ].join(",");
-  });
-
-  const csv = [header.join(","), ...rows].join("\n");
+  const csv = benchmarkReport.generateCsvReport(selectedEntry.value.report);
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-
-  link.href = url;
-  const filePrefix = t("history.export.filePrefix");
-  link.download = `${filePrefix}-${selectedEntry.value.id}.csv`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
-
+  const stamp = selectedEntry.value.executedAt.replace(/[:.]/g, "-");
+  benchmarkReport.triggerDownload(blob, `comparator-report-${stamp}.csv`);
   feedbackMessage.value = t("history.feedback.csvExported");
 };
 
