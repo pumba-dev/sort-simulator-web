@@ -27,6 +27,7 @@ const selectedScenarios = ref<ScenarioType[]>([]);
 const selectedSizes = ref<number[]>([]);
 const replications = ref<number>(1);
 const timeoutMinutes = ref<number>(1);
+const timeoutEnabled = ref<boolean>(false);
 const seed = ref<number>(42);
 const removeOutliers = ref<boolean>(false);
 const { t, locale } = useI18n();
@@ -140,7 +141,7 @@ const removeScenario = (val: ScenarioType): void => {
 
 const addSize = (val: number): void => {
   if (!selectedSizes.value.includes(val)) {
-    selectedSizes.value = [...selectedSizes.value, val];
+    selectedSizes.value = [...selectedSizes.value, val].sort((a, b) => a - b);
   }
 };
 
@@ -194,7 +195,7 @@ const isJobValid = computed(() => {
     selectedScenarios.value.length > 0 &&
     selectedSizes.value.length > 0 &&
     replications.value >= 1 &&
-    timeoutMinutes.value >= 1 &&
+    (!timeoutEnabled.value || timeoutMinutes.value >= 1) &&
     Number.isFinite(seed.value)
   );
 });
@@ -216,7 +217,7 @@ const validateJob = (): string | null => {
   if (replications.value < 1) {
     return t("comparator.feedback.validation.replications");
   }
-  if (timeoutMinutes.value < 1) {
+  if (timeoutEnabled.value && timeoutMinutes.value < 1) {
     return t("comparator.feedback.validation.timeout");
   }
   return null;
@@ -288,9 +289,10 @@ const buildJobPayload = (): CompareJob => {
   return {
     algorithms: [...selectedAlgorithms.value],
     scenarios: [...selectedScenarios.value],
-    sizes: [...selectedSizes.value],
+    sizes: [...selectedSizes.value].sort((a, b) => a - b),
     replications: replications.value,
     timeoutMs: timeoutMinutes.value * 60000,
+    timeoutEnabled: timeoutEnabled.value,
     seed: seed.value,
     removeOutliers: removeOutliers.value,
   };
@@ -337,9 +339,11 @@ const cancelSimulation = (): void => {
 const applyPendingConfiguration = (config: CompareJob): void => {
   selectedAlgorithms.value = [...config.algorithms];
   selectedScenarios.value = [...config.scenarios];
-  selectedSizes.value = [...config.sizes];
+  selectedSizes.value = [...config.sizes].sort((a, b) => a - b);
   replications.value = config.replications;
   timeoutMinutes.value = Math.max(1, Math.round(config.timeoutMs / 60000));
+  timeoutEnabled.value =
+    typeof config.timeoutEnabled === "boolean" ? config.timeoutEnabled : false;
   seed.value = typeof config.seed === "number" ? config.seed : 42;
   removeOutliers.value =
     typeof config.removeOutliers === "boolean" ? config.removeOutliers : true;
@@ -458,7 +462,12 @@ onBeforeUnmount(() => {
       </h3>
 
       <a-form layout="vertical" class="comparador-form-grid">
-        <a-form-item :label="t('comparator.form.algorithms')">
+        <a-form-item>
+          <template #label>
+            <a-tooltip :title="t('comparator.tooltips.algorithms')">
+              <span>{{ t("comparator.form.algorithms") }}</span>
+            </a-tooltip>
+          </template>
           <a-select
             :value="null"
             :options="availableAlgorithmOptions"
@@ -468,7 +477,12 @@ onBeforeUnmount(() => {
           />
         </a-form-item>
 
-        <a-form-item :label="t('comparator.form.scenarios')">
+        <a-form-item>
+          <template #label>
+            <a-tooltip :title="t('comparator.tooltips.scenarios')">
+              <span>{{ t("comparator.form.scenarios") }}</span>
+            </a-tooltip>
+          </template>
           <a-select
             :value="null"
             :options="availableScenarioOptions"
@@ -478,7 +492,12 @@ onBeforeUnmount(() => {
           />
         </a-form-item>
 
-        <a-form-item :label="t('comparator.form.sizes')">
+        <a-form-item>
+          <template #label>
+            <a-tooltip :title="t('comparator.tooltips.sizes')">
+              <span>{{ t("comparator.form.sizes") }}</span>
+            </a-tooltip>
+          </template>
           <a-select
             :value="null"
             :options="availableSizeOptions"
@@ -488,7 +507,12 @@ onBeforeUnmount(() => {
           />
         </a-form-item>
 
-        <a-form-item :label="t('comparator.form.replications')">
+        <a-form-item>
+          <template #label>
+            <a-tooltip :title="t('comparator.tooltips.replications')">
+              <span>{{ t("comparator.form.replications") }}</span>
+            </a-tooltip>
+          </template>
           <a-input-number
             v-model:value="replications"
             :min="1"
@@ -498,17 +522,12 @@ onBeforeUnmount(() => {
           />
         </a-form-item>
 
-        <a-form-item :label="t('comparator.form.timeoutMinutes')">
-          <a-input-number
-            v-model:value="timeoutMinutes"
-            :min="1"
-            :step="1"
-            :disabled="isRunning"
-            style="width: 100%"
-          />
-        </a-form-item>
-
-        <a-form-item :label="t('comparator.form.seed')">
+        <a-form-item>
+          <template #label>
+            <a-tooltip :title="t('comparator.tooltips.seed')">
+              <span>{{ t("comparator.form.seed") }}</span>
+            </a-tooltip>
+          </template>
           <a-input-number
             v-model:value="seed"
             :min="0"
@@ -518,7 +537,36 @@ onBeforeUnmount(() => {
           />
         </a-form-item>
 
-        <a-form-item :label="t('comparator.form.removeOutliers')">
+        <a-form-item class="comparador-timeout-item">
+          <template #label>
+            <a-tooltip :title="t('comparator.tooltips.timeoutEnabled')">
+              <span>{{ t("comparator.form.timeoutEnabled") }}</span>
+            </a-tooltip>
+          </template>
+          <div class="comparador-timeout-cell">
+            <a-switch v-model:checked="timeoutEnabled" :disabled="isRunning" />
+            <a-tooltip
+              v-if="timeoutEnabled"
+              :title="t('comparator.tooltips.timeoutMinutes')"
+            >
+              <a-input-number
+                v-model:value="timeoutMinutes"
+                :min="1"
+                :step="1"
+                :disabled="isRunning"
+                :placeholder="t('comparator.form.timeoutMinutes')"
+                style="flex: 1; min-width: 0"
+              />
+            </a-tooltip>
+          </div>
+        </a-form-item>
+
+        <a-form-item>
+          <template #label>
+            <a-tooltip :title="t('comparator.tooltips.removeOutliers')">
+              <span>{{ t("comparator.form.removeOutliers") }}</span>
+            </a-tooltip>
+          </template>
           <a-switch v-model:checked="removeOutliers" :disabled="isRunning" />
         </a-form-item>
       </a-form>
@@ -581,16 +629,20 @@ onBeforeUnmount(() => {
       </div>
 
       <div class="comparador-form-buttons">
-        <a-button
-          type="primary"
-          :loading="isRunning"
-          :disabled="!isJobValid"
-          @click="startSimulation"
-          >{{ t("comparator.buttons.start") }}
-        </a-button>
-        <a-button danger :disabled="!isRunning" @click="cancelSimulation">
-          {{ t("comparator.buttons.cancel") }}
-        </a-button>
+        <a-tooltip :title="t('comparator.tooltips.start')">
+          <a-button
+            type="primary"
+            :loading="isRunning"
+            :disabled="!isJobValid"
+            @click="startSimulation"
+            >{{ t("comparator.buttons.start") }}
+          </a-button>
+        </a-tooltip>
+        <a-tooltip :title="t('comparator.tooltips.cancel')">
+          <a-button danger :disabled="!isRunning" @click="cancelSimulation">
+            {{ t("comparator.buttons.cancel") }}
+          </a-button>
+        </a-tooltip>
       </div>
     </section>
 
@@ -627,9 +679,11 @@ onBeforeUnmount(() => {
             :options="availableSizesForTable"
           />
           <a-dropdown :disabled="!canExport">
-            <a-button :disabled="!canExport" :loading="isExporting">
-              {{ t("comparator.buttons.download") }} ▾
-            </a-button>
+            <a-tooltip :title="t('comparator.tooltips.download')">
+              <a-button :disabled="!canExport" :loading="isExporting">
+                {{ t("comparator.buttons.download") }} ▾
+              </a-button>
+            </a-tooltip>
             <template #overlay>
               <a-menu>
                 <a-menu-item @click="downloadCsv">CSV</a-menu-item>

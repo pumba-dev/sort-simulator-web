@@ -53,6 +53,7 @@ const makeReport = (overrides: Partial<BenchmarkReport> = {}): BenchmarkReport =
     sizes: [100, 1000],
     replications: 2,
     timeoutMs: 60000,
+    timeoutEnabled: true,
     seed: 42,
     removeOutliers: false,
   },

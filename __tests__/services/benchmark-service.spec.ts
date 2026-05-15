@@ -8,6 +8,7 @@ const baseJob = (overrides: Partial<CompareJob> = {}): CompareJob => ({
   sizes: [50],
   replications: 3,
   timeoutMs: 60000,
+  timeoutEnabled: true,
   seed: 42,
   removeOutliers: true,
   ...overrides,
@@ -213,11 +214,26 @@ describe("BenchmarkService.runJob", () => {
       sizes: [2000],
       replications: 1,
       timeoutMs: 1,
+      timeoutEnabled: true,
       seed: 42,
       removeOutliers: false,
     });
     expect(report.cells[0].timeoutCount).toBe(1);
     expect(report.cells[0].samples[0].timedOut).toBe(true);
+  });
+
+  it("ignores timeoutMs when timeoutEnabled is false", async () => {
+    const service = new BenchmarkService();
+    const report = await service.runJob(
+      baseJob({
+        sizes: [50],
+        replications: 1,
+        timeoutMs: 1,
+        timeoutEnabled: false,
+      }),
+    );
+    expect(report.cells[0].timeoutCount).toBe(0);
+    expect(report.cells[0].samples[0].timedOut).toBe(false);
   });
 
   it("falls back to Date.now when global performance is undefined", async () => {

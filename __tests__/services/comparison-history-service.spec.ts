@@ -39,6 +39,7 @@ const baseJob = (overrides: Partial<CompareJob> = {}): CompareJob => ({
   sizes: [50],
   replications: 3,
   timeoutMs: 60000,
+  timeoutEnabled: true,
   seed: 42,
   removeOutliers: true,
   ...overrides,

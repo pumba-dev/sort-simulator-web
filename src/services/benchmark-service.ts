@@ -68,6 +68,7 @@ export class BenchmarkService {
             {
               seed: job.seed,
               timeoutMs: job.timeoutMs,
+              timeoutEnabled: job.timeoutEnabled,
               removeOutliers: job.removeOutliers,
               parentSignal: callbacks.signal,
             },
@@ -97,6 +98,7 @@ export class BenchmarkService {
     options: {
       seed: number;
       timeoutMs: number;
+      timeoutEnabled: boolean;
       removeOutliers: boolean;
       parentSignal?: AbortSignal;
     },
@@ -115,7 +117,9 @@ export class BenchmarkService {
 
       const controller = new AbortController();
       const cleanup = wireParent(options.parentSignal, controller);
-      const deadlineMs = Date.now() + options.timeoutMs;
+      const deadlineMs = options.timeoutEnabled
+        ? Date.now() + options.timeoutMs
+        : Number.POSITIVE_INFINITY;
 
       let start = 0;
       let end = 0;

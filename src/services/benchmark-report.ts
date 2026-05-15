@@ -51,10 +51,14 @@ class BenchmarkReportService {
       }`,
     );
     lines.push(
-      `- **${this.t("comparator.report.header.timeout")}:** ${this.t(
-        "comparator.report.header.timeoutFormat",
-        { min: (cfg.timeoutMs / 60000).toFixed(2), ms: cfg.timeoutMs },
-      )}`,
+      `- **${this.t("comparator.report.header.timeout")}:** ${
+        cfg.timeoutEnabled
+          ? this.t("comparator.report.header.timeoutFormat", {
+              min: (cfg.timeoutMs / 60000).toFixed(2),
+              ms: cfg.timeoutMs,
+            })
+          : this.t("comparator.report.header.outlierDisabled")
+      }`,
     );
     if (report.elapsedMs !== undefined) {
       lines.push(
@@ -238,10 +242,12 @@ class BenchmarkReportService {
     );
     writeKV(
       this.t("comparator.report.header.timeout"),
-      this.t("comparator.report.header.timeoutFormat", {
-        min: (cfg.timeoutMs / 60000).toFixed(2),
-        ms: cfg.timeoutMs,
-      }),
+      cfg.timeoutEnabled
+        ? this.t("comparator.report.header.timeoutFormat", {
+            min: (cfg.timeoutMs / 60000).toFixed(2),
+            ms: cfg.timeoutMs,
+          })
+        : this.t("comparator.report.header.outlierDisabled"),
     );
     if (report.elapsedMs !== undefined) {
       writeKV(
@@ -415,6 +421,7 @@ class BenchmarkReportService {
       this.csvRow(["replications", cfg.replications]),
       this.csvRow(["removeOutliers", cfg.removeOutliers]),
       this.csvRow(["timeoutMs", cfg.timeoutMs]),
+      this.csvRow(["timeoutEnabled", cfg.timeoutEnabled]),
     ];
     if (report.elapsedMs !== undefined) {
       headerRows.push(this.csvRow(["elapsedMs", report.elapsedMs]));
@@ -558,6 +565,9 @@ class BenchmarkReportService {
     );
     const removeOutliers = hdr.get("removeOutliers") === "true";
     const timeoutMs = this.assertNum(hdr.get("timeoutMs"), "timeoutMs");
+    const timeoutEnabledRaw = hdr.get("timeoutEnabled");
+    const timeoutEnabled =
+      timeoutEnabledRaw === undefined ? true : timeoutEnabledRaw === "true";
     const elapsedMsRaw = hdr.get("elapsedMs");
     const elapsedMs =
       elapsedMsRaw !== undefined && elapsedMsRaw !== ""
@@ -616,6 +626,7 @@ class BenchmarkReportService {
       sizes,
       replications,
       timeoutMs,
+      timeoutEnabled,
       seed,
       removeOutliers,
     };

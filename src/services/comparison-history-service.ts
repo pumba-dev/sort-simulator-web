@@ -166,6 +166,10 @@ export class ComparisonHistoryService {
         typeof parsed.removeOutliers === "boolean"
           ? parsed.removeOutliers
           : true,
+      timeoutEnabled:
+        typeof parsed.timeoutEnabled === "boolean"
+          ? parsed.timeoutEnabled
+          : true,
     };
   }
 

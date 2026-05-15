@@ -69,6 +69,15 @@ const columns = computed(() => {
         integerFormatter.format(value),
     },
     {
+      title: t("table.columns.swaps"),
+      dataIndex: "averageSwaps",
+      key: "averageSwaps",
+      width: 120,
+      sorter: (a: any, b: any) => a.averageSwaps - b.averageSwaps,
+      customRender: ({ value }: { value: number }) =>
+        integerFormatter.format(value),
+    },
+    {
       title: t("table.columns.avgMemoryKb"),
       dataIndex: "averageMemoryKb",
       key: "averageMemoryKb",
@@ -108,6 +117,6 @@ const dataSource = computed(() => {
     :size="compact ? 'small' : 'middle'"
     :pagination="{ pageSize: 8, showSizeChanger: false }"
     row-key="id"
-    :scroll="{ x: 930 }"
+    :scroll="{ x: 1050 }"
   />
 </template>

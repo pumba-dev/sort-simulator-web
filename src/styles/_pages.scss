@@ -228,16 +228,27 @@
 }
 
 .comparador-form-grid {
-  display: flex !important;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 12px;
-  align-items: flex-start;
+  align-items: end;
 
   .ant-form-item {
-    flex: 1;
-    min-width: 130px;
     margin-bottom: 0;
+    min-width: 0;
   }
+}
+
+.comparador-timeout-item {
+  min-width: 200px;
+}
+
+.comparador-timeout-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
 }
 
 .comparador-form-buttons {

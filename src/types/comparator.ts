@@ -19,6 +19,7 @@ export interface CompareJob {
   sizes: number[];
   replications: number;
   timeoutMs: number;
+  timeoutEnabled: boolean;
   seed: number;
   removeOutliers: boolean;
 }

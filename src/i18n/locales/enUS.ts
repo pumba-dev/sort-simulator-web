@@ -59,6 +59,7 @@ const enUS = {
       size: "Size",
       avgTimeMs: "Average time (ms)",
       comparisons: "Comparisons",
+      swaps: "Swaps",
       avgMemoryKb: "Average memory (KB)",
       timeouts: "Timeouts",
     },
@@ -93,6 +94,7 @@ const enUS = {
       replications: "Replications",
       timeoutMs: "Timeout per execution (ms)",
       timeoutMinutes: "Timeout per execution (min)",
+      timeoutEnabled: "Enable timeout (min)",
       seed: "Seed",
       removeOutliers: "Remove outliers (IQR)",
     },
@@ -102,6 +104,26 @@ const enUS = {
       download: "Download",
       downloadMarkdown: "Download Markdown",
       downloadPdf: "Download PDF",
+    },
+    tooltips: {
+      algorithms: "Select one or more algorithms to compare side by side.",
+      scenarios:
+        "Input scenarios used to generate the vectors: ascending, descending, or random.",
+      sizes:
+        "Vector sizes generated for each algorithm and scenario combination.",
+      replications:
+        "How many times each combination is executed to compute the average (1 to 40).",
+      timeoutEnabled:
+        "When enabled, sets a max time per execution. When disabled, the algorithm runs without a time limit.",
+      timeoutMinutes:
+        "Maximum time, in minutes, that each execution can take before being aborted.",
+      seed: "Pseudo-random generator seed. Keeps results reproducible across runs.",
+      removeOutliers:
+        "When enabled, removes outliers (IQR rule) before computing the average.",
+      start:
+        "Starts the comparative simulation with the current configuration.",
+      cancel: "Cancels the simulation in progress.",
+      download: "Exports results as CSV, Markdown, or PDF.",
     },
     feedback: {
       initial: "Configure and start a comparative simulation.",
