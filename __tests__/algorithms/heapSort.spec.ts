@@ -7,29 +7,39 @@ const runFinal = (arr: number[]) => heapSort(arr).finalArray;
 describe("heapSort", () => {
   describe("sorting correctness", () => {
     it("sorts random array", () => {
-      expect(runFinal([3, 1, 4, 1, 5, 9, 2, 6])).toEqual([
-        1, 1, 2, 3, 4, 5, 6, 9,
-      ]);
+      const input = [3, 1, 4, 1, 5, 9, 2, 6];
+      const expected = [1, 1, 2, 3, 4, 5, 6, 9];
+      expect(runFinal(input)).toEqual(expected);
     });
 
     it("sorts reverse-ordered array", () => {
-      expect(runFinal([5, 4, 3, 2, 1])).toEqual([1, 2, 3, 4, 5]);
+      const input = [5, 4, 3, 2, 1];
+      const expected = [1, 2, 3, 4, 5];
+      expect(runFinal(input)).toEqual(expected);
     });
 
     it("handles already sorted array", () => {
-      expect(runFinal([1, 2, 3, 4, 5])).toEqual([1, 2, 3, 4, 5]);
+      const input = [1, 2, 3, 4, 5];
+      const expected = [1, 2, 3, 4, 5];
+      expect(runFinal(input)).toEqual(expected);
     });
 
     it("handles array with duplicates", () => {
-      expect(runFinal([4, 2, 4, 1, 2])).toEqual([1, 2, 2, 4, 4]);
+      const input = [4, 2, 4, 1, 2];
+      const expected = [1, 2, 2, 4, 4];
+      expect(runFinal(input)).toEqual(expected);
     });
 
     it("handles single element", () => {
-      expect(runFinal([7])).toEqual([7]);
+      const input = [7];
+      const expected = [7];
+      expect(runFinal(input)).toEqual(expected);
     });
 
     it("handles empty array", () => {
-      expect(runFinal([])).toEqual([]);
+      const input: number[] = [];
+      const expected: number[] = [];
+      expect(runFinal(input)).toEqual(expected);
     });
   });
 

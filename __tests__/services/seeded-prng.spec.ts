@@ -74,11 +74,13 @@ describe("deriveCellSeed", () => {
 
 describe("generateScenarioArray", () => {
   it("generates ascending arrays", () => {
-    expect(generateScenarioArray(5, "crescente", 1)).toEqual([1, 2, 3, 4, 5]);
+    const expected = [1, 2, 3, 4, 5];
+    expect(generateScenarioArray(5, "crescente", 1)).toEqual(expected);
   });
 
   it("generates descending arrays", () => {
-    expect(generateScenarioArray(5, "decrescente", 1)).toEqual([5, 4, 3, 2, 1]);
+    const expected = [5, 4, 3, 2, 1];
+    expect(generateScenarioArray(5, "decrescente", 1)).toEqual(expected);
   });
 
   it("generates reproducible aleatorio arrays for same seed", () => {
@@ -94,6 +96,7 @@ describe("generateScenarioArray", () => {
   });
 
   it("returns empty array for size <= 0", () => {
-    expect(generateScenarioArray(0, "aleatorio", 1)).toEqual([]);
+    const expected: number[] = [];
+    expect(generateScenarioArray(0, "aleatorio", 1)).toEqual(expected);
   });
 });
