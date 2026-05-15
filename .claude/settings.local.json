@@ -14,7 +14,9 @@
       "Bash(Select-Object -First 1)",
       "Bash(Get-Content)",
       "Bash(xargs grep -l \"delete\\\\|remove.*entry\\\\|Modal\\\\|Popconfirm\")",
-      "Bash(npx vue-tsc *)"
+      "Bash(npx vue-tsc *)",
+      "Bash(Get-ChildItem -Recurse \"c:\\\\Users\\\\eduar\\\\github\\\\sort-simulator-web\\\\src\\\\i18n\" -ErrorAction SilentlyContinue)",
+      "Bash(Select-Object FullName)"
     ]
   }
 }

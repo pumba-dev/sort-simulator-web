@@ -1,4 +1,8 @@
 import { createI18n } from "vue-i18n";
+import dayjs from "dayjs";
+import "dayjs/locale/pt-br";
+import "dayjs/locale/en";
+import "dayjs/locale/es";
 import enUS from "./locales/enUS";
 import esES from "./locales/esES";
 import ptBR from "./locales/ptBR";
@@ -14,6 +18,12 @@ const messages = {
   "pt-BR": ptBR,
   "en-US": enUS,
   "es-ES": esES,
+};
+
+const DAYJS_LOCALE_BY_APP_LOCALE: Record<AppLocale, string> = {
+  "pt-BR": "pt-br",
+  "en-US": "en",
+  "es-ES": "es",
 };
 
 const normalizeDetectedLocale = (value: string | undefined): AppLocale => {
@@ -59,6 +69,10 @@ const applyHtmlLang = (locale: AppLocale): void => {
   }
 };
 
+const applyDayjsLocale = (locale: AppLocale): void => {
+  dayjs.locale(DAYJS_LOCALE_BY_APP_LOCALE[locale]);
+};
+
 export const i18n = createI18n({
   legacy: false,
   globalInjection: true,
@@ -68,6 +82,7 @@ export const i18n = createI18n({
 });
 
 applyHtmlLang(i18n.global.locale.value as AppLocale);
+applyDayjsLocale(i18n.global.locale.value as AppLocale);
 
 export const setAppLocale = (locale: AppLocale): void => {
   if (!(SUPPORTED_LOCALES as readonly string[]).includes(locale)) {
@@ -76,6 +91,7 @@ export const setAppLocale = (locale: AppLocale): void => {
 
   i18n.global.locale.value = locale;
   applyHtmlLang(locale);
+  applyDayjsLocale(locale);
 
   if (typeof window !== "undefined") {
     try {

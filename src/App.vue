@@ -12,6 +12,7 @@ import {
 import LanguageFab from "./components/LanguageFab.vue";
 import { setAppLocale } from "./i18n";
 import { LOCALE_STORAGE_KEY, isAppLocale } from "./i18n/types";
+import { useAppLocale } from "./composables/use-app-locale";
 
 type MenuSelection = {
   key: string;
@@ -20,6 +21,7 @@ type MenuSelection = {
 const route = useRoute();
 const router = useRouter();
 const { t } = useI18n();
+const { antdLocale } = useAppLocale();
 const MOBILE_HEADER_BREAKPOINT = 900;
 const isMobileHeader = ref(
   typeof window !== "undefined" &&
@@ -91,7 +93,8 @@ watch(
 </script>
 
 <template>
-  <a-layout class="app-shell">
+  <a-config-provider :locale="antdLocale">
+    <a-layout class="app-shell">
     <a-layout-header class="app-header">
       <div
         class="brand"
@@ -189,7 +192,8 @@ watch(
         </a>
       </div>
     </a-layout-footer>
-  </a-layout>
+    </a-layout>
 
-  <LanguageFab />
+    <LanguageFab />
+  </a-config-provider>
 </template>
