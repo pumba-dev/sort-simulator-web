@@ -136,6 +136,7 @@ const esES = {
         timeout: "El timeout debe ser mayor que cero.",
       },
       running: "Simulación en curso ({completed}/{total})",
+      finishedTitle: "Simulación completada",
       finished: "Simulación finalizada.",
       cancelled: "Simulación cancelada por el usuario.",
       errorPrefix: "Error en el comparador",

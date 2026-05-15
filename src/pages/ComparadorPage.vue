@@ -16,11 +16,30 @@ import type {
   ScenarioType,
   WorkerMessage,
 } from "../types/comparator";
+import { notification } from "ant-design-vue";
 import { detectEnvironment } from "../services/device-detector";
 import ComparisonResultsTable from "../components/ComparisonResultsTable.vue";
 import ComparisonResultsChart from "../components/ComparisonResultsChart.vue";
 import { ComparisonHistoryService } from "../services/comparison-history-service";
 import { benchmarkReport } from "../services/benchmark-report";
+
+function playBeep() {
+  try {
+    const ctx = new AudioContext();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.value = 880;
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.4);
+    osc.onended = () => ctx.close();
+  } catch {
+    // AudioContext not available (e.g. headless environment)
+  }
+}
 
 const selectedAlgorithms = ref<AlgorithmKey[]>([]);
 const selectedScenarios = ref<ScenarioType[]>([]);
@@ -254,6 +273,13 @@ const ensureWorker = (): Worker => {
       report.value = message.report;
       environment.value = message.report.environment ?? null;
       isRunning.value = false;
+      playBeep();
+      notification.success({
+        message: t("comparator.feedback.finishedTitle"),
+        description: t("comparator.feedback.finished"),
+        placement: "bottomRight",
+        duration: 5,
+      });
       feedbackMessage.value = t("comparator.feedback.finished");
       historyService.saveEntry(
         buildJobPayload(),

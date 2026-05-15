@@ -138,6 +138,7 @@ const enUS = {
         timeout: "Timeout must be greater than zero.",
       },
       running: "Simulation running ({completed}/{total})",
+      finishedTitle: "Simulation complete",
       finished: "Simulation finished.",
       cancelled: "Simulation cancelled by user.",
       errorPrefix: "Comparator error",
