@@ -393,11 +393,8 @@ const HEAVY_JOB_TOTAL_RUNS_THRESHOLD = 100;
 const estimateJobLoad = (payload: CompareJob) => {
   const maxSize = Math.max(...payload.sizes);
   const cells =
-    payload.algorithms.length *
-    payload.scenarios.length *
-    payload.sizes.length;
-  const peakBytes =
-    maxSize * HEAVY_JOB_BYTES_PER_NUMBER * HEAVY_JOB_MEM_FACTOR;
+    payload.algorithms.length * payload.scenarios.length * payload.sizes.length;
+  const peakBytes = maxSize * HEAVY_JOB_BYTES_PER_NUMBER * HEAVY_JOB_MEM_FACTOR;
   return { cells, peakBytes, totalRuns: cells * payload.replications };
 };
 
@@ -497,7 +494,9 @@ const applyPendingConfiguration = (config: CompareJob): void => {
   removeOutliers.value =
     typeof config.removeOutliers === "boolean" ? config.removeOutliers : true;
   allowDuplicates.value =
-    typeof config.allowDuplicates === "boolean" ? config.allowDuplicates : false;
+    typeof config.allowDuplicates === "boolean"
+      ? config.allowDuplicates
+      : false;
 };
 
 const downloadCsv = (): void => {

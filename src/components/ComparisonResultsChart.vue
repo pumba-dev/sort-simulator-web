@@ -291,6 +291,6 @@ const resetZoom = (): void => {
 }
 
 .comparison-chart__canvas {
-  height: 320px;
+  height: clamp(220px, 42vh, 320px);
 }
 </style>
