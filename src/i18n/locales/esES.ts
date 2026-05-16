@@ -140,6 +140,8 @@ const esES = {
         timeout: "El timeout debe ser mayor que cero.",
       },
       running: "Simulación en curso ({completed}/{total})",
+      currentCell:
+        "Ejecutando: {algorithm} {'|'} {scenario} {'|'} n={size} {'|'} Rep. {replication}/{total}",
       finishedTitle: "Simulación completada",
       finished: "Simulación finalizada.",
       cancelled: "Simulación cancelada por el usuario.",

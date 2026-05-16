@@ -49,6 +49,9 @@ workerScope.onmessage = (event: MessageEvent<WorkerCommand>): void => {
         onProgress: (completed, total) => {
           workerScope.postMessage({ type: "progress", completed, total });
         },
+        onCellProgress: (info) => {
+          workerScope.postMessage({ type: "cell-progress", ...info });
+        },
       })
       .then((report) => {
         report.environment = environment;

@@ -71,14 +71,41 @@ describe("BenchmarkService.runJob", () => {
     expect(report.cells.length).toBe(2 * 2 * 2);
   });
 
-  it("emits progress updates", async () => {
+  it("emits progress updates per replication", async () => {
     const service = new BenchmarkService();
     const events: Array<{ completed: number; total: number }> = [];
+    // baseJob: 1 algo × 1 scenario × 2 sizes × 3 replications = 6 total
     await service.runJob(baseJob({ sizes: [10, 20] }), {
       onProgress: (completed, total) => events.push({ completed, total }),
     });
-    expect(events.length).toBe(2);
-    expect(events[events.length - 1].completed).toBe(2);
+    expect(events.length).toBe(6);
+    expect(events[0].total).toBe(6);
+    expect(events[events.length - 1].completed).toBe(6);
+  });
+
+  it("emits onCellProgress at the start of each replication with algorithm/scenario/size/replication info", async () => {
+    const service = new BenchmarkService();
+    const events: Array<{
+      algorithm: string;
+      scenario: string;
+      size: number;
+      replication: number;
+      totalReplications: number;
+    }> = [];
+    // baseJob: 1 algo × 1 scenario × 1 size × 3 replications = 3 cell-progress events
+    await service.runJob(baseJob({ sizes: [10] }), {
+      onCellProgress: (info) => events.push(info),
+    });
+    expect(events.length).toBe(3);
+    expect(events[0]).toEqual({
+      algorithm: "bubble",
+      scenario: "aleatorio",
+      size: 10,
+      replication: 1,
+      totalReplications: 3,
+    });
+    expect(events[2].replication).toBe(3);
+    expect(events[2].totalReplications).toBe(3);
   });
 
   it("is reproducible with same seed", async () => {

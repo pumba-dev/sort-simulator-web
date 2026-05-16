@@ -60,6 +60,13 @@ const environment = ref<BenchmarkEnvironment | null>(null);
 const isExporting = ref<boolean>(false);
 const feedbackMessage = ref<string>(t("comparator.feedback.initial"));
 const elapsedMs = ref<number>(0);
+const currentCell = ref<{
+  algorithm: AlgorithmKey;
+  scenario: ScenarioType;
+  size: number;
+  replication: number;
+  totalReplications: number;
+} | null>(null);
 const historyService = new ComparisonHistoryService();
 let timerInterval: ReturnType<typeof setInterval> | null = null;
 let timerStart = 0;
@@ -257,6 +264,20 @@ const ensureWorker = (): Worker => {
   comparatorWorker.onmessage = (event: MessageEvent<WorkerMessage>) => {
     const message = event.data;
 
+    if (message.type === "cell-progress") {
+      console.log(
+        `Progress: ${message.algorithm} - ${message.scenario} - ${message.size} (replication ${message.replication}/${message.totalReplications})`,
+      );
+      currentCell.value = {
+        algorithm: message.algorithm,
+        scenario: message.scenario,
+        size: message.size,
+        replication: message.replication,
+        totalReplications: message.totalReplications,
+      };
+      return;
+    }
+
     if (message.type === "progress") {
       completed.value = message.completed;
       total.value = message.total;
@@ -269,6 +290,7 @@ const ensureWorker = (): Worker => {
 
     if (message.type === "result") {
       stopTimer(message.report.elapsedMs);
+      currentCell.value = null;
       rows.value = message.rows;
       report.value = message.report;
       environment.value = message.report.environment ?? null;
@@ -292,6 +314,7 @@ const ensureWorker = (): Worker => {
 
     if (message.type === "cancelled") {
       stopTimer();
+      currentCell.value = null;
       isRunning.value = false;
       feedbackMessage.value = t("comparator.feedback.cancelled");
       return;
@@ -299,6 +322,7 @@ const ensureWorker = (): Worker => {
 
     if (message.type === "error") {
       stopTimer();
+      currentCell.value = null;
       isRunning.value = false;
       const resolvedMessage =
         message.message === "internal_worker_error"
@@ -680,6 +704,20 @@ onBeforeUnmount(() => {
         :stroke-color="{ from: '#78a8ff', to: '#164fd6' }"
       />
       <p style="margin: 8px 0 0">{{ feedbackMessage }}</p>
+      <p
+        v-if="currentCell && isRunning"
+        style="margin: 4px 0 0; font-size: 0.88rem; color: var(--sl-text-soft)"
+      >
+        {{
+          t("comparator.feedback.currentCell", {
+            algorithm: algorithmLabel(currentCell.algorithm),
+            scenario: scenarioLabel(currentCell.scenario),
+            size: currentCell.size.toLocaleString(locale),
+            replication: currentCell.replication,
+            total: currentCell.totalReplications,
+          })
+        }}
+      </p>
       <p
         v-if="isRunning || elapsedMs > 0"
         style="margin: 4px 0 0; font-size: 0.88rem; color: var(--sl-text-soft)"

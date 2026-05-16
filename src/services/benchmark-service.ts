@@ -17,6 +17,13 @@ const BYTES_PER_KB = 1024;
 
 export interface BenchmarkRunCallbacks {
   onProgress?: (completed: number, total: number) => void;
+  onCellProgress?: (info: {
+    algorithm: AlgorithmKey;
+    scenario: ScenarioType;
+    size: number;
+    replication: number;
+    totalReplications: number;
+  }) => void;
   signal?: AbortSignal;
 }
 
@@ -40,7 +47,10 @@ export class BenchmarkService {
     const startMs = Date.now();
     const cells: BenchmarkCell[] = [];
     const total =
-      job.algorithms.length * job.scenarios.length * job.sizes.length;
+      job.algorithms.length *
+      job.scenarios.length *
+      job.sizes.length *
+      job.replications;
     let completed = 0;
 
     for (const scenario of job.scenarios) {
@@ -63,12 +73,15 @@ export class BenchmarkService {
               timeoutEnabled: job.timeoutEnabled,
               removeOutliers: job.removeOutliers,
               parentSignal: callbacks.signal,
+              onCellProgress: callbacks.onCellProgress,
+              onReplicationDone: () => {
+                completed += 1;
+                callbacks.onProgress?.(completed, total);
+              },
             },
           );
           cells.push(cell);
 
-          completed += 1;
-          callbacks.onProgress?.(completed, total);
           await BenchmarkService.yieldMicrotask();
         }
       }
@@ -93,6 +106,8 @@ export class BenchmarkService {
       timeoutEnabled: boolean;
       removeOutliers: boolean;
       parentSignal?: AbortSignal;
+      onCellProgress?: BenchmarkRunCallbacks["onCellProgress"];
+      onReplicationDone?: () => void;
     },
   ): Promise<BenchmarkCell> {
     const samples: BenchmarkReplicationSample[] = [];
@@ -103,6 +118,14 @@ export class BenchmarkService {
         break;
       }
       if (rep > 0) await BenchmarkService.yieldMicrotask();
+
+      options.onCellProgress?.({
+        algorithm,
+        scenario,
+        size,
+        replication: rep + 1,
+        totalReplications: replications,
+      });
 
       const cellSeed = SeededPrng.deriveCellSeed(
         options.seed,
@@ -155,6 +178,8 @@ export class BenchmarkService {
       } finally {
         cleanup();
       }
+
+      options.onReplicationDone?.();
     }
 
     const validSamples = samples.filter((s) => !s.timedOut);

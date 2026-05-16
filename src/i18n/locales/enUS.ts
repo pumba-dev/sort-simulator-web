@@ -142,6 +142,8 @@ const enUS = {
         timeout: "Timeout must be greater than zero.",
       },
       running: "Simulation running ({completed}/{total})",
+      currentCell:
+        "Running: {algorithm} {'|'} {scenario} {'|'} n={size} {'|'} Rep. {replication}/{total}",
       finishedTitle: "Simulation complete",
       finished: "Simulation finished.",
       cancelled: "Simulation cancelled by user.",

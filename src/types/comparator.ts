@@ -157,6 +157,15 @@ export type WorkerMessage =
       total: number;
     }
   | {
+      type: "cell-progress";
+      algorithm: AlgorithmKey;
+      scenario: ScenarioType;
+      size: number;
+      /** Current replication number, 1-based. */
+      replication: number;
+      totalReplications: number;
+    }
+  | {
       type: "result";
       rows: ComparisonResultRow[];
       report: BenchmarkReport;

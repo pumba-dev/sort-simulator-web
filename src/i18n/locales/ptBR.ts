@@ -141,6 +141,8 @@ const ptBR = {
         timeout: "Timeout deve ser maior que zero.",
       },
       running: "Simulação em andamento ({completed}/{total})",
+      currentCell:
+        "Executando: {algorithm} {'|'} {scenario} {'|'} n={size} {'|'} Rep. {replication}/{total}",
       finishedTitle: "Simulação concluída",
       finished: "Simulação finalizada.",
       cancelled: "Simulação cancelada pelo usuário.",
