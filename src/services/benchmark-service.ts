@@ -53,8 +53,8 @@ export class BenchmarkService {
       job.replications;
     let completed = 0;
 
-    for (const scenario of job.scenarios) {
-      for (const size of job.sizes) {
+    for (const size of job.sizes) {
+      for (const scenario of job.scenarios) {
         for (const algorithm of job.algorithms) {
           if (callbacks.signal?.aborted) {
             const report = this.buildReport(job, cells);
@@ -72,6 +72,7 @@ export class BenchmarkService {
               timeoutMs: job.timeoutMs,
               timeoutEnabled: job.timeoutEnabled,
               removeOutliers: job.removeOutliers,
+              allowDuplicates: job.allowDuplicates ?? false,
               parentSignal: callbacks.signal,
               onCellProgress: callbacks.onCellProgress,
               onReplicationDone: () => {
@@ -105,6 +106,7 @@ export class BenchmarkService {
       timeoutMs: number;
       timeoutEnabled: boolean;
       removeOutliers: boolean;
+      allowDuplicates: boolean;
       parentSignal?: AbortSignal;
       onCellProgress?: BenchmarkRunCallbacks["onCellProgress"];
       onReplicationDone?: () => void;
@@ -133,7 +135,12 @@ export class BenchmarkService {
         size,
         rep,
       );
-      const input = SeededPrng.generateScenarioArray(size, scenario, cellSeed);
+      const input = SeededPrng.generateScenarioArray(
+        size,
+        scenario,
+        cellSeed,
+        options.allowDuplicates,
+      );
 
       const controller = new AbortController();
       const cleanup = BenchmarkService.wireParent(

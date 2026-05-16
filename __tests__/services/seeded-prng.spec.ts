@@ -106,4 +106,83 @@ describe("generateScenarioArray", () => {
   it("returns empty array for size <= 0", () => {
     expect(generateScenarioArray(0, "aleatorio", 1).length).toBe(0);
   });
+
+  it("aleatorio with allowDuplicates produces values in [1, n] with repetitions", () => {
+    const n = 100;
+    const arr = generateScenarioArray(n, "aleatorio", 7, true);
+    expect(arr.length).toBe(n);
+    for (const v of arr) {
+      expect(v).toBeGreaterThanOrEqual(1);
+      expect(v).toBeLessThanOrEqual(n);
+    }
+    expect(new Set(arr).size).toBeLessThan(n);
+  });
+
+  it("aleatorio with allowDuplicates is reproducible for same seed", () => {
+    const a = generateScenarioArray(80, "aleatorio", 33, true);
+    const b = generateScenarioArray(80, "aleatorio", 33, true);
+    expect(Array.from(a)).toEqual(Array.from(b));
+  });
+
+  it("quaseOrdenado has at least 80% of adjacent pairs already in order", () => {
+    const n = 200;
+    const arr = generateScenarioArray(n, "quaseOrdenado", 11);
+    let ordered = 0;
+    for (let i = 1; i < n; i += 1) if (arr[i] >= arr[i - 1]) ordered += 1;
+    expect(ordered / (n - 1)).toBeGreaterThanOrEqual(0.8);
+    const sorted = Array.from(arr).sort((x, y) => x - y);
+    expect(sorted).toEqual(Array.from({ length: n }, (_, i) => i + 1));
+  });
+
+  it("quaseDecrescente has at least 80% of adjacent pairs descending", () => {
+    const n = 200;
+    const arr = generateScenarioArray(n, "quaseDecrescente", 11);
+    let descending = 0;
+    for (let i = 1; i < n; i += 1) if (arr[i] <= arr[i - 1]) descending += 1;
+    expect(descending / (n - 1)).toBeGreaterThanOrEqual(0.8);
+  });
+
+  it("organPipe ascends to midpoint then descends", () => {
+    const n = 20;
+    const arr = generateScenarioArray(n, "organPipe", 1);
+    const half = Math.floor(n / 2);
+    for (let i = 1; i < half; i += 1) expect(arr[i]).toBeGreaterThan(arr[i - 1]);
+    for (let i = half + 1; i < n; i += 1) expect(arr[i]).toBeLessThan(arr[i - 1]);
+  });
+
+  it("gaussiano produces values within [1, n] and mean near n/2", () => {
+    const n = 1000;
+    const arr = generateScenarioArray(n, "gaussiano", 5);
+    let sum = 0;
+    for (const v of arr) {
+      expect(v).toBeGreaterThanOrEqual(1);
+      expect(v).toBeLessThanOrEqual(n);
+      sum += v;
+    }
+    const mean = sum / n;
+    expect(mean).toBeGreaterThan(n / 2 - n / 10);
+    expect(mean).toBeLessThan(n / 2 + n / 10);
+  });
+
+  it("comOutliers preserves the 1..n value set (only permutes)", () => {
+    const n = 100;
+    const arr = generateScenarioArray(n, "comOutliers", 13);
+    const sorted = Array.from(arr).sort((x, y) => x - y);
+    expect(sorted).toEqual(Array.from({ length: n }, (_, i) => i + 1));
+  });
+
+  it("new scenarios are deterministic for same seed", () => {
+    const scenarios = [
+      "quaseOrdenado",
+      "quaseDecrescente",
+      "gaussiano",
+      "organPipe",
+      "comOutliers",
+    ] as const;
+    for (const sc of scenarios) {
+      const a = generateScenarioArray(64, sc, 21);
+      const b = generateScenarioArray(64, sc, 21);
+      expect(Array.from(a)).toEqual(Array.from(b));
+    }
+  });
 });

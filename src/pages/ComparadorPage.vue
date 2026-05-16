@@ -19,9 +19,11 @@ import type {
   WorkerMessage,
 } from "../types/comparator";
 import { Modal, notification } from "ant-design-vue";
+import { InfoCircleOutlined } from "@ant-design/icons-vue";
 import { DeviceDetector } from "../services/device-detector";
 import ComparisonResultsTable from "../components/ComparisonResultsTable.vue";
 import ComparisonResultsChart from "../components/ComparisonResultsChart.vue";
+import ComparatorHelpModal from "../components/ComparatorHelpModal.vue";
 import { ComparisonHistoryService } from "../services/comparison-history-service";
 import { benchmarkReport } from "../services/benchmark-report";
 
@@ -51,6 +53,8 @@ const timeoutMinutes = ref<number>(1);
 const timeoutEnabled = ref<boolean>(false);
 const seed = ref<number>(42);
 const removeOutliers = ref<boolean>(false);
+const allowDuplicates = ref<boolean>(false);
+const isHelpOpen = ref<boolean>(false);
 const { t, locale } = useI18n();
 
 const isRunning = ref<boolean>(false);
@@ -374,6 +378,7 @@ const buildJobPayload = (): CompareJob => {
     timeoutEnabled: timeoutEnabled.value,
     seed: seed.value,
     removeOutliers: removeOutliers.value,
+    allowDuplicates: allowDuplicates.value,
   };
 };
 
@@ -491,6 +496,8 @@ const applyPendingConfiguration = (config: CompareJob): void => {
   seed.value = typeof config.seed === "number" ? config.seed : 42;
   removeOutliers.value =
     typeof config.removeOutliers === "boolean" ? config.removeOutliers : true;
+  allowDuplicates.value =
+    typeof config.allowDuplicates === "boolean" ? config.allowDuplicates : false;
 };
 
 const downloadCsv = (): void => {
@@ -601,8 +608,19 @@ onBeforeUnmount(() => {
     </a-collapse>
 
     <section class="page-card">
-      <h3 class="page-card__title">
+      <h3 class="page-card__title comparador-section-title">
         {{ t("comparator.sections.configuration") }}
+        <a-tooltip :title="t('comparator.help.openTooltip')">
+          <a-button
+            type="text"
+            size="small"
+            class="comparador-help-button"
+            :aria-label="t('comparator.help.openTooltip')"
+            @click="isHelpOpen = true"
+          >
+            <template #icon><InfoCircleOutlined /></template>
+          </a-button>
+        </a-tooltip>
       </h3>
 
       <a-form layout="vertical" class="comparador-form-grid">
@@ -719,6 +737,15 @@ onBeforeUnmount(() => {
             </a-tooltip>
           </template>
           <a-switch v-model:checked="removeOutliers" :disabled="isRunning" />
+        </a-form-item>
+
+        <a-form-item>
+          <template #label>
+            <a-tooltip :title="t('comparator.tooltips.allowDuplicates')">
+              <span>{{ t("comparator.form.allowDuplicates") }}</span>
+            </a-tooltip>
+          </template>
+          <a-switch v-model:checked="allowDuplicates" :disabled="isRunning" />
         </a-form-item>
       </a-form>
 
@@ -914,5 +941,27 @@ onBeforeUnmount(() => {
         :scenario="chartScenario"
       />
     </section>
+
+    <ComparatorHelpModal v-model:open="isHelpOpen" />
   </div>
 </template>
+
+<style scoped>
+.comparador-section-title {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.comparador-help-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  color: var(--sl-text-soft, #888);
+}
+
+.comparador-help-button:hover {
+  color: var(--sl-primary, #164fd6);
+}
+</style>

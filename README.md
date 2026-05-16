@@ -170,10 +170,11 @@ Objetivo: **comparar desempenho médio** (tempo) e comportamento (comparações/
 ### Configuração do benchmark
 
 - Algoritmos (inclui **TimSort** no comparador).
-- Cenários: crescente / decrescente / aleatório.
+- Cenários: crescente / decrescente / aleatório / quase-ordenado / quase-decrescente / gaussiano / organ-pipe / com-outliers.
 - Tamanhos: lista de presets (de 10 até 200.000).
 - Replicações por célula.
 - Seed base (para reprodutibilidade).
+- Permitir duplicatas (opcional) — `aleatorio` usa amostragem com reposição em vez de permutação.
 - Remoção de outliers (opcional) via IQR.
 - Timeout por execução (opcional) por replicação.
 

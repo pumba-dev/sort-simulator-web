@@ -28,6 +28,11 @@ class BenchmarkReportService {
     "crescente",
     "decrescente",
     "aleatorio",
+    "quaseOrdenado",
+    "quaseDecrescente",
+    "gaussiano",
+    "organPipe",
+    "comOutliers",
   ];
 
   // ─── Public API ─────────────────────────────────────────────────────────────

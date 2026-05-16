@@ -38,6 +38,11 @@ const ptBR = {
       crescente: "Crescente",
       decrescente: "Decrescente",
       aleatorio: "Aleatório",
+      quaseOrdenado: "Quase ordenado",
+      quaseDecrescente: "Quase decrescente",
+      gaussiano: "Gaussiano",
+      organPipe: "Sobe-desce",
+      comOutliers: "Com outliers",
       all: "Todos os cenários",
     },
     sizes: {
@@ -104,6 +109,7 @@ const ptBR = {
       timeoutEnabled: "Habilitar timeout (min)",
       seed: "Semente (seed)",
       removeOutliers: "Remover outliers (IQR)",
+      allowDuplicates: "Permitir duplicatas",
     },
     buttons: {
       start: "Iniciar comparação",
@@ -129,6 +135,8 @@ const ptBR = {
       seed: "Valor inicial do gerador pseudoaleatório. Mantém os resultados reproduzíveis entre execuções.",
       removeOutliers:
         "Quando ativo, remove valores discrepantes (regra de IQR) antes de calcular a média.",
+      allowDuplicates:
+        "Quando ativo, o cenário aleatório sorteia valores com reposição em [1..n], permitindo repetições. Outros cenários não são afetados.",
       start: "Inicia a simulação comparativa com a configuração atual.",
       cancel: "Cancela a simulação em andamento.",
       download: "Exporta os resultados em CSV, Markdown ou PDF.",
@@ -161,6 +169,54 @@ const ptBR = {
           "Esta configuração executará {totalRuns} replicações em {cells} células, com pico estimado de {peakMemory} de memória por execução. Em dispositivos com pouca RAM ou várias abas abertas, isso pode travar o navegador. Deseja continuar?",
         proceed: "Continuar",
         cancel: "Cancelar",
+      },
+    },
+    help: {
+      title: "Como usar o Comparador",
+      openTooltip: "Abrir guia de uso",
+      tabs: {
+        general: "Geral",
+        algorithms: "Algoritmos",
+        scenarios: "Cenários",
+        parameters: "Parâmetros",
+      },
+      general: {
+        intro:
+          "O Comparador executa cada algoritmo de ordenação selecionado sobre os mesmos vetores de entrada e mede tempo, comparações, trocas e memória auxiliar. Os resultados permitem analisar o desempenho relativo dos algoritmos em diferentes condições.",
+        workflow:
+          "Para começar: escolha um ou mais algoritmos, um ou mais cenários de entrada, um ou mais tamanhos de vetor, ajuste replicações/semente/timeout conforme necessário e clique em Iniciar comparação. A simulação roda em Web Worker, então a página permanece responsiva.",
+        results:
+          "Ao final, a tabela mostra a média por célula (algoritmo × cenário × tamanho) e o gráfico permite alternar entre métricas (tempo, comparações, memória). Use o botão Download para exportar em CSV, Markdown ou PDF. Cada execução é salva automaticamente no Histórico.",
+      },
+      scenarios: {
+        crescente:
+          "Array já ordenado em ordem crescente: [1, 2, 3, ..., n]. Melhor caso para Insertion/Bubble com detecção de ordenação.",
+        decrescente:
+          "Ordem decrescente: [n, n-1, ..., 1]. Pior caso clássico para vários algoritmos.",
+        aleatorio:
+          "Permutação aleatória de [1..n] gerada pela semente. Sem repetições, a menos que 'permitir duplicatas' esteja ativo — nesse caso, valores são sorteados com reposição em [1..n].",
+        quaseOrdenado:
+          "Base crescente com ~5% dos pares trocados aleatoriamente. Modela dados quase ordenados — favorece Insertion e Tim Sort.",
+        quaseDecrescente:
+          "Base decrescente com ~5% de pares perturbados. Cenário do pior caso, mas suavizado.",
+        gaussiano:
+          "Valores amostrados de distribuição normal (média n/2, σ=n/6, recortado em [1,n]). Modela medições reais de sensores/sistemas — gera duplicatas intrínsecas.",
+        organPipe:
+          "Sobe até a metade (1..n/2) e desce (n/2..1). Padrão tipo 'cano de órgão' encontrado em alguns pipelines de dados.",
+        comOutliers:
+          "Base ordenada com ~1% dos elementos jogados em posições aleatórias. Modela dados de produção com ruído pontual.",
+        note: "Cada cenário será gerado para cada tamanho selecionado, e cada combinação será executada o número de replicações configurado. O total de execuções é: algoritmos × cenários × tamanhos × replicações.",
+      },
+      parameters: {
+        replications:
+          "Quantas vezes cada célula (algoritmo × cenário × tamanho) é executada para calcular a média. Mais replicações = média mais estável, mas execução total mais lenta. O limite máximo se ajusta conforme o maior tamanho selecionado, para proteger a memória do navegador.",
+        seed: "Semente do gerador pseudoaleatório (Mulberry32). A semente define os arrays gerados de forma reprodutível: todos os algoritmos da mesma célula recebem exatamente o mesmo array de entrada, garantindo comparação justa. Mudar a semente regenera arrays diferentes, mas os resultados continuam reprodutíveis para a nova semente.",
+        timeout:
+          "Quando ativo, cada replicação que ultrapassar o limite (em minutos) é abortada e contada como timeout. Replicações com timeout são excluídas das médias de tempo, mas registradas separadamente na coluna 'Timeouts'. Útil para limitar execuções muito longas em vetores grandes.",
+        outliers:
+          "Remoção de outliers via método IQR (Tukey 1.5×): após coletar todas as durações de uma célula, valores fora de [Q1 − 1.5·IQR, Q3 + 1.5·IQR] são descartados antes de calcular a média. Reduz ruído causado por garbage collection, scheduling do SO ou variação térmica da CPU.",
+        duplicates:
+          "Quando ativo, o cenário aleatório sorteia valores com reposição em [1..n], permitindo elementos repetidos no array. Útil para testar comportamento de algoritmos com chaves duplicadas (relevante para Quick Sort 3-way, por exemplo). Demais cenários não são afetados.",
       },
     },
     report: {
@@ -474,6 +530,12 @@ const ptBR = {
         concept:
           "Particiona em torno de pivo e ordena subvetores recursivamente.",
         strategy: "A escolha de pivo influencia fortemente o desempenho.",
+      },
+      tim: {
+        concept:
+          "Híbrido entre Merge Sort e Insertion Sort, usado como sort padrão em várias linguagens.",
+        strategy:
+          "Detecta runs já ordenadas no vetor e mescla blocos pequenos com Insertion local, aproveitando dados parcialmente ordenados.",
       },
     },
     pseudocode: {

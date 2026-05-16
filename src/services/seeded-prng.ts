@@ -10,9 +10,20 @@ export class SeededPrng {
     crescente: 1,
     decrescente: 2,
     aleatorio: 3,
+    quaseOrdenado: 4,
+    quaseDecrescente: 5,
+    gaussiano: 6,
+    organPipe: 7,
+    comOutliers: 8,
   };
 
   private static readonly SIZE_MIX = 2654435761;
+
+  /** Fraction of pairs swapped for quase-ordenado / quase-decrescente. */
+  private static readonly NEARLY_SORTED_SWAP_RATIO = 0.05;
+
+  /** Fraction of positions disturbed for comOutliers. */
+  private static readonly OUTLIER_SWAP_RATIO = 0.01;
 
   private state: number;
 
@@ -57,15 +68,20 @@ export class SeededPrng {
 
   /**
    * Generates the input array for a benchmark cell given a scenario type and seed.
-   * "crescente" → [1..n], "decrescente" → [n..1], "aleatorio" → Fisher-Yates shuffle seeded by `seed`.
    *
    * Returns an `Int32Array` so its backing buffer can be transferred (zero-copy)
    * across worker boundaries, cutting transient heap usage on heavy benchmark jobs.
+   *
+   * `allowDuplicates` only affects the `aleatorio` scenario: when true, values
+   * are sampled with replacement from [1..n] instead of permuting [1..n].
+   * Other scenarios either preserve distinct base values (perturbations of
+   * 1..n) or already produce duplicates intrinsically (`gaussiano`).
    */
   static generateScenarioArray(
     size: number,
     scenario: ScenarioType,
     seed: number,
+    allowDuplicates = false,
   ): Int32Array {
     if (size <= 0) {
       return new Int32Array(0);
@@ -83,13 +99,82 @@ export class SeededPrng {
       return arr;
     }
 
-    for (let i = 0; i < size; i += 1) arr[i] = i + 1;
+    if (scenario === "aleatorio") {
+      const prng = new SeededPrng(seed);
+      if (allowDuplicates) {
+        for (let i = 0; i < size; i += 1) arr[i] = prng.intBelow(size) + 1;
+        return arr;
+      }
+      for (let i = 0; i < size; i += 1) arr[i] = i + 1;
+      for (let i = arr.length - 1; i > 0; i -= 1) {
+        const j = prng.intBelow(i + 1);
+        const tmp = arr[i];
+        arr[i] = arr[j];
+        arr[j] = tmp;
+      }
+      return arr;
+    }
+
+    if (scenario === "quaseOrdenado" || scenario === "quaseDecrescente") {
+      if (scenario === "quaseOrdenado") {
+        for (let i = 0; i < size; i += 1) arr[i] = i + 1;
+      } else {
+        for (let i = 0; i < size; i += 1) arr[i] = size - i;
+      }
+      const prng = new SeededPrng(seed);
+      const swaps = Math.floor(size * SeededPrng.NEARLY_SORTED_SWAP_RATIO);
+      for (let s = 0; s < swaps; s += 1) {
+        const i = prng.intBelow(size);
+        const j = prng.intBelow(size);
+        const tmp = arr[i];
+        arr[i] = arr[j];
+        arr[j] = tmp;
+      }
+      return arr;
+    }
+
+    if (scenario === "organPipe") {
+      const half = Math.floor(size / 2);
+      for (let i = 0; i < half; i += 1) arr[i] = i + 1;
+      for (let i = half; i < size; i += 1) arr[i] = size - i;
+      return arr;
+    }
+
+    if (scenario === "comOutliers") {
+      for (let i = 0; i < size; i += 1) arr[i] = i + 1;
+      const prng = new SeededPrng(seed);
+      const swaps = Math.max(1, Math.floor(size * SeededPrng.OUTLIER_SWAP_RATIO));
+      for (let s = 0; s < swaps; s += 1) {
+        const i = prng.intBelow(size);
+        const j = prng.intBelow(size);
+        const tmp = arr[i];
+        arr[i] = arr[j];
+        arr[j] = tmp;
+      }
+      return arr;
+    }
+
+    // gaussiano: Box-Muller centered at n/2, stddev n/6 so ~99.7% lands in [1, n].
     const prng = new SeededPrng(seed);
-    for (let i = arr.length - 1; i > 0; i -= 1) {
-      const j = prng.intBelow(i + 1);
-      const tmp = arr[i];
-      arr[i] = arr[j];
-      arr[j] = tmp;
+    const mean = size / 2;
+    const stddev = size / 6;
+    let pending: number | null = null;
+    for (let i = 0; i < size; i += 1) {
+      let z: number;
+      if (pending !== null) {
+        z = pending;
+        pending = null;
+      } else {
+        const u1 = Math.max(prng.next(), 1e-12);
+        const u2 = prng.next();
+        const mag = Math.sqrt(-2 * Math.log(u1));
+        z = mag * Math.cos(2 * Math.PI * u2);
+        pending = mag * Math.sin(2 * Math.PI * u2);
+      }
+      let value = Math.floor(mean + z * stddev);
+      if (value < 1) value = 1;
+      else if (value > size) value = size;
+      arr[i] = value;
     }
     return arr;
   }

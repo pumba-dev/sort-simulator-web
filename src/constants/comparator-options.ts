@@ -33,6 +33,11 @@ export const scenarioOptions: ScenarioOption[] = [
   { key: "crescente", labelKey: "common.scenarios.crescente" },
   { key: "decrescente", labelKey: "common.scenarios.decrescente" },
   { key: "aleatorio", labelKey: "common.scenarios.aleatorio" },
+  { key: "quaseOrdenado", labelKey: "common.scenarios.quaseOrdenado" },
+  { key: "quaseDecrescente", labelKey: "common.scenarios.quaseDecrescente" },
+  { key: "gaussiano", labelKey: "common.scenarios.gaussiano" },
+  { key: "organPipe", labelKey: "common.scenarios.organPipe" },
+  { key: "comOutliers", labelKey: "common.scenarios.comOutliers" },
 ];
 
 /** Preset input sizes offered by the comparator size picker. */

@@ -170,10 +170,11 @@ Goal: compare **average performance** (time) and behavior (comparisons/swaps/est
 ### Benchmark configuration
 
 - Algorithms (includes **TimSort** in the comparator).
-- Scenarios: ascending / descending / random.
+- Scenarios: ascending / descending / random / nearly-sorted / nearly-descending / gaussian / organ-pipe / with-outliers.
 - Sizes: preset list (from 10 up to 200,000).
 - Replications per cell.
 - Base seed (reproducibility).
+- Allow duplicates (optional) — `aleatorio` samples with replacement instead of permuting.
 - Outlier removal (optional) via IQR.
 - Per-run timeout (optional) per replication.
 

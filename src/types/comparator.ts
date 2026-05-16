@@ -1,5 +1,13 @@
 /** Input distribution used when generating the benchmark array. */
-export type ScenarioType = "crescente" | "decrescente" | "aleatorio";
+export type ScenarioType =
+  | "crescente"
+  | "decrescente"
+  | "aleatorio"
+  | "quaseOrdenado"
+  | "quaseDecrescente"
+  | "gaussiano"
+  | "organPipe"
+  | "comOutliers";
 
 /** Identifier for every sort algorithm supported by the comparator and learning modules. */
 export type AlgorithmKey =
@@ -54,6 +62,8 @@ export interface CompareJob {
   seed: number;
   /** When true, IQR-based outlier removal is applied to duration samples. */
   removeOutliers: boolean;
+  /** When true, the "aleatorio" scenario samples with replacement (allows repeated values). */
+  allowDuplicates?: boolean;
 }
 
 /** Flat row used by tables and charts; one entry per (algorithm, scenario, size) cell. */

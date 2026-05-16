@@ -50,7 +50,12 @@ Out of scope:
 - **Scenario** (`ScenarioType`): input distribution:
   - `crescente`: [1..n]
   - `decrescente`: [n..1]
-  - `aleatorio`: deterministic Fisher-Yates shuffle with seed
+  - `aleatorio`: deterministic Fisher-Yates shuffle with seed (when `allowDuplicates=true`, samples with replacement instead)
+  - `quaseOrdenado`: ascending with ~5% of pairs randomly swapped
+  - `quaseDecrescente`: descending with ~5% of pairs randomly swapped
+  - `gaussiano`: values sampled from a normal distribution centered at n/2 (Box-Muller, stddev = n/6); produces duplicates
+  - `organPipe`: tent shape — ascending first half, descending second half
+  - `comOutliers`: ascending with ~1% of pairs randomly displaced (isolated spikes)
 - **Cell**: (algorithm × scenario × size) unit in a benchmark.
 - **Replication**: an independent repetition inside a cell.
 - **Base seed**: user-provided number used as root to derive per-cell/per-replication seeds.
@@ -132,7 +137,7 @@ flowchart LR
 
 - `SortRunResult`: `finalArray`, counters (`comparisons`, `swaps`), `peakAuxBytes` (estimate), `aborted`.
 - `SortStep`: snapshots with `values`, `activeIndexes`, `variables`, plus algorithm-specific fields (pivot, heap region, TimSort runs, etc.).
-- `CompareJob`: benchmark configuration (algorithms, scenarios, sizes, replications, seed, timeout, outliers).
+- `CompareJob`: benchmark configuration (algorithms, scenarios, sizes, replications, seed, timeout, outliers, `allowDuplicates`).
 - `BenchmarkCell`: raw samples + per-cell means.
 - `BenchmarkReport`: full report with `cells`, `rows` and (optional) `environment`.
 - `ComparisonHistoryEntry`: persisted history entry with `config`, `rows`, `report` and metadata.
@@ -240,7 +245,7 @@ flowchart LR
 
 - Responsibility: execute a `CompareJob` and build a `BenchmarkReport`.
 - High-level algorithm:
-  - iterate scenarios × sizes × algorithms (cells);
+  - iterate sizes × scenarios × algorithms (cells);
   - per cell, run `replications`;
   - generate deterministic input (SeededPrng);
   - apply timeout via `deadlineMs` + `AbortController`;
@@ -252,6 +257,7 @@ flowchart LR
 
 - Responsibility: deterministic PRNG (Mulberry32) + helpers.
 - Decision: ensure reproducibility and fairness via `deriveCellSeed`.
+- `generateScenarioArray(size, scenario, seed, allowDuplicates?)` supports all 8 `ScenarioType` values. `allowDuplicates` only affects `aleatorio` (sampling with replacement when true).
 
 ### 6.4 `DeviceDetector`
 
@@ -320,7 +326,7 @@ Sorting Lab uses **Vitest** for unit testing. The goal is not formal proof, but 
   - validates the `SortStep` contract (required fields per step), since the Learning module depends on it to render safely;
   - validates benchmark mode: `recordSteps=false`, counters and memory estimate (`peakAuxBytes`), plus `AbortSignal` and `deadlineMs`.
 - `__tests__/services/*`
-  - `SeededPrng`: determinism (`deriveCellSeed`) and scenario generation (ascending/descending/random) to enforce **fairness**;
+  - `SeededPrng`: determinism (`deriveCellSeed`) and scenario generation (all 8 `ScenarioType` values) to enforce **fairness**;
   - `BenchmarkService`: seed reproducibility, progress emission, cancellation, timeout handling, and IQR outlier trimming;
   - `benchmarkReport`: required CSV sections, `generate → parse` round-trip, enum validation, and locale independence;
   - `ComparisonHistoryService`: SSR guard (no `window`), persistence, limits, pending config, and resilience to null/malformed storages;

@@ -38,6 +38,11 @@ const enUS = {
       crescente: "Ascending",
       decrescente: "Descending",
       aleatorio: "Random",
+      quaseOrdenado: "Nearly sorted",
+      quaseDecrescente: "Nearly reversed",
+      gaussiano: "Gaussian",
+      organPipe: "Organ pipe",
+      comOutliers: "With outliers",
       all: "All scenarios",
     },
     sizes: {
@@ -104,6 +109,7 @@ const enUS = {
       timeoutEnabled: "Enable timeout (min)",
       seed: "Seed",
       removeOutliers: "Remove outliers (IQR)",
+      allowDuplicates: "Allow duplicates",
     },
     buttons: {
       start: "Start comparison",
@@ -129,6 +135,8 @@ const enUS = {
       seed: "Pseudo-random generator seed. Keeps results reproducible across runs.",
       removeOutliers:
         "When enabled, removes outliers (IQR rule) before computing the average.",
+      allowDuplicates:
+        "When enabled, the random scenario samples values with replacement from [1..n], allowing duplicates. Other scenarios are not affected.",
       start:
         "Starts the comparative simulation with the current configuration.",
       cancel: "Cancels the simulation in progress.",
@@ -162,6 +170,54 @@ const enUS = {
           "This configuration will execute {totalRuns} replications across {cells} cells, with an estimated peak of {peakMemory} of memory per run. On low-RAM devices or with many tabs open, the browser may freeze. Continue?",
         proceed: "Continue",
         cancel: "Cancel",
+      },
+    },
+    help: {
+      title: "How to use the Comparator",
+      openTooltip: "Open usage guide",
+      tabs: {
+        general: "General",
+        algorithms: "Algorithms",
+        scenarios: "Scenarios",
+        parameters: "Parameters",
+      },
+      general: {
+        intro:
+          "The Comparator runs each selected sorting algorithm against the same input arrays and measures time, comparisons, swaps and auxiliary memory. Results let you analyze relative performance across different conditions.",
+        workflow:
+          "To get started: pick one or more algorithms, one or more input scenarios, one or more vector sizes, tweak replications/seed/timeout as needed and click Start comparison. The simulation runs in a Web Worker, so the page stays responsive.",
+        results:
+          "When finished, the table shows the per-cell average (algorithm × scenario × size) and the chart lets you switch between metrics (time, comparisons, memory). Use the Download button to export as CSV, Markdown or PDF. Each run is auto-saved to History.",
+      },
+      scenarios: {
+        crescente:
+          "Array already sorted in ascending order: [1, 2, 3, ..., n]. Best case for Insertion/Bubble with sortedness detection.",
+        decrescente:
+          "Descending order: [n, n-1, ..., 1]. Classic worst case for several algorithms.",
+        aleatorio:
+          "Random permutation of [1..n] driven by the seed. No repetitions, unless 'allow duplicates' is enabled — in which case values are sampled with replacement from [1..n].",
+        quaseOrdenado:
+          "Ascending base with ~5% of pairs randomly swapped. Models nearly sorted data — favors Insertion and Tim Sort.",
+        quaseDecrescente:
+          "Descending base with ~5% of pairs perturbed. Worst-case shape, but softened.",
+        gaussiano:
+          "Values sampled from a normal distribution (mean n/2, σ=n/6, clamped to [1,n]). Models real sensor/system measurements — duplicates are intrinsic.",
+        organPipe:
+          "Ascends to the midpoint (1..n/2) then descends (n/2..1). 'Organ pipe' shape found in some data pipelines.",
+        comOutliers:
+          "Sorted base with ~1% of elements thrown into random positions. Models production data with occasional noise.",
+        note: "Each scenario will be generated for every selected size, and each combination will run for the configured number of replications. Total executions = algorithms × scenarios × sizes × replications.",
+      },
+      parameters: {
+        replications:
+          "How many times each cell (algorithm × scenario × size) is executed to compute the average. More replications = more stable average but slower overall run. The maximum cap adapts to the largest selected size to protect browser memory.",
+        seed: "Pseudo-random generator seed (Mulberry32). The seed defines reproducible input arrays: all algorithms in the same cell receive the exact same input array, guaranteeing fair comparison. Changing the seed regenerates different arrays, but results remain reproducible for the new seed.",
+        timeout:
+          "When enabled, each replication that exceeds the limit (in minutes) is aborted and counted as a timeout. Timed-out replications are excluded from time averages but tracked separately in the 'Timeouts' column. Useful to bound very long executions on large vectors.",
+        outliers:
+          "IQR-based outlier removal (Tukey 1.5×): after collecting all cell durations, values outside [Q1 − 1.5·IQR, Q3 + 1.5·IQR] are dropped before computing the average. Reduces noise from garbage collection, OS scheduling or CPU thermal variation.",
+        duplicates:
+          "When enabled, the random scenario samples values with replacement from [1..n], allowing repeated elements. Useful for testing algorithm behavior with duplicate keys (relevant for 3-way Quick Sort, for example). Other scenarios are not affected.",
       },
     },
     report: {
@@ -467,6 +523,12 @@ const enUS = {
       quick: {
         concept: "Partitions around a pivot and recursively sorts sub-vectors.",
         strategy: "Pivot selection strongly affects performance.",
+      },
+      tim: {
+        concept:
+          "Hybrid of Merge Sort and Insertion Sort, used as the default sort in several languages.",
+        strategy:
+          "Detects already-sorted runs in the input and merges small blocks with local insertion, exploiting partially ordered data.",
       },
     },
     pseudocode: {
