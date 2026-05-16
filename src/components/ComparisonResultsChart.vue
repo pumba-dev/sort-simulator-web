@@ -2,6 +2,7 @@
 import { computed, ref, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 import { Line } from "vue-chartjs";
+import { useViewportBreakpoint } from "../composables/use-viewport-breakpoint";
 import {
   Chart as ChartJS,
   Legend,
@@ -57,6 +58,7 @@ const palette = [
   "#525252",
 ];
 
+const isMobile = useViewportBreakpoint(600);
 const useLogScale = ref(false);
 const isZoomed = ref(false);
 
@@ -188,15 +190,15 @@ const chartOptions = computed<ChartOptions<"line">>(() => {
           y: { min: "original", max: "original" },
         },
         pan: {
-          enabled: true,
+          enabled: !isMobile.value,
           mode: "xy",
           modifierKey: "ctrl",
         },
         zoom: {
-          wheel: { enabled: true },
-          pinch: { enabled: true },
+          wheel: { enabled: !isMobile.value },
+          pinch: { enabled: false },
           drag: {
-            enabled: true,
+            enabled: !isMobile.value,
             backgroundColor: "rgba(29, 78, 216, 0.15)",
             borderColor: "rgba(29, 78, 216, 0.6)",
             borderWidth: 1,
@@ -251,7 +253,7 @@ const resetZoom = (): void => {
             <span>{{ t("chart.scaleLog") }}</span>
           </label>
         </a-tooltip>
-        <a-button size="small" :disabled="!isZoomed" @click="resetZoom">
+        <a-button v-if="!isMobile" size="small" :disabled="!isZoomed" @click="resetZoom">
           {{ t("chart.resetZoom") }}
         </a-button>
       </a-space>
