@@ -1,164 +1,46 @@
 ---
 name: coder
-description: Implement features, components, composables, workers and algorithms
+description: >
+  Use for any Vue/TypeScript code task in sort-simulator-web — implementing features, adding
+  components, creating composables, building Web Workers, adding or editing services, working on
+  sorting algorithms, editing i18n locales, updating constants, or wiring routes. Trigger on any
+  code change inside `src/`, even small ones. If the task touches TypeScript or Vue code in this
+  project, this skill applies.
 ---
 
-# Skill: Coder
+# Coder
 
-<rules>
+This is the main entry point for engineering work in `sort-simulator-web`. The repo has hard rules around reuse, i18n, storage safety, off-main-thread computation, and 100% coverage on a short list of critical files — most regressions come from violating one of those. Keep this file lean and pull the relevant reference when the task hits its domain.
 
-WHEN creating Vue component
-→ USE:
+## Before writing anything new
 
-<script setup lang="ts">
+Search in this order — reusing what exists is cheaper than introducing a parallel implementation that drifts later:
 
-WHEN naming files
-→ USE:
+1. `src/utils/` — pure shared functions
+2. `src/composables/` — shared Vue composition logic
+3. `src/types/` — existing interfaces
+4. `src/constants/` — existing enums and config values
 
-pages:
-PascalCase + Page
+If a similar helper already exists, extend it instead of adding a sibling.
 
-components:
-PascalCase
+## Decision tree
 
-composables:
-use-kebab-case
+Pick the reference for your task. Load only what you need.
 
-workers:
-*.worker.ts
+| Task | Read |
+|------|------|
+| Need project structure, modules, file naming, requirements | [references/project-context.md](references/project-context.md) |
+| Touching `src/algorithms/**`, `benchmark-service`, `comparison-history-service`, `seeded-prng`, `sort-algorithm-registry` | [references/critical-services.md](references/critical-services.md) |
+| Implementing or modifying a sorting algorithm function | [references/algorithm-contract.md](references/algorithm-contract.md) |
+| Writing a service class, adding storage access, deciding worker vs main thread | [references/services-pattern.md](references/services-pattern.md) |
+| Adding user-visible text, new SCSS, or business-logic file headers | [references/i18n-and-style.md](references/i18n-and-style.md) |
+| Adding a brand-new sorting algorithm (touches 6 files) | Use the `algorithm-adder` skill instead — it covers the full integration |
+| Writing or fixing tests | Use the `test-writer` skill |
 
-utils:
-kebab-case
+## Non-negotiables (apply to every task)
 
-WHEN adding visible text
-→ UPDATE:
-- ptBR
-- enUS
-- esES
-
-WHEN creating storage logic
-→ ADD:
-
-if(typeof window==='undefined')
-
-WHEN computation heavy
-→ MOVE to worker
-
-
-WHEN creating service
-→ ALWAYS use class
-
-
-FORBIDDEN:
-- standalone functions
-- exported loose methods
-- utility-style service files
-
-
-REQUIRED:
-
-export class ExampleService {
-
-  public execute(): Result {
-    return this.validate()
-  }
-
-  private validate(): Result {
-    ...
-  }
-}
-
-
-WHEN service has internal steps
-→ SPLIT logic into private methods
-
-
-WHEN exposing service API
-→ EXPOSE only public methods
-
-
-WHEN service logic grows
-→ EXTRACT internal behavior to additional private methods
-
-
-WHEN creating business logic
-→ DOCUMENT file and functions
-
-
-APPLIES TO:
-- services
-- utils
-- workers
-- validators
-- adapters
-- business/domain logic
-
-
-FILE HEADER REQUIRED:
-
-/**
- * Purpose:
- * Responsibility of file
- * Main flow or business context
- */
-
-
-FUNCTION HEADER REQUIRED:
-
-/**
- * Purpose:
- * Input:
- * Output:
- * Business rules:
- */
-
-
-WHEN function has complex behavior
-→ EXPLAIN:
-- invariants
-- side effects
-- edge cases
-- constraints
-
-
-WHEN workaround exists
-→ EXPLAIN WHY
-
-
-WHEN component/UI code
-→ DO NOT add verbose comments
-
-
-WHEN comment
-→ EXPLAIN WHY not WHAT
-
-
-GOOD:
-
-/**
- * Calculates benchmark average after IQR outlier removal.
- *
- * Rules:
- * - Never return empty array
- * - Ignore outliers only with sample >=4
- */
-
-private removeOutliersIqr(...)
-
-
-BAD:
-
-// increment i
-i++
-
-</rules>
-<pre_execution>
-
-1 search utils
-2 search composables
-3 search types
-4 search constants
-
-reuse > create
-
-</pre_execution>
+- **Triple-locale rule** — every user-visible string lives behind a key in `src/i18n/locales/ptBR.ts`, `enUS.ts`, and `esES.ts`. Never hardcode strings in templates or scripts; missing locale entries break the language switcher silently.
+- **SSR guard on storage** — every `localStorage`/`sessionStorage` access must early-return when `window` is undefined. The app is SSR-safe by guard, not by build. See `src/services/comparison-history-service.ts` for the canonical pattern.
+- **Heavy computation off the main thread** — benchmark runs, batch sorts, anything CPU-bound goes in a worker. Freezing the UI is the main UX risk this codebase is designed to avoid.
+- **Critical-service coverage stays at 100%** — `vitest.config.ts` enforces this on the files listed in `references/critical-services.md`. Optional callbacks (`opts.cb?.()`) only execute when the caller actually passes the callback, so a test that omits it leaves the optional-chain line uncovered. Always add a test that passes any new callback and asserts its effect.
+- **Finish with the right validation** — type-check (`npx vue-tsc --noEmit`), run the spec for whatever you touched, and run `npx vitest run <spec> --coverage` on critical-service edits.
