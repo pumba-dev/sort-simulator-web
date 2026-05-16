@@ -1,4 +1,5 @@
 import type {
+  SortInput,
   SortRunOptions,
   SortRunResult,
   SortStep,
@@ -10,7 +11,7 @@ const BYTES_PER_NUMBER = 8;
 // [BENCHMARK] Estimativa de bytes por frame de chamada na pilha de recursão simulada
 const STACK_FRAME_BYTES = 32;
 
-export default (A: number[], options: SortRunOptions = {}): SortRunResult => {
+export default (A: SortInput, options: SortRunOptions = {}): SortRunResult => {
   // [BENCHMARK] Desestrutura opções de controle: gravação de passos, sinal de abort e frequência de checagem
   const {
     recordSteps = true,
@@ -26,7 +27,7 @@ export default (A: number[], options: SortRunOptions = {}): SortRunResult => {
   let swaps = 0;
 
   // [SORT] Cópia do array de entrada para não mutar o original
-  const arr = [...A];
+  const arr = Array.isArray(A) ? A.slice() : A.slice();
 
   // [BENCHMARK] Base da memória auxiliar: apenas a cópia do array principal
   const baseAux = arr.length * BYTES_PER_NUMBER;
@@ -82,7 +83,7 @@ export default (A: number[], options: SortRunOptions = {}): SortRunResult => {
 
       // [BENCHMARK] Snapshot antes da decisão: destaca o elemento sendo comparado com o pivot
       pushStep({
-        values: [...arr],
+        values: Array.from(arr),
         activeIndexes: [j],
         comparisons: localComps,
         swaps: localSwaps,
@@ -102,7 +103,7 @@ export default (A: number[], options: SortRunOptions = {}): SortRunResult => {
 
         // [BENCHMARK] Snapshot após troca: reflete o elemento em sua nova posição na partição esquerda
         pushStep({
-          values: [...arr],
+          values: Array.from(arr),
           activeIndexes: [i, j],
           comparisons: localComps,
           swaps: localSwaps,
@@ -122,7 +123,7 @@ export default (A: number[], options: SortRunOptions = {}): SortRunResult => {
 
     // [BENCHMARK] Snapshot final da partição: pivot na posição definitiva, partições separadas
     pushStep({
-      values: [...arr],
+      values: Array.from(arr),
       activeIndexes: [i + 1, r],
       comparisons: localComps,
       swaps: localSwaps,
@@ -184,7 +185,7 @@ export default (A: number[], options: SortRunOptions = {}): SortRunResult => {
   // [BENCHMARK] Garante ao menos um snapshot quando array já está ordenado (nenhum passo gerado)
   if (recordSteps && steps.length === 0) {
     steps.push({
-      values: [...arr],
+      values: Array.from(arr),
       activeIndexes: [],
       comparisons: 0,
       swaps: 0,

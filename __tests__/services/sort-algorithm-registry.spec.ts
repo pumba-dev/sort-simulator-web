@@ -111,6 +111,24 @@ describe("sortAlgorithmRegistry", () => {
     });
   });
 
+  describe("Int32Array input (transferable benchmark path)", () => {
+    it.each(KEYS)("%s sorts an Int32Array identically to number[]", (key) => {
+      const input = Int32Array.from([5, 3, 1, 4, 2]);
+      const { finalArray, aborted } = sortAlgorithmRegistry[key].run(input, {
+        recordSteps: false,
+      }) as SortRunResult;
+      expect(aborted).toBe(false);
+      expect(Array.from(finalArray)).toEqual([1, 2, 3, 4, 5]);
+    });
+
+    it.each(KEYS)("%s does not mutate the Int32Array input", (key) => {
+      const input = Int32Array.from([3, 1, 2]);
+      const snapshot = Array.from(input);
+      sortAlgorithmRegistry[key].run(input, { recordSteps: false });
+      expect(Array.from(input)).toEqual(snapshot);
+    });
+  });
+
   describe("options handling", () => {
     it.each(KEYS)(
       "%s with recordSteps=false returns empty steps array",

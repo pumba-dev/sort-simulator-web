@@ -1,4 +1,5 @@
 import type {
+  SortInput,
   SortRunOptions,
   SortRunResult,
   SortStep,
@@ -10,7 +11,7 @@ const BYTES_PER_NUMBER = 8;
 // [BENCHMARK] Estimativa de bytes por frame de chamada no sift-down iterativo
 const STACK_FRAME_BYTES = 32;
 
-export default (A: number[], options: SortRunOptions = {}): SortRunResult => {
+export default (A: SortInput, options: SortRunOptions = {}): SortRunResult => {
   // [BENCHMARK] Desestrutura opções de controle: gravação de passos, sinal de abort e frequência de checagem
   const {
     recordSteps = true,
@@ -26,7 +27,7 @@ export default (A: number[], options: SortRunOptions = {}): SortRunResult => {
   let swaps = 0;
 
   // [SORT] Cópia do array de entrada para não mutar o original
-  const arr = [...A];
+  const arr = Array.isArray(A) ? A.slice() : A.slice();
 
   // [BENCHMARK] Base da memória auxiliar: apenas a cópia do array principal
   const baseAux = arr.length * BYTES_PER_NUMBER;
@@ -61,7 +62,7 @@ export default (A: number[], options: SortRunOptions = {}): SortRunResult => {
   };
 
   function maxHeapifyIterative(
-    A: number[],
+    A: SortInput,
     heapSize: number,
     startI: number,
     comps: number,
@@ -114,7 +115,7 @@ export default (A: number[], options: SortRunOptions = {}): SortRunResult => {
 
         // [BENCHMARK] Snapshot após troca: destaca os dois nós envolvidos no sift-down
         pushStep({
-          values: [...A],
+          values: Array.from(A),
           activeIndexes: [i, largest],
           comparisons: localComps,
           swaps: localSwaps,
@@ -160,7 +161,7 @@ export default (A: number[], options: SortRunOptions = {}): SortRunResult => {
 
       // [BENCHMARK] Snapshot após extração: destaca raiz e a posição final do elemento extraído
       pushStep({
-        values: [...arr],
+        values: Array.from(arr),
         activeIndexes: [0, i],
         comparisons,
         swaps,
@@ -194,7 +195,7 @@ export default (A: number[], options: SortRunOptions = {}): SortRunResult => {
   // [BENCHMARK] Garante ao menos um snapshot quando array já está ordenado (nenhum passo gerado)
   if (recordSteps && steps.length === 0) {
     steps.push({
-      values: [...arr],
+      values: Array.from(arr),
       activeIndexes: [],
       comparisons: 0,
       swaps: 0,

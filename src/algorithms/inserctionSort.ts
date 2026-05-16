@@ -1,4 +1,5 @@
 import type {
+  SortInput,
   SortRunOptions,
   SortRunResult,
   SortStep,
@@ -8,7 +9,7 @@ const ABORT_SENTINEL = Symbol("sort-aborted");
 // [BENCHMARK] Tamanho em bytes de cada número (float64)
 const BYTES_PER_NUMBER = 8;
 
-export default (A: number[], options: SortRunOptions = {}): SortRunResult => {
+export default (A: SortInput, options: SortRunOptions = {}): SortRunResult => {
   // [BENCHMARK] Desestrutura opções de controle: gravação de passos, sinal de abort e frequência de checagem
   const {
     recordSteps = true,
@@ -24,7 +25,7 @@ export default (A: number[], options: SortRunOptions = {}): SortRunResult => {
   let swaps = 0;
 
   // [SORT] Cópia do array de entrada para não mutar o original
-  const arr = [...A];
+  const arr = Array.isArray(A) ? A.slice() : A.slice();
 
   // [BENCHMARK] Memória auxiliar de pico: apenas a cópia do array (Insertion Sort é in-place)
   const peakAux = arr.length * BYTES_PER_NUMBER;
@@ -61,7 +62,7 @@ export default (A: number[], options: SortRunOptions = {}): SortRunResult => {
 
       // [BENCHMARK] Snapshot inicial do passo: marca o elemento sendo inserido e o gap aberto
       pushStep({
-        values: [...arr],
+        values: Array.from(arr),
         activeIndexes: [j],
         comparisons,
         swaps,
@@ -79,7 +80,7 @@ export default (A: number[], options: SortRunOptions = {}): SortRunResult => {
 
         // [BENCHMARK] Snapshot após deslocamento: reflete a nova posição do gap
         pushStep({
-          values: [...arr],
+          values: Array.from(arr),
           activeIndexes: [i, i + 1],
           comparisons,
           swaps,
@@ -106,7 +107,7 @@ export default (A: number[], options: SortRunOptions = {}): SortRunResult => {
 
       // [BENCHMARK] Snapshot final do passo: key está na posição correta, gap fechado
       pushStep({
-        values: [...arr],
+        values: Array.from(arr),
         activeIndexes: [i + 1],
         comparisons,
         swaps,
@@ -133,7 +134,7 @@ export default (A: number[], options: SortRunOptions = {}): SortRunResult => {
   // [BENCHMARK] Garante ao menos um snapshot quando array já está ordenado (nenhum passo gerado)
   if (recordSteps && steps.length === 0) {
     steps.push({
-      values: [...arr],
+      values: Array.from(arr),
       activeIndexes: [],
       comparisons: 0,
       swaps: 0,

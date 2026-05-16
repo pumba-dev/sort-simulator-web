@@ -1,4 +1,5 @@
 import type {
+  SortInput,
   SortRunOptions,
   SortRunResult,
   SortStep,
@@ -8,7 +9,7 @@ const ABORT_SENTINEL = Symbol("sort-aborted");
 // [BENCHMARK] Tamanho em bytes de cada número (float64)
 const BYTES_PER_NUMBER = 8;
 
-export default (A: number[], options: SortRunOptions = {}): SortRunResult => {
+export default (A: SortInput, options: SortRunOptions = {}): SortRunResult => {
   // [BENCHMARK] Desestrutura opções de controle: gravação de passos, sinal de abort e frequência de checagem
   const {
     recordSteps = true,
@@ -24,7 +25,7 @@ export default (A: number[], options: SortRunOptions = {}): SortRunResult => {
   let swaps = 0;
 
   // [SORT] Cópia do array de entrada para não mutar o original
-  const arr = [...A];
+  const arr = Array.isArray(A) ? A.slice() : A.slice();
 
   // [BENCHMARK] Memória auxiliar de pico: apenas a cópia do array (Bubble Sort é in-place)
   const peakAux = arr.length * BYTES_PER_NUMBER;
@@ -58,7 +59,7 @@ export default (A: number[], options: SortRunOptions = {}): SortRunResult => {
       for (let j = arr.length - 1; j >= i + 1; j--) {
         // [BENCHMARK] Snapshot antes da comparação: marca os dois índices como ativos
         pushStep({
-          values: [...arr],
+          values: Array.from(arr),
           activeIndexes: [j - 1, j],
           comparisons,
           swaps,
@@ -76,7 +77,7 @@ export default (A: number[], options: SortRunOptions = {}): SortRunResult => {
 
           // [BENCHMARK] Snapshot após a troca: reflete novo estado do array
           pushStep({
-            values: [...arr],
+            values: Array.from(arr),
             activeIndexes: [j - 1, j],
             comparisons,
             swaps,
@@ -110,7 +111,7 @@ export default (A: number[], options: SortRunOptions = {}): SortRunResult => {
   // [BENCHMARK] Garante ao menos um snapshot quando array já está ordenado (nenhum passo gerado)
   if (recordSteps && steps.length === 0) {
     steps.push({
-      values: [...arr],
+      values: Array.from(arr),
       activeIndexes: [],
       comparisons: 0,
       swaps: 0,

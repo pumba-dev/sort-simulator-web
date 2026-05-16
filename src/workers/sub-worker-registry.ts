@@ -1,6 +1,10 @@
 import type { AlgorithmKey } from "../types/comparator";
 import type { SortAlgorithm } from "../services/sort-algorithm-registry";
-import type { SortRunOptions, SortRunResult } from "../types/sort-types";
+import type {
+  SortInput,
+  SortRunOptions,
+  SortRunResult,
+} from "../types/sort-types";
 
 /**
  * Builds a registry that runs each sort algorithm inside a dedicated Web Worker
@@ -28,12 +32,16 @@ const ALGORITHM_KEYS: AlgorithmKey[] = [
  */
 const makeRun =
   (key: AlgorithmKey) =>
-  (input: number[], options: SortRunOptions = {}): Promise<SortRunResult> => {
+  (input: SortInput, options: SortRunOptions = {}): Promise<SortRunResult> => {
     const { signal, ...transferableOptions } = options;
+
+    // [BENCHMARK] Snapshot length up front: typed-array buffers get detached on
+    // transfer, so accessing input.length after postMessage would return 0.
+    const inputLength = input.length;
 
     return new Promise<SortRunResult>((resolve, reject) => {
       if (signal?.aborted) {
-        resolve(buildAbortedResult(input));
+        resolve(buildAbortedResult(inputLength));
         return;
       }
 
@@ -49,7 +57,7 @@ const makeRun =
         settled = true;
         subWorker.terminate();
         signal?.removeEventListener("abort", onAbort);
-        resolve(buildAbortedResult(input));
+        resolve(buildAbortedResult(inputLength));
       };
 
       subWorker.onmessage = (event: MessageEvent) => {
@@ -78,11 +86,19 @@ const makeRun =
 
       signal?.addEventListener("abort", onAbort);
 
-      subWorker.postMessage({
-        algorithm: key,
-        input,
-        options: transferableOptions,
-      });
+      // [BENCHMARK] Transfer typed-array buffers zero-copy when possible.
+      // Plain number[] still falls back to structured-clone (no transferable equivalent).
+      const transfer: Transferable[] = ArrayBuffer.isView(input)
+        ? [input.buffer as ArrayBuffer]
+        : [];
+      subWorker.postMessage(
+        {
+          algorithm: key,
+          input,
+          options: transferableOptions,
+        },
+        transfer,
+      );
     });
   };
 
@@ -91,12 +107,12 @@ const makeRun =
  * Mirrors the contract of a real run so downstream code does not need a
  * separate branch for the aborted case.
  */
-const buildAbortedResult = (input: number[]): SortRunResult => ({
+const buildAbortedResult = (inputLength: number): SortRunResult => ({
   steps: [],
-  finalArray: [...input],
+  finalArray: [],
   comparisons: 0,
   swaps: 0,
-  peakAuxBytes: input.length * 8,
+  peakAuxBytes: inputLength * 8,
   aborted: true,
 });
 

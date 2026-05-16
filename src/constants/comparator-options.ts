@@ -41,6 +41,43 @@ export const sizeOptions: number[] = [
   200000,
 ];
 
+/** Minimum replications required for statistically usable averages. */
+export const MIN_REPLICATIONS = 1;
+
+/**
+ * Replication ceiling tiered by the largest selected input size.
+ * Caps protect the browser heap on heavy jobs: the worst-case live memory per
+ * replication scales with the max array size (input clone + sub-worker clone +
+ * algorithm aux buffers). Floor of 1 preserves statistical validity; 10+ on
+ * the heaviest tier keeps results paper-usable.
+ */
+export const REPLICATION_CAPS: {
+  sizeAtMost: number;
+  maxReplications: number;
+}[] = [
+  { sizeAtMost: 30_000, maxReplications: 40 },
+  { sizeAtMost: 100_000, maxReplications: 25 },
+  { sizeAtMost: 150_000, maxReplications: 15 },
+  { sizeAtMost: Number.POSITIVE_INFINITY, maxReplications: 10 },
+];
+
+/**
+ * Returns the maximum allowed replications for the heaviest size in the
+ * selection. Empty selection returns the most permissive tier so the form
+ * defaults stay usable before the user picks sizes.
+ */
+export const maxReplicationsForSizes = (sizes: number[]): number => {
+  if (sizes.length === 0) return REPLICATION_CAPS[0].maxReplications;
+  let maxSize = sizes[0];
+  for (let i = 1; i < sizes.length; i += 1) {
+    if (sizes[i] > maxSize) maxSize = sizes[i];
+  }
+  for (const tier of REPLICATION_CAPS) {
+    if (maxSize <= tier.sizeAtMost) return tier.maxReplications;
+  }
+  return MIN_REPLICATIONS;
+};
+
 /** Reverse lookup: AlgorithmKey → i18n label key. Built from algorithmOptions. */
 export const algorithmLabelKeyByKey: Record<AlgorithmKey, string> =
   algorithmOptions.reduce(

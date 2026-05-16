@@ -118,7 +118,9 @@ const esES = {
         "Escenarios de entrada usados para generar los vectores: creciente, decreciente o aleatorio.",
       sizes: "Tamaños de vectores generados para cada algoritmo y escenario.",
       replications:
-        "Cuántas veces se ejecuta cada combinación para calcular el promedio (1 a 40).",
+        "Cuántas veces se ejecuta cada combinación para calcular el promedio.",
+      replicationsCap:
+        "Mínimo {min}, máximo {max} (ajustado automáticamente según el mayor tamaño seleccionado para proteger la memoria del navegador).",
       timeoutEnabled:
         "Cuando está activo, define un tiempo máximo por ejecución. Desactivado, el algoritmo se ejecuta sin límite de tiempo.",
       timeoutMinutes:
@@ -136,7 +138,7 @@ const esES = {
         selectAlgorithm: "Selecciona al menos un algoritmo.",
         selectScenario: "Selecciona al menos un escenario.",
         selectSize: "Selecciona al menos un tamaño de vector.",
-        replications: "Las replicaciones deben ser mayores que cero.",
+        replications: "Las replicaciones deben estar entre {min} y {max}.",
         timeout: "El timeout debe ser mayor que cero.",
       },
       running: "Simulación en curso ({completed}/{total})",
@@ -150,6 +152,15 @@ const esES = {
       starting: "Iniciando simulación...",
       pendingLoaded:
         "Configuración cargada desde el historial. Haz clic en Iniciar para ejecutar de nuevo.",
+    },
+    confirm: {
+      heavyJob: {
+        title: "Simulación pesada detectada",
+        description:
+          "Esta configuración ejecutará {totalRuns} replicaciones en {cells} celdas, con un pico estimado de {peakMemory} de memoria por ejecución. En dispositivos con poca RAM o varias pestañas abiertas, el navegador puede bloquearse. ¿Continuar?",
+        proceed: "Continuar",
+        cancel: "Cancelar",
+      },
     },
     report: {
       title: "Informe del Comparador de Algoritmos",

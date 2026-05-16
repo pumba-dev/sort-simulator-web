@@ -1,7 +1,11 @@
 /// <reference lib="webworker" />
 
 import type { AlgorithmKey } from "../types/comparator";
-import type { SortRunOptions, SortRunResult } from "../types/sort-types";
+import type {
+  SortInput,
+  SortRunOptions,
+  SortRunResult,
+} from "../types/sort-types";
 import { sortAlgorithmRegistry } from "../services/sort-algorithm-registry";
 
 /**
@@ -14,7 +18,7 @@ import { sortAlgorithmRegistry } from "../services/sort-algorithm-registry";
 /** Input message: the algorithm key, the array to sort, and the run options (sans AbortSignal — not transferable). */
 interface SortJobMessage {
   algorithm: AlgorithmKey;
-  input: number[];
+  input: SortInput;
   options: Omit<SortRunOptions, "signal">;
 }
 

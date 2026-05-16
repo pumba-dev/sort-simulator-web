@@ -1,4 +1,5 @@
 import type {
+  SortInput,
   SortRunOptions,
   SortRunResult,
   SortStep,
@@ -8,7 +9,7 @@ const ABORT_SENTINEL = Symbol("sort-aborted");
 // [BENCHMARK] Tamanho em bytes de cada número (float64)
 const BYTES_PER_NUMBER = 8;
 
-export default (A: number[], options: SortRunOptions = {}): SortRunResult => {
+export default (A: SortInput, options: SortRunOptions = {}): SortRunResult => {
   // [BENCHMARK] Desestrutura opções de controle: gravação de passos, sinal de abort e frequência de checagem
   const {
     recordSteps = true,
@@ -24,7 +25,7 @@ export default (A: number[], options: SortRunOptions = {}): SortRunResult => {
   let swaps = 0;
 
   // [SORT] Cópia do array de entrada para não mutar o original
-  const arr = [...A];
+  const arr = Array.isArray(A) ? A.slice() : A.slice();
 
   // [BENCHMARK] Memória viva atual: começa com a cópia do array principal
   let liveAux = arr.length * BYTES_PER_NUMBER;
@@ -63,7 +64,7 @@ export default (A: number[], options: SortRunOptions = {}): SortRunResult => {
   };
 
   function mergeDanceWithSteps(
-    workingArr: number[],
+    workingArr: SortInput,
     left: number,
     mid: number,
     right: number,
@@ -89,7 +90,7 @@ export default (A: number[], options: SortRunOptions = {}): SortRunResult => {
 
     // [BENCHMARK] Snapshot inicial do merge: destaca o intervalo sendo mesclado
     pushStep({
-      values: [...workingArr],
+      values: Array.from(workingArr),
       activeIndexes: [],
       comparisons: localComparisons,
       swaps: localSwaps,
@@ -124,7 +125,7 @@ export default (A: number[], options: SortRunOptions = {}): SortRunResult => {
 
       // [BENCHMARK] Snapshot após cópia: reflete o novo elemento na posição mainIndex
       pushStep({
-        values: [...workingArr],
+        values: Array.from(workingArr),
         activeIndexes: [mainIndex],
         comparisons: localComparisons,
         swaps: localSwaps,
@@ -153,7 +154,7 @@ export default (A: number[], options: SortRunOptions = {}): SortRunResult => {
 
       // [BENCHMARK] Snapshot após cópia do elemento restante da esquerda
       pushStep({
-        values: [...workingArr],
+        values: Array.from(workingArr),
         activeIndexes: [mainIndex - 1],
         comparisons: localComparisons,
         swaps: localSwaps,
@@ -179,7 +180,7 @@ export default (A: number[], options: SortRunOptions = {}): SortRunResult => {
 
       // [BENCHMARK] Snapshot após cópia do elemento restante da direita
       pushStep({
-        values: [...workingArr],
+        values: Array.from(workingArr),
         activeIndexes: [mainIndex - 1],
         comparisons: localComparisons,
         swaps: localSwaps,
@@ -257,7 +258,7 @@ export default (A: number[], options: SortRunOptions = {}): SortRunResult => {
   // [BENCHMARK] Garante ao menos um snapshot quando array já está ordenado (nenhum passo gerado)
   if (recordSteps && steps.length === 0) {
     steps.push({
-      values: [...arr],
+      values: Array.from(arr),
       activeIndexes: [],
       comparisons: 0,
       swaps: 0,

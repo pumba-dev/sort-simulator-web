@@ -119,7 +119,9 @@ const enUS = {
       sizes:
         "Vector sizes generated for each algorithm and scenario combination.",
       replications:
-        "How many times each combination is executed to compute the average (1 to 40).",
+        "How many times each combination is executed to compute the average.",
+      replicationsCap:
+        "Minimum {min}, maximum {max} (adjusted automatically based on the largest selected size to protect browser memory).",
       timeoutEnabled:
         "When enabled, sets a max time per execution. When disabled, the algorithm runs without a time limit.",
       timeoutMinutes:
@@ -138,7 +140,7 @@ const enUS = {
         selectAlgorithm: "Select at least one algorithm.",
         selectScenario: "Select at least one scenario.",
         selectSize: "Select at least one vector size.",
-        replications: "Replications must be greater than zero.",
+        replications: "Replications must be between {min} and {max}.",
         timeout: "Timeout must be greater than zero.",
       },
       running: "Simulation running ({completed}/{total})",
@@ -152,6 +154,15 @@ const enUS = {
       starting: "Starting simulation...",
       pendingLoaded:
         "Configuration loaded from history. Click Start to run again.",
+    },
+    confirm: {
+      heavyJob: {
+        title: "Heavy simulation detected",
+        description:
+          "This configuration will execute {totalRuns} replications across {cells} cells, with an estimated peak of {peakMemory} of memory per run. On low-RAM devices or with many tabs open, the browser may freeze. Continue?",
+        proceed: "Continue",
+        cancel: "Cancel",
+      },
     },
     report: {
       title: "Algorithm Comparator Report",

@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import {
   algorithmOptions,
   scenarioOptions,
   scenarioLabelKeyByKey,
   sizeOptions,
+  MIN_REPLICATIONS,
+  maxReplicationsForSizes,
 } from "../constants/comparator-options";
 import type {
   AlgorithmKey,
@@ -16,7 +18,7 @@ import type {
   ScenarioType,
   WorkerMessage,
 } from "../types/comparator";
-import { notification } from "ant-design-vue";
+import { Modal, notification } from "ant-design-vue";
 import { DeviceDetector } from "../services/device-detector";
 import ComparisonResultsTable from "../components/ComparisonResultsTable.vue";
 import ComparisonResultsChart from "../components/ComparisonResultsChart.vue";
@@ -44,7 +46,7 @@ function playBeep() {
 const selectedAlgorithms = ref<AlgorithmKey[]>([]);
 const selectedScenarios = ref<ScenarioType[]>([]);
 const selectedSizes = ref<number[]>([]);
-const replications = ref<number>(1);
+const replications = ref<number>(MIN_REPLICATIONS);
 const timeoutMinutes = ref<number>(1);
 const timeoutEnabled = ref<boolean>(false);
 const seed = ref<number>(42);
@@ -137,6 +139,26 @@ const availableSizeOptions = computed(() =>
   ),
 );
 
+// Replications cap derived from the largest selected size. Heavier sizes get a
+// stricter cap so the worker heap (input clone + sub-worker clone + aux buffers)
+// stays bounded on devices with tight memory budgets.
+const maxReplications = computed(() =>
+  maxReplicationsForSizes(selectedSizes.value),
+);
+
+// Silently clamp replications whenever the selection grows past the new cap.
+// Skipped while a job is running so the user can't have the value yanked
+// out from under an in-progress benchmark.
+watch(maxReplications, (cap) => {
+  if (isRunning.value) return;
+  if (replications.value > cap) {
+    replications.value = cap;
+  }
+  if (replications.value < MIN_REPLICATIONS) {
+    replications.value = MIN_REPLICATIONS;
+  }
+});
+
 const algorithmLabel = (key: AlgorithmKey): string =>
   algorithmSelectOptions.value.find((o) => o.value === key)?.label ?? key;
 
@@ -220,7 +242,8 @@ const isJobValid = computed(() => {
     selectedAlgorithms.value.length > 0 &&
     selectedScenarios.value.length > 0 &&
     selectedSizes.value.length > 0 &&
-    replications.value >= 1 &&
+    replications.value >= MIN_REPLICATIONS &&
+    replications.value <= maxReplications.value &&
     (!timeoutEnabled.value || timeoutMinutes.value >= 1) &&
     Number.isFinite(seed.value)
   );
@@ -240,8 +263,14 @@ const validateJob = (): string | null => {
   if (selectedSizes.value.length === 0) {
     return t("comparator.feedback.validation.selectSize");
   }
-  if (replications.value < 1) {
-    return t("comparator.feedback.validation.replications");
+  if (
+    replications.value < MIN_REPLICATIONS ||
+    replications.value > maxReplications.value
+  ) {
+    return t("comparator.feedback.validation.replications", {
+      min: MIN_REPLICATIONS,
+      max: maxReplications.value,
+    });
   }
   if (timeoutEnabled.value && timeoutMinutes.value < 1) {
     return t("comparator.feedback.validation.timeout");
@@ -348,15 +377,47 @@ const buildJobPayload = (): CompareJob => {
   };
 };
 
-const startSimulation = (): void => {
-  const validationError = validateJob();
-  if (validationError) {
-    feedbackMessage.value = validationError;
-    return;
-  }
+// Worst-case live heap during a single replication, roughly:
+//   input array + sub-worker clone + algorithm aux buffers ≈ 4× raw bytes.
+// Used only for the pre-flight estimate shown in the warning modal.
+const HEAVY_JOB_MEM_FACTOR = 4;
+const HEAVY_JOB_BYTES_PER_NUMBER = 8;
+const HEAVY_JOB_SIZE_THRESHOLD = 100_000;
+const HEAVY_JOB_TOTAL_RUNS_THRESHOLD = 100;
 
+const estimateJobLoad = (payload: CompareJob) => {
+  const maxSize = Math.max(...payload.sizes);
+  const cells =
+    payload.algorithms.length *
+    payload.scenarios.length *
+    payload.sizes.length;
+  const peakBytes =
+    maxSize * HEAVY_JOB_BYTES_PER_NUMBER * HEAVY_JOB_MEM_FACTOR;
+  return { cells, peakBytes, totalRuns: cells * payload.replications };
+};
+
+const isHeavyJob = (payload: CompareJob): boolean => {
+  const maxSize = Math.max(...payload.sizes);
+  const totalRuns =
+    payload.algorithms.length *
+    payload.scenarios.length *
+    payload.sizes.length *
+    payload.replications;
+  return (
+    maxSize >= HEAVY_JOB_SIZE_THRESHOLD &&
+    totalRuns >= HEAVY_JOB_TOTAL_RUNS_THRESHOLD
+  );
+};
+
+const formatBytes = (bytes: number): string => {
+  if (bytes >= 1024 ** 3) return `${(bytes / 1024 ** 3).toFixed(2)} GB`;
+  if (bytes >= 1024 ** 2) return `${(bytes / 1024 ** 2).toFixed(1)} MB`;
+  if (bytes >= 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  return `${bytes} B`;
+};
+
+const dispatchJob = (payload: CompareJob): void => {
   const worker = ensureWorker();
-  const payload = buildJobPayload();
 
   rows.value = [];
   report.value = null;
@@ -379,6 +440,35 @@ const startSimulation = (): void => {
   });
 };
 
+const startSimulation = (): void => {
+  const validationError = validateJob();
+  if (validationError) {
+    feedbackMessage.value = validationError;
+    return;
+  }
+
+  const payload = buildJobPayload();
+
+  if (isHeavyJob(payload)) {
+    const load = estimateJobLoad(payload);
+    Modal.confirm({
+      title: t("comparator.confirm.heavyJob.title"),
+      content: t("comparator.confirm.heavyJob.description", {
+        totalRuns: load.totalRuns.toLocaleString(locale.value),
+        cells: load.cells.toLocaleString(locale.value),
+        peakMemory: formatBytes(load.peakBytes),
+      }),
+      okText: t("comparator.confirm.heavyJob.proceed"),
+      cancelText: t("comparator.confirm.heavyJob.cancel"),
+      okType: "primary",
+      onOk: () => dispatchJob(payload),
+    });
+    return;
+  }
+
+  dispatchJob(payload);
+};
+
 const cancelSimulation = (): void => {
   if (!isRunning.value || !comparatorWorker) {
     return;
@@ -390,7 +480,11 @@ const applyPendingConfiguration = (config: CompareJob): void => {
   selectedAlgorithms.value = [...config.algorithms];
   selectedScenarios.value = [...config.scenarios];
   selectedSizes.value = [...config.sizes].sort((a, b) => a - b);
-  replications.value = config.replications;
+  const cap = maxReplicationsForSizes(selectedSizes.value);
+  replications.value = Math.min(
+    Math.max(config.replications, MIN_REPLICATIONS),
+    cap,
+  );
   timeoutMinutes.value = Math.max(1, Math.round(config.timeoutMs / 60000));
   timeoutEnabled.value =
     typeof config.timeoutEnabled === "boolean" ? config.timeoutEnabled : false;
@@ -559,14 +653,21 @@ onBeforeUnmount(() => {
 
         <a-form-item>
           <template #label>
-            <a-tooltip :title="t('comparator.tooltips.replications')">
+            <a-tooltip
+              :title="
+                t('comparator.tooltips.replicationsCap', {
+                  min: MIN_REPLICATIONS,
+                  max: maxReplications,
+                })
+              "
+            >
               <span>{{ t("comparator.form.replications") }}</span>
             </a-tooltip>
           </template>
           <a-input-number
             v-model:value="replications"
-            :min="1"
-            :max="40"
+            :min="MIN_REPLICATIONS"
+            :max="maxReplications"
             :disabled="isRunning"
             style="width: 100%"
           />

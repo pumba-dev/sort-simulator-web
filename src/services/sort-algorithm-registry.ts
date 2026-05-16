@@ -10,8 +10,13 @@ export type {
   SortStep,
   SortRunOptions,
   SortRunResult,
+  SortInput,
 } from "../types/sort-types";
-import type { SortRunOptions, SortRunResult } from "../types/sort-types";
+import type {
+  SortInput,
+  SortRunOptions,
+  SortRunResult,
+} from "../types/sort-types";
 
 /** A single sort algorithm entry stored in the registry. */
 export interface SortAlgorithm {
@@ -24,12 +29,12 @@ export interface SortAlgorithm {
    * May return a Promise (e.g., when dispatched to a sub-worker).
    */
   run: (
-    input: number[],
+    input: SortInput,
     options?: SortRunOptions,
   ) => SortRunResult | Promise<SortRunResult>;
 }
 
-type RawSortFn = (input: number[], options?: SortRunOptions) => SortRunResult;
+type RawSortFn = (input: SortInput, options?: SortRunOptions) => SortRunResult;
 
 /**
  * Central registry mapping every AlgorithmKey to its implementation.

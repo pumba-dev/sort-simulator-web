@@ -58,29 +58,38 @@ export class SeededPrng {
   /**
    * Generates the input array for a benchmark cell given a scenario type and seed.
    * "crescente" → [1..n], "decrescente" → [n..1], "aleatorio" → Fisher-Yates shuffle seeded by `seed`.
+   *
+   * Returns an `Int32Array` so its backing buffer can be transferred (zero-copy)
+   * across worker boundaries, cutting transient heap usage on heavy benchmark jobs.
    */
   static generateScenarioArray(
     size: number,
     scenario: ScenarioType,
     seed: number,
-  ): number[] {
+  ): Int32Array {
     if (size <= 0) {
-      return [];
+      return new Int32Array(0);
     }
 
+    const arr = new Int32Array(size);
+
     if (scenario === "crescente") {
-      return Array.from({ length: size }, (_, index) => index + 1);
+      for (let i = 0; i < size; i += 1) arr[i] = i + 1;
+      return arr;
     }
 
     if (scenario === "decrescente") {
-      return Array.from({ length: size }, (_, index) => size - index);
+      for (let i = 0; i < size; i += 1) arr[i] = size - i;
+      return arr;
     }
 
+    for (let i = 0; i < size; i += 1) arr[i] = i + 1;
     const prng = new SeededPrng(seed);
-    const arr = Array.from({ length: size }, (_, index) => index + 1);
     for (let i = arr.length - 1; i > 0; i -= 1) {
       const j = prng.intBelow(i + 1);
-      [arr[i], arr[j]] = [arr[j], arr[i]];
+      const tmp = arr[i];
+      arr[i] = arr[j];
+      arr[j] = tmp;
     }
     return arr;
   }

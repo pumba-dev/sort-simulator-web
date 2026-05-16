@@ -30,7 +30,9 @@
       "Bash(ls 'C:\\\\Users\\\\eduar\\\\.claude\\\\plugins\\\\cache\\\\claude-plugins-official\\\\skill-creator\\\\unknown\\\\skills\\\\skill-creator')",
       "Read(//c/Users/eduar/.claude/plugins/cache/claude-plugins-official/skill-creator/unknown/skills/skill-creator/**)",
       "Bash(mkdir -p '.claude/skills-workspace/coder/iteration-1' '.claude/skills-workspace/test-writer/iteration-1' '.claude/skills-workspace/algorithm-adder/iteration-1' '.claude/skills/coder/evals' '.claude/skills/test-writer/evals' '.claude/skills/algorithm-adder/evals')",
-      "Bash(rmdir '.claude/skills-workspace/coder/iteration-1' '.claude/skills-workspace/test-writer/iteration-1' '.claude/skills-workspace/algorithm-adder/iteration-1' '.claude/skills-workspace/coder' '.claude/skills-workspace/test-writer' '.claude/skills-workspace/algorithm-adder' '.claude/skills-workspace' 2>&1)"
+      "Bash(rmdir '.claude/skills-workspace/coder/iteration-1' '.claude/skills-workspace/test-writer/iteration-1' '.claude/skills-workspace/algorithm-adder/iteration-1' '.claude/skills-workspace/coder' '.claude/skills-workspace/test-writer' '.claude/skills-workspace/algorithm-adder' '.claude/skills-workspace' 2>&1)",
+      "Bash(Find src/algorithms -name \"*.ts\" -exec grep -n \"pushStep\" {} +)",
+      "Bash(npm test *)"
     ],
     "additionalDirectories": [
       "c:\\Users\\eduar\\github\\sort-simulator-web",

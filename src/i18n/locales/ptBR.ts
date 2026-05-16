@@ -119,7 +119,9 @@ const ptBR = {
       sizes:
         "Tamanhos dos vetores que serão gerados para cada algoritmo e cenário.",
       replications:
-        "Quantas vezes cada combinação será executada para calcular a média (1 a 40).",
+        "Quantas vezes cada combinação será executada para calcular a média.",
+      replicationsCap:
+        "Mínimo {min}, máximo {max} (ajustado automaticamente conforme o maior tamanho selecionado para proteger a memória do navegador).",
       timeoutEnabled:
         "Quando ativo, define um tempo máximo por execução. Desativado, o algoritmo executa sem limite de tempo.",
       timeoutMinutes:
@@ -137,7 +139,7 @@ const ptBR = {
         selectAlgorithm: "Selecione ao menos um algoritmo.",
         selectScenario: "Selecione ao menos um cenário.",
         selectSize: "Selecione ao menos um tamanho de vetor.",
-        replications: "Replicações deve ser maior que zero.",
+        replications: "Replicações deve estar entre {min} e {max}.",
         timeout: "Timeout deve ser maior que zero.",
       },
       running: "Simulação em andamento ({completed}/{total})",
@@ -151,6 +153,15 @@ const ptBR = {
       starting: "Iniciando simulação...",
       pendingLoaded:
         "Configuração carregada do histórico. Clique em Iniciar para rodar novamente.",
+    },
+    confirm: {
+      heavyJob: {
+        title: "Simulação pesada detectada",
+        description:
+          "Esta configuração executará {totalRuns} replicações em {cells} células, com pico estimado de {peakMemory} de memória por execução. Em dispositivos com pouca RAM ou várias abas abertas, isso pode travar o navegador. Deseja continuar?",
+        proceed: "Continuar",
+        cancel: "Cancelar",
+      },
     },
     report: {
       title: "Relatório do Comparador de Algoritmos",

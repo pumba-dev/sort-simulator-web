@@ -73,30 +73,37 @@ describe("deriveCellSeed", () => {
 });
 
 describe("generateScenarioArray", () => {
+  it("returns Int32Array so the buffer can be transferred to a worker", () => {
+    expect(generateScenarioArray(10, "crescente", 1)).toBeInstanceOf(
+      Int32Array,
+    );
+  });
+
   it("generates ascending arrays", () => {
-    const expected = [1, 2, 3, 4, 5];
-    expect(generateScenarioArray(5, "crescente", 1)).toEqual(expected);
+    expect(Array.from(generateScenarioArray(5, "crescente", 1))).toEqual([
+      1, 2, 3, 4, 5,
+    ]);
   });
 
   it("generates descending arrays", () => {
-    const expected = [5, 4, 3, 2, 1];
-    expect(generateScenarioArray(5, "decrescente", 1)).toEqual(expected);
+    expect(Array.from(generateScenarioArray(5, "decrescente", 1))).toEqual([
+      5, 4, 3, 2, 1,
+    ]);
   });
 
   it("generates reproducible aleatorio arrays for same seed", () => {
     const a = generateScenarioArray(20, "aleatorio", 42);
     const b = generateScenarioArray(20, "aleatorio", 42);
-    expect(a).toEqual(b);
+    expect(Array.from(a)).toEqual(Array.from(b));
   });
 
   it("aleatorio array contains every value 1..n", () => {
     const arr = generateScenarioArray(50, "aleatorio", 99);
-    const sorted = [...arr].sort((x, y) => x - y);
+    const sorted = Array.from(arr).sort((x, y) => x - y);
     expect(sorted).toEqual(Array.from({ length: 50 }, (_, i) => i + 1));
   });
 
   it("returns empty array for size <= 0", () => {
-    const expected: number[] = [];
-    expect(generateScenarioArray(0, "aleatorio", 1)).toEqual(expected);
+    expect(generateScenarioArray(0, "aleatorio", 1).length).toBe(0);
   });
 });

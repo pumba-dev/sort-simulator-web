@@ -42,12 +42,15 @@ export interface SortRunOptions {
   deadlineMs?: number;
 }
 
+/** Input array accepted by every sort algorithm — plain array for animation, Int32Array for transferable benchmark runs. */
+export type SortInput = number[] | Int32Array;
+
 /** Value returned by every sort algorithm after execution completes or is aborted. */
 export interface SortRunResult {
   /** Ordered list of snapshots for step-by-step visualization (empty when recordSteps=false). */
   steps: SortStep[];
-  /** The sorted (or partially sorted, if aborted) array. */
-  finalArray: number[];
+  /** The sorted (or partially sorted, if aborted) array. Same concrete type as the input. */
+  finalArray: SortInput;
   /** Total number of element comparisons performed. */
   comparisons: number;
   /** Total number of element swaps or moves performed. */
