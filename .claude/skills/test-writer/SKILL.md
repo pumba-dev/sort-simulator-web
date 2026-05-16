@@ -74,3 +74,7 @@ npx vitest run <path-to-spec> --coverage
 ```
 
 Confirm the target file shows `100 | 100 | 100 | 100` in the coverage table. Sub-100% coverage on critical files breaks CI later — fix it now while context is fresh.
+
+## Final gate (mandatory)
+
+After all tests pass, run `npm run build`. Fix any TypeScript errors before reporting done. A green test suite with a broken build is not done.

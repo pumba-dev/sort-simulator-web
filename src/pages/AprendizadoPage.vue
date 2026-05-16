@@ -186,6 +186,11 @@ const scenarioLabelByKey = computed<Record<ScenarioType, string>>(() => {
     crescente: t("common.scenarios.crescente"),
     decrescente: t("common.scenarios.decrescente"),
     aleatorio: t("common.scenarios.aleatorio"),
+    quaseOrdenado: t("common.scenarios.quaseOrdenado"),
+    quaseDecrescente: t("common.scenarios.quaseDecrescente"),
+    gaussiano: t("common.scenarios.gaussiano"),
+    organPipe: t("common.scenarios.organPipe"),
+    comOutliers: t("common.scenarios.comOutliers"),
   };
 });
 

@@ -54,3 +54,7 @@ Work the checklist top-to-bottom. Each step compiles and unblocks the next:
 6. Write the spec last, when you know the algorithm's actual behavior.
 
 Skipping ahead to "write the spec first" is fine if you prefer TDD — just make sure the algorithm contract tests from [test-writer/references/algorithm-tests.md](../test-writer/references/algorithm-tests.md) all pass before closing out.
+
+## Final gate (mandatory)
+
+Run `npm run build` after completing the checklist. Fix every TypeScript and Vite error before reporting the task as done. A passing spec with a broken build is not done.
